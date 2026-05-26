@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext.jsx";
+import { cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, impact } from "./api/client.js";
 
 // ─── Color Palette & Globals ───────────────────────────────────────────────
 const COLORS = {
@@ -306,19 +309,21 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
   const stepIdx = WORKFLOW_STEPS.findIndex(s => s.status === c.status);
 
   const canAdvance = () => {
-    if (c.status === "Pending Verification" && currentUser.role === "verification_office") return "Under Review";
-    if (c.status === "Under Review"         && currentUser.role === "verification_office") return "Investigating";
-    if (c.status === "Investigating"        && currentUser.role === "field_team")          return "Verified";
-    if (c.status === "Verified"             && currentUser.role === "verification_office") return "Waiting Sponsor";
-    if (c.status === "Sponsored"            && currentUser.role === "field_team")          return "Aid Delivered";
-    if (c.status === "Aid Delivered"        && (currentUser.role === "verification_office" || currentUser.role === "super_admin")) return "Completed";
+    const isAdmin = ["admin","super_admin","verification_office"].includes(currentUser.role);
+    const isField = ["field_agent","field_team"].includes(currentUser.role);
+    if (c.status === "Pending Verification" && isAdmin) return "Under Review";
+    if (c.status === "Under Review"         && isAdmin) return "Investigating";
+    if (c.status === "Investigating"        && isField) return "Verified";
+    if (c.status === "Verified"             && isAdmin) return "Waiting Sponsor";
+    if (c.status === "Sponsored"            && isField) return "Aid Delivered";
+    if (c.status === "Aid Delivered"        && (isAdmin || currentUser.role === "super_admin")) return "Completed";
     return null;
   };
   const nextStatus = canAdvance();
 
   // For field investigation — require at least 1 photo before submitting
-  const isInvestigating = c.status === "Investigating" && currentUser.role === "field_team";
-  const isDelivering    = c.status === "Sponsored"     && currentUser.role === "field_team";
+  const isInvestigating = c.status === "Investigating" && ["field_agent","field_team"].includes(currentUser.role);
+  const isDelivering    = c.status === "Sponsored"     && ["field_agent","field_team"].includes(currentUser.role);
   const canSubmitInvestigation = evidencePhotos.length > 0 && findings.trim().length > 0;
   const canSubmitDelivery      = proofPhotos.length > 0;
 
@@ -598,16 +603,16 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
             📦 Confirm Aid Delivered
           </Btn>
         )}
-        {c.status === "Waiting Sponsor" && currentUser.role === "donor" && (
+        {c.status === "Waiting Sponsor" && ["donor"].includes(currentUser.role) && (
           <Btn variant="accent" onClick={() => { onSponsor(c); onClose(); }}>❤️ Sponsor This Case</Btn>
         )}
-        {c.status === "Pending Verification" && currentUser.role === "verification_office" && (
+        {c.status === "Pending Verification" && ["admin","super_admin","verification_office"].includes(currentUser.role) && (
           <Btn variant="danger" onClick={() => { onUpdateCase(c.id, { status: "Archived" }); onClose(); }}>✕ Reject Case</Btn>
         )}
-        {(currentUser.role === "verification_office" || currentUser.role === "super_admin") && c.status === "Under Review" && (
+        {["admin","super_admin","verification_office"].includes(currentUser.role) && c.status === "Under Review" && (
           <Btn variant="primary" onClick={() => { onUpdateCase(c.id, { status: "Investigating", team_id: "T01" }); onClose(); }}>Assign Field Team</Btn>
         )}
-        {(currentUser.role === "verification_office" || currentUser.role === "super_admin") && c.status === "Aid Delivered" && (
+        {["admin","super_admin","verification_office"].includes(currentUser.role) && c.status === "Aid Delivered" && (
           <Btn variant="success" onClick={handleAdvance}>🏁 Mark as Completed</Btn>
         )}
         <Btn variant="muted" onClick={onClose}>Close</Btn>
@@ -1257,14 +1262,40 @@ const AdminDashboard = ({ cases, users, donations, sponsors, onViewCase, onAddUs
   );
 };
 
+// ─── Role → internal dashboard key ─────────────────────────────────────────
+const ROLE_MAP = {
+  reporter:            "observer",
+  admin:               "verification_office",
+  super_admin:         "super_admin",
+  field_agent:         "field_team",
+  donor:               "donor",
+  // legacy keys (pass-through)
+  observer:            "observer",
+  verification_office: "verification_office",
+  field_team:          "field_team",
+};
+
+const ROLE_LABELS = {
+  observer:            { icon: "📝", label: "Reporter" },
+  verification_office: { icon: "🏛️", label: "Admin / Verification" },
+  field_team:          { icon: "🗺️", label: "Field Agent" },
+  donor:               { icon: "❤️", label: "Donor / Sponsor" },
+  super_admin:         { icon: "🛡️", label: "Super Admin" },
+};
+
 // ─── MAIN APP ─────────────────────────────────────────────────────────────
 export default function KafaaleQaadApp() {
+  const { user: authUser, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Map real backend role → internal dashboard role
+  const internalRole = authUser ? (ROLE_MAP[authUser.role] || "observer") : null;
+
   const [cases,        setCases]        = useState(INITIAL_CASES);
   const [users,        setUsers]        = useState(INITIAL_USERS);
   const [donations,    setDonations]    = useState(INITIAL_DONATIONS);
   const [sponsors,     setSponsors]     = useState(SPONSORS);
-  const [currentUser,  setCurrentUser]  = useState(null);
-  const [loginRole,    setLoginRole]    = useState("observer");
+  const [notifs,       setNotifs]       = useState(NOTIFICATIONS_DATA);
   const [selectedCase, setSelectedCase] = useState(null);
   const [showReport,   setShowReport]   = useState(false);
   const [sponsorCase,  setSponsorCase]  = useState(null);
@@ -1274,15 +1305,144 @@ export default function KafaaleQaadApp() {
   const [toast,        setToast]        = useState(null);
   const [searchTerm,   setSearchTerm]   = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [apiLoading,   setApiLoading]   = useState(false);
+
+  // ─── Redirect if not logged in ─────────────────────────────────────────
+  useEffect(() => {
+    if (!authUser) {
+      navigate("/login");
+    }
+  }, [authUser, navigate]);
+
+  // ─── Build currentUser from real auth + mock fields ────────────────────
+  const currentUser = authUser ? {
+    id:                  authUser.id,
+    fullname:            authUser.name,
+    email:               authUser.email,
+    role:                internalRole,
+    realRole:            authUser.role,
+    phone:               authUser.phone || "",
+    verification_status: "active",
+  } : null;
+
+  // ─── Load real data from API ────────────────────────────────────────────
+  useEffect(() => {
+    if (!authUser) return;
+    setApiLoading(true);
+
+    // Load cases based on role
+    const loadCases = async () => {
+      try {
+        if (["admin","super_admin"].includes(authUser.role)) {
+          // Admin sees all cases with private data
+          const data = await adminApi.cases({ limit: 50 });
+          if (data?.cases) {
+            const mapped = data.cases.map(c => ({
+              id: c.id,
+              victim_name: c.privateVictimName || c.publicTitle || "Pending Review",
+              age: c.privateVictimAge || null,
+              gender: c.privateVictimGender || "—",
+              description: c.privateDescription || c.publicStory || "",
+              location: c.publicCity || c.privateAddress?.split(",").slice(-2).join(",").trim() || "Somalia",
+              urgency_level: c.emergencyLevel ? c.emergencyLevel.charAt(0).toUpperCase() + c.emergencyLevel.slice(1) : "Medium",
+              status: STATUS_API_MAP[c.status] || c.status,
+              created_at: c.createdAt?.slice(0,10) || "",
+              reporter_id: c.reporterId,
+              team_id: c.assignedAgentId,
+              findings: c.fieldInvestigation?.officialNotes || "",
+              media_files: [],
+              investigation_date: c.investigationCompletedAt?.slice(0,10) || null,
+              sponsor_id: null,
+              donation_amount: c.totalRaised || 0,
+              proof_files: [],
+              _raw: c,
+            }));
+            setCases(mapped);
+          }
+        } else if (authUser.role === "reporter") {
+          // Reporter sees only their own cases
+          const data = await casesApi.my();
+          if (Array.isArray(data)) {
+            const mapped = data.map(c => ({
+              id: c.id,
+              victim_name: c.publicTitle || "My Case",
+              description: c.privateDescription || "",
+              location: "—",
+              urgency_level: c.emergencyLevel ? c.emergencyLevel.charAt(0).toUpperCase() + c.emergencyLevel.slice(1) : "Medium",
+              status: STATUS_API_MAP[c.status] || "Pending Verification",
+              created_at: c.createdAt?.slice(0,10) || "",
+              reporter_id: authUser.id,
+              team_id: null,
+              donation_amount: c.totalRaised || 0,
+              media_files: [], proof_files: [], _raw: c,
+            }));
+            setCases(mapped);
+          }
+        } else if (authUser.role === "field_agent") {
+          // Field agent sees assigned cases
+          const data = await fieldApi.assignments();
+          if (Array.isArray(data)) {
+            const mapped = data.map(c => ({
+              id: c.id,
+              victim_name: c.privateVictimName || "Assigned Case",
+              description: c.privateDescription || "",
+              location: c.privateAddress?.split(",").slice(-2).join(",").trim() || "Somalia",
+              urgency_level: c.emergencyLevel ? c.emergencyLevel.charAt(0).toUpperCase() + c.emergencyLevel.slice(1) : "High",
+              status: STATUS_API_MAP[c.status] || "Investigating",
+              created_at: c.createdAt?.slice(0,10) || "",
+              reporter_id: c.reporterId,
+              team_id: c.assignedAgentId,
+              findings: c.fieldInvestigation?.officialNotes || "",
+              media_files: [], proof_files: [], _raw: c,
+            }));
+            setCases(mapped);
+          }
+        } else if (authUser.role === "donor") {
+          // Donor sees public cases
+          const data = await casesApi.list({ limit: 20 });
+          if (data?.cases) {
+            const mapped = data.cases.map(c => ({
+              id: c.id,
+              victim_name: c.publicTitle || "Verified Case",
+              description: c.publicStory || "",
+              location: c.publicCity || "Somalia",
+              urgency_level: c.emergencyLevel ? c.emergencyLevel.charAt(0).toUpperCase() + c.emergencyLevel.slice(1) : "Medium",
+              status: STATUS_API_MAP[c.status] || "Waiting Sponsor",
+              created_at: c.adminPublishedAt?.slice(0,10) || "",
+              reporter_id: null, team_id: null,
+              donation_amount: c.totalRaised || 0,
+              target_goal: c.targetGoal || 0,
+              media_files: [], proof_files: [], _raw: c,
+            }));
+            setCases(mapped);
+          }
+        }
+      } catch (e) {
+        // Fallback to mock data if API fails
+      } finally { setApiLoading(false); }
+    };
+
+    loadCases();
+  }, [authUser]);
+
+  // API status → display status mapping
+  const STATUS_API_MAP = {
+    pending_review:          "Pending Verification",
+    team_assigned:           "Under Review",
+    investigating:           "Investigating",
+    investigation_completed: "Awaiting Approval",
+    ai_sanitized:            "Awaiting Approval",
+    waiting_for_sponsor:     "Waiting Sponsor",
+    sponsored:               "Sponsored",
+    delivering:              "Aid Delivered",
+    proof_uploaded:          "Aid Delivered",
+    completed:               "Completed",
+    rejected:                "Archived",
+  };
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
-  };
-
-  const handleLogin = () => {
-    const roleUsers = { observer: "U002", verification_office: "U006", field_team: "U004", donor: "U007", super_admin: "U001" };
-    setCurrentUser(users.find(u => u.id === roleUsers[loginRole]));
   };
 
   const handleUpdateCase = (id, updates) => {
@@ -1300,81 +1460,50 @@ export default function KafaaleQaadApp() {
     showToast(`🎉 Thank you! ${caseItem?.victim_name} is now sponsored.`);
   };
 
+  const handleLogout = () => { logout(); navigate("/"); };
+
   const filteredCases = cases.filter(c => {
-    const matchSearch = !searchTerm || c.victim_name.toLowerCase().includes(searchTerm.toLowerCase()) || c.location.toLowerCase().includes(searchTerm.toLowerCase()) || c.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchVal = searchTerm.toLowerCase();
+    const matchSearch = !searchTerm
+      || (c.victim_name || "").toLowerCase().includes(searchVal)
+      || (c.location || "").toLowerCase().includes(searchVal)
+      || (c.id || "").toLowerCase().includes(searchVal);
     const matchStatus = filterStatus === "All" || c.status === filterStatus;
     return matchSearch && matchStatus;
   });
 
-  const unreadCount = NOTIFICATIONS_DATA.filter(n => !n.read).length;
+  const unreadCount = notifs.filter(n => !n.read).length;
 
-  // ─── LOGIN SCREEN ─────────────────────────────────────────────────────────
-  if (!currentUser) {
+  // ─── Guard: still loading auth ─────────────────────────────────────────
+  if (!authUser || !currentUser) {
     return (
-      <div style={{ minHeight: "100vh", background: `linear-gradient(135deg, ${COLORS.primary} 0%, #1A6B3C 60%, #E8A020 100%)`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Segoe UI', system-ui, sans-serif", padding: 16 }}>
-        <div style={{ display: "flex", gap: 32, alignItems: "flex-start", maxWidth: 900, width: "100%" }}>
-          {/* Left: branding */}
-          <div style={{ color: "#fff", flex: 1, paddingTop: 20, display: "none", ...(window.innerWidth > 768 ? { display: "block" } : {}) }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🤝</div>
-            <h1 style={{ margin: "0 0 8px", fontSize: 40, fontWeight: 900, lineHeight: 1.1 }}>KAFAALE QAAD</h1>
-            <p style={{ margin: "0 0 32px", fontSize: 16, opacity: 0.85 }}>Humanitarian Aid Distribution Platform</p>
-            <div style={{ fontSize: 13, opacity: 0.75, lineHeight: 2.2 }}>
-              {["✅ 8-Step Verified Workflow","🔐 OTP + Face Verification","💰 Multi-Gateway Payments","📊 Real-time Analytics","🗺️ GPS Field Tracking","🤖 AI Fraud Detection"].map(f => <div key={f}>{f}</div>)}
-            </div>
-            <div style={{ marginTop: 32, background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px 16px", fontSize: 12, opacity: 0.8 }}>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>TECHNOLOGY STACK</div>
-              {[["Frontend","Next.js / React"],["Mobile","React Native"],["Backend","Node.js / NestJS"],["Database","PostgreSQL + Supabase"],["Cloud","AWS S3 + EC2 + RDS"],["Payments","Stripe · PayPal · Ama Gateway"]].map(([k,v]) => (
-                <div key={k} style={{ marginBottom: 2 }}><strong>{k}:</strong> {v}</div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right: login card */}
-          <div style={{ background: "#fff", borderRadius: 24, padding: 40, maxWidth: 420, width: "100%", boxShadow: "0 32px 80px #0005" }}>
-            <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <div style={{ fontSize: 48, marginBottom: 10 }}>🤝</div>
-              <h2 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: COLORS.primary }}>KAFAALE QAAD</h2>
-              <p style={{ margin: "6px 0 0", color: COLORS.muted, fontSize: 13 }}>Qaabka Isku Xirka System-ka</p>
-            </div>
-
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 12 }}>Select Your Role / Dooro Doorkaaga:</label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {[
-                  { role: "observer",            label: "👁️ Reporter",     desc: "Submit cases" },
-                  { role: "verification_office", label: "🏛️ Verification", desc: "Review cases" },
-                  { role: "field_team",          label: "🗺️ Field Team",   desc: "Investigate" },
-                  { role: "donor",               label: "❤️ Donor",        desc: "Sponsor cases" },
-                  { role: "super_admin",         label: "🛡️ Super Admin",  desc: "Full access" },
-                ].map(r => (
-                  <div key={r.role} onClick={() => setLoginRole(r.role)}
-                    style={{ padding: 14, border: `2px solid ${loginRole === r.role ? COLORS.primary : COLORS.border}`, borderRadius: 12, cursor: "pointer", background: loginRole === r.role ? COLORS.primary + "10" : "#fff", transition: "all 0.15s", gridColumn: r.role === "super_admin" ? "1 / -1" : "auto" }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: loginRole === r.role ? COLORS.primary : COLORS.text }}>{r.label}</div>
-                    <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2 }}>{r.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button onClick={handleLogin} style={{ width: "100%", padding: 16, background: COLORS.primary, color: "#fff", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 800, cursor: "pointer", letterSpacing: 0.3 }}>
-              Enter System →
-            </button>
-
-            <div style={{ marginTop: 20, background: "#F8FAFC", borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.muted, marginBottom: 6 }}>SYSTEM STATUS</div>
-              <div style={{ display: "flex", gap: 16, fontSize: 11, color: COLORS.muted }}>
-                <span>📋 {cases.length} Cases</span>
-                <span>👥 {users.length} Users</span>
-                <span>💰 ${INITIAL_DONATIONS.reduce((a,d)=>a+d.amount,0).toLocaleString()} Donated</span>
-              </div>
-            </div>
-          </div>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🤝</div>
+          <div style={{ fontSize: 18, color: COLORS.muted }}>Loading Kafaale Qaad...</div>
         </div>
       </div>
     );
   }
 
-  // ─── ROLE DASHBOARDS MAP ───────────────────────────────────────────────────
+  const roleInfo = ROLE_LABELS[internalRole] || { icon: "👤", label: "User" };
+
+  // ─── Access denied guard ────────────────────────────────────────────────
+  const VALID_ROLES = ["observer","verification_office","field_team","donor","super_admin"];
+  if (!VALID_ROLES.includes(internalRole)) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg }}>
+        <div style={{ textAlign: "center", background: "#fff", padding: 40, borderRadius: 20, boxShadow: "0 4px 20px #0001" }}>
+          <div style={{ fontSize: 48 }}>🚫</div>
+          <h2 style={{ color: COLORS.danger }}>Access Denied</h2>
+          <p style={{ color: COLORS.muted }}>Your account role ({authUser.role}) does not have dashboard access.</p>
+          <button onClick={handleLogout} style={{ padding: "10px 24px", background: COLORS.primary, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", fontWeight: 700 }}>Sign Out</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── ROLE DASHBOARDS MAP (locked to real role) ──────────────────────────
   const ROLE_DASHBOARDS = {
     observer:            <ObserverDashboard cases={filteredCases} currentUser={currentUser} onReport={() => setShowReport(true)} onViewCase={setSelectedCase} />,
     verification_office: <VerificationDashboard cases={filteredCases} onViewCase={setSelectedCase} />,
@@ -1433,7 +1562,7 @@ export default function KafaaleQaadApp() {
             <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
               {currentUser.role === "super_admin" ? "🛡️" : currentUser.role === "donor" ? "❤️" : currentUser.role === "field_team" ? "🗺️" : currentUser.role === "verification_office" ? "🏛️" : "👁️"}
             </div>
-            <Btn variant="muted" size="sm" onClick={() => setCurrentUser(null)}>Logout</Btn>
+            <Btn variant="muted" size="sm" onClick={handleLogout}>Sign Out</Btn>
           </div>
         </div>
       </div>
