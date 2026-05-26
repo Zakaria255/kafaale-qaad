@@ -623,83 +623,134 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
 
 // ─── REPORT CASE MODAL ─────────────────────────────────────────────────────
 const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
-  const [form, setForm] = useState({ victim_name: "", age: "", gender: "Female", description: "", location: "", urgency_level: "Medium" });
-  const [reportPhotos, setReportPhotos] = useState([]);
-  const [reportVideos, setReportVideos] = useState([]);
+  const [form, setForm] = useState({
+    privateVictimName:   "",
+    privateVictimAge:    "",
+    privateVictimGender: "female",
+    privateVictimPhone:  "",
+    privateAddress:      "",
+    privateFamilySize:   "",
+    privateDescription:  "",
+    privateNotes:        "",
+    category:            "food",
+    emergencyLevel:      "high",
+    targetGoal:          "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState("");
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const handleSubmit = () => {
-    if (!form.victim_name || !form.description || !form.location) return alert("Please fill all required fields");
-    const newCase = {
-      id: "C" + String(Math.floor(Math.random() * 9000) + 1000),
-      ...form, age: parseInt(form.age) || 0,
-      status: "Pending Verification",
-      created_at: new Date().toISOString().split("T")[0],
-      reporter_id: currentUser.id, team_id: null,
-      findings: "",
-      media_files: [
-        ...reportPhotos.map(f => f.name),
-        ...reportVideos.map(f => f.name),
-      ],
-      investigation_date: null,
-      sponsor_id: null, donation_amount: 0, proof_files: [],
-    };
-    onSubmit(newCase);
-    onClose();
+  const handleSubmit = async () => {
+    setError("");
+    if (!form.privateVictimName.trim()) return setError("Victim name is required");
+    if (form.privateDescription.trim().length < 20) return setError("Description must be at least 20 characters");
+    if (!form.privateAddress.trim()) return setError("Location / address is required");
+
+    setLoading(true);
+    try {
+      const payload = {
+        privateVictimName:   form.privateVictimName.trim(),
+        privateDescription:  form.privateDescription.trim(),
+        privateAddress:      form.privateAddress.trim(),
+        category:            form.category,
+        emergencyLevel:      form.emergencyLevel,
+        ...(form.privateVictimAge    && { privateVictimAge:    parseInt(form.privateVictimAge)  }),
+        ...(form.privateVictimGender && { privateVictimGender: form.privateVictimGender }),
+        ...(form.privateVictimPhone  && { privateVictimPhone:  form.privateVictimPhone.trim() }),
+        ...(form.privateFamilySize   && { privateFamilySize:   parseInt(form.privateFamilySize) }),
+        ...(form.privateNotes        && { privateNotes:        form.privateNotes.trim() }),
+        ...(form.targetGoal          && { targetGoal:          parseFloat(form.targetGoal) }),
+      };
+      const result = await casesApi.submit(payload);
+      // Submission succeeded — tell parent to reload
+      onSubmit(result);
+      onClose();
+    } catch (e) {
+      setError(e.message || "Submission failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const totalFiles = reportPhotos.length + reportVideos.length;
+  const CATEGORIES = [
+    { value: "food",      label: "🍚 Food Insecurity"     },
+    { value: "medical",   label: "🏥 Medical Emergency"   },
+    { value: "shelter",   label: "🏠 Shelter / Housing"   },
+    { value: "orphan",    label: "👶 Orphan / Child Aid"  },
+    { value: "disaster",  label: "🌊 Disaster Relief"     },
+    { value: "education", label: "📚 Education Support"   },
+    { value: "other",     label: "📌 Other"               },
+  ];
 
   return (
-    <Modal title="📝 Report New Case" onClose={onClose}>
-      <Input label="Victim Full Name *" value={form.victim_name} onChange={e => set("victim_name", e.target.value)} placeholder="Enter full name" />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <Input label="Age" type="number" value={form.age} onChange={e => set("age", e.target.value)} placeholder="Age" />
-        <Select label="Gender" value={form.gender} onChange={e => set("gender", e.target.value)}>
-          <option>Female</option><option>Male</option><option>Other</option>
-        </Select>
+    <Modal title="📝 Report New Case" onClose={onClose} wide>
+      {/* Privacy note */}
+      <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#065F46" }}>
+        🔐 All personal details you enter are <strong>private and encrypted</strong>. Only verified admins and field agents can see this information. Donors never see victim names, phones, or addresses.
       </div>
-      <Input label="Location *" value={form.location} onChange={e => set("location", e.target.value)} placeholder="City, District" />
-      <Select label="Urgency Level" value={form.urgency_level} onChange={e => set("urgency_level", e.target.value)}>
-        <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
-      </Select>
-      <Textarea label="Description *" value={form.description} onChange={e => set("description", e.target.value)} placeholder="Describe the situation in detail..." style={{ minHeight: 100 }} />
 
-      {/* ── FILE UPLOADS ── */}
-      <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: 16, marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: COLORS.primary, marginBottom: 4 }}>📎 Attach Supporting Evidence (Optional)</div>
-        <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 14 }}>Photos or videos that support the case — family situation, shelter, documents etc.</div>
-        <FileUploadZone
-          label="📸 Photos"
-          accept="image/*"
-          files={reportPhotos}
-          onAdd={f => setReportPhotos(p => [...p, ...f])}
-          onRemove={i => setReportPhotos(p => p.filter((_, idx) => idx !== i))}
-          note="Case photos — shelter, family, situation"
-          color={COLORS.primary}
-        />
-        <FileUploadZone
-          label="🎥 Videos (Optional)"
-          accept="video/*"
-          files={reportVideos}
-          onAdd={f => setReportVideos(p => [...p, ...f])}
-          onRemove={i => setReportVideos(p => p.filter((_, idx) => idx !== i))}
-          note="Short video showing the situation"
-          color="#8B5CF6"
-        />
-        {totalFiles > 0 && (
-          <div style={{ fontSize: 12, color: COLORS.secondary, fontWeight: 600, marginTop: 4 }}>
-            ✅ {totalFiles} file{totalFiles > 1 ? "s" : ""} ready to attach
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+        {/* Left: victim info */}
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>🔐 Private Victim Information</div>
+          <Input label="Victim Full Name *" value={form.privateVictimName}
+            onChange={e => set("privateVictimName", e.target.value)} placeholder="Full name" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Input label="Age" type="number" value={form.privateVictimAge}
+              onChange={e => set("privateVictimAge", e.target.value)} placeholder="Years" />
+            <Select label="Gender" value={form.privateVictimGender} onChange={e => set("privateVictimGender", e.target.value)}>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="other">Other</option>
+            </Select>
           </div>
-        )}
+          <Input label="Phone Number" value={form.privateVictimPhone}
+            onChange={e => set("privateVictimPhone", e.target.value)} placeholder="+252 61 xxx xxxx" />
+          <Input label="Family Size (no. of people)" type="number" value={form.privateFamilySize}
+            onChange={e => set("privateFamilySize", e.target.value)} placeholder="e.g. 5" />
+          <Input label="Address / Location *" value={form.privateAddress}
+            onChange={e => set("privateAddress", e.target.value)} placeholder="District, City, Region" />
+        </div>
+
+        {/* Right: case details */}
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>📋 Case Details</div>
+          <Select label="Category *" value={form.category} onChange={e => set("category", e.target.value)}>
+            {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </Select>
+          <Select label="Urgency Level *" value={form.emergencyLevel} onChange={e => set("emergencyLevel", e.target.value)}>
+            <option value="critical">🚨 Critical — Life-threatening, immediate help needed</option>
+            <option value="high">🔴 High — Urgent within days</option>
+            <option value="medium">🟡 Medium — Within a week</option>
+            <option value="low">🟢 Low — Stable but needs support</option>
+          </Select>
+          <Input label="Estimated Amount Needed (USD)" type="number" value={form.targetGoal}
+            onChange={e => set("targetGoal", e.target.value)} placeholder="e.g. 800" />
+          <Textarea label="Situation Description * (min. 20 characters)" value={form.privateDescription}
+            onChange={e => set("privateDescription", e.target.value)}
+            placeholder="Describe the full situation — what happened, why they need help, what is urgently needed…"
+            style={{ minHeight: 120 }} />
+          <Textarea label="Additional Notes (optional)" value={form.privateNotes}
+            onChange={e => set("privateNotes", e.target.value)}
+            placeholder="Any other relevant information for the verification team…" />
+        </div>
       </div>
 
-      <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: 10, padding: 12, marginBottom: 16, fontSize: 13, color: "#92400E" }}>
-        📋 After submission, Verification Office will review the case. Status: <strong>Pending Verification</strong>
+      {error && (
+        <div style={{ background: "#FEF2F2", color: COLORS.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginTop: 8 }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#92400E", marginTop: 16 }}>
+        📋 After submission you will see this case immediately in your dashboard with status <strong>Pending Verification</strong>. Admin will assign a field agent to investigate.
       </div>
-      <div style={{ display: "flex", gap: 10 }}>
-        <Btn variant="primary" onClick={handleSubmit} style={{ flex: 1 }}>Submit Report</Btn>
-        <Btn variant="muted" onClick={onClose}>Cancel</Btn>
+
+      <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+        <Btn variant="muted" onClick={onClose} style={{ flex: 1 }} disabled={loading}>Cancel</Btn>
+        <Btn variant="primary" onClick={handleSubmit} disabled={loading} style={{ flex: 2 }}>
+          {loading ? "Submitting…" : "📤 Submit Case Report"}
+        </Btn>
       </div>
     </Modal>
   );
