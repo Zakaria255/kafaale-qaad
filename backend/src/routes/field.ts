@@ -8,7 +8,7 @@ router.use(authenticate, requireRole(['field_agent','admin','super_admin']));
 router.get('/assignments', async (req: AuthRequest, res: Response) => {
   try {
     const cases = await prisma.case.findMany({
-      where: { assignedAgentId: req.user!.id, status: { in: ['team_assigned','investigating'] } },
+      where: { assignedAgentId: req.user!.id, status: { in: ['team_assigned','investigating','investigation_completed','ai_sanitized','sponsored','delivering','proof_uploaded'] } },
       include: { reporter: { select: { name: true, phone: true } }, fieldInvestigation: true },
     });
     res.json(cases);

@@ -8,6 +8,20 @@
     <style>
       *, *::before, *::after { box-sizing: border-box; }
       body { margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+      /* Mobile-first responsive helpers */
+      @media (max-width: 640px) {
+        .hide-mobile { display: none !important; }
+      }
+      @media (min-width: 641px) {
+        .hide-mobile { display: block !important; }
+      }
+      /* Smooth transitions */
+      * { -webkit-tap-highlight-color: transparent; }
+      input, select, textarea, button { font-family: inherit; }
+      /* Scrollbar styling */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: #F3F4F6; }
+      ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
     </style>
   </head>
   <body>
