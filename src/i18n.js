@@ -25,6 +25,40 @@ export const T = {
     fr: "Plateforme d'Aide Humanitaire",
   },
 
+  // ── Navbar ────────────────────────────────────────────────────────────────
+  navHome: {
+    en: "Home", so: "Hoyga", ar: "الرئيسية",
+    tr: "Ana Sayfa", es: "Inicio", fr: "Accueil",
+  },
+  navAbout: {
+    en: "About", so: "Ku saabsan", ar: "حول",
+    tr: "Hakkında", es: "Acerca de", fr: "À propos",
+  },
+  navHowItWorks: {
+    en: "How It Works", so: "Sida u shaqeeyo", ar: "كيف يعمل",
+    tr: "Nasıl Çalışır", es: "Cómo Funciona", fr: "Comment ça marche",
+  },
+  navCases: {
+    en: "Cases", so: "Xaaladaha", ar: "الحالات",
+    tr: "Davalar", es: "Casos", fr: "Cas",
+  },
+  navDonate: {
+    en: "Donate", so: "Deeq Bixi", ar: "تبرع",
+    tr: "Bağış Yap", es: "Donar", fr: "Donner",
+  },
+  navContact: {
+    en: "Contact", so: "Xiriir", ar: "تواصل",
+    tr: "İletişim", es: "Contacto", fr: "Contact",
+  },
+  dashboard: {
+    en: "Dashboard", so: "Xaashida", ar: "لوحة القيادة",
+    tr: "Kontrol Paneli", es: "Panel", fr: "Tableau de bord",
+  },
+  signOut: {
+    en: "Sign Out", so: "Ka bax", ar: "تسجيل الخروج",
+    tr: "Çıkış Yap", es: "Cerrar Sesión", fr: "Déconnexion",
+  },
+
   // ── Auth ──────────────────────────────────────────────────────────────────
   signIn: {
     en: "Sign In", so: "Gal", ar: "تسجيل الدخول",

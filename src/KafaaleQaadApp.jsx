@@ -1025,7 +1025,7 @@ const NotificationsDropdown = ({ notifs, onClose, onMarkAll, onOpenCase }) => {
     new_donation:           "❤️",
   };
   return (
-    <div style={{ position: "absolute", top: 56, right: 0, background: "#fff", borderRadius: 16, width: 360, maxHeight: 480, overflowY: "auto", boxShadow: "0 16px 48px #0003", zIndex: 500, border: `1px solid ${COLORS.border}` }}>
+    <div className="kf-notif-dropdown" style={{ position: "absolute", top: 56, right: 0, background: "#fff", borderRadius: 16, width: 340, maxHeight: 480, overflowY: "auto", boxShadow: "0 16px 48px #0003", zIndex: 500, border: `1px solid ${COLORS.border}` }}>
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, background: "#fff" }}>
         <div style={{ fontWeight: 800, fontSize: 15 }}>🔔 Notifications</div>
         {unread > 0 && <span style={{ background: "#EF4444", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>{unread}</span>}
@@ -3548,7 +3548,7 @@ export default function KafaaleQaadApp() {
                 {currentLang.flag}{!isMobile && <span style={{ fontSize: 11 }}> ▾</span>}
               </button>
               {showLangMenu && (
-                <div style={{ position: "absolute", top: 42, right: 0, background: "#fff", borderRadius: 12, boxShadow: "0 8px 32px #0003", zIndex: 200, minWidth: 160, border: `1px solid ${COLORS.border}` }}>
+                <div className="kf-lang-menu" style={{ position: "absolute", top: 42, right: 0, background: "#fff", borderRadius: 12, boxShadow: "0 8px 32px #0003", zIndex: 200, minWidth: 160, border: `1px solid ${COLORS.border}` }}>
                   {LANGUAGES.map(l => (
                     <div key={l.code} onClick={() => { changeLang(l.code); setShowLangMenu(false); }}
                       style={{ padding: "10px 16px", fontSize: 13, cursor: "pointer", background: lang === l.code ? COLORS.primary + "10" : "", fontWeight: lang === l.code ? 700 : 400, display: "flex", alignItems: "center", gap: 8, color: COLORS.text }}>

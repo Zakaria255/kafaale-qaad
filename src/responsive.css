@@ -199,3 +199,58 @@ html { scroll-behavior: smooth; }
 
 /* ── Prevent horizontal overflow ─────────────────────────────────────────── */
 body { overflow-x: hidden; }
+
+/* ── Samsung / Android small screen fixes ────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Dashboard header shrink on very small screens */
+  .kf-header-inner {
+    height: 52px;
+    gap: 6px;
+    padding: 0 10px;
+  }
+  /* Notifications dropdown stays within screen */
+  .kf-notif-dropdown {
+    position: fixed !important;
+    top: 56px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+  }
+  /* Language menu stays within screen */
+  .kf-lang-menu {
+    position: fixed !important;
+    top: 56px !important;
+    right: 8px !important;
+    left: auto !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+  /* Stat cards: always 2 cols on tiny screens */
+  .kf-stats-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  /* Tabs: smaller text */
+  .kf-tabs button {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+  /* Cards: reduce padding */
+  .kf-card { padding: 12px 10px !important; }
+  .kf-main { padding: 10px 8px !important; }
+}
+
+/* ── Fix: no horizontal scroll on the page itself ─────────────────────────── */
+#root, html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ── Dashboard action row on mobile ────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .kf-action-row {
+    gap: 12px;
+  }
+  .kf-action-row h2 {
+    font-size: 18px !important;
+  }
+}
