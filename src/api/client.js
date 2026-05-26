@@ -19,7 +19,7 @@ async function req(path, opts = {}) {
     if (!window.location.pathname.includes('/login')) {
       window.location.href = '/login';
     }
-    return;
+    throw new Error('Invalid email or password');
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
