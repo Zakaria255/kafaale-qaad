@@ -20,11 +20,8 @@ export default function Login() {
       const user = tab === 'login'
         ? await login(form.email, form.password)
         : await register({ name: form.name, email: form.email, password: form.password, role: form.role, country: form.country, city: form.city, phone: form.phone });
-      const role = user?.user?.role || '';
-      if (['admin','super_admin'].includes(role)) nav('/dashboard');
-      else if (role === 'field_agent') nav('/dashboard');
-      else if (role === 'donor') nav('/cases');
-      else nav('/dashboard');
+      // All roles go to their role-specific dashboard
+      nav('/dashboard');
     } catch (err) { setError(err.message); }
   };
 
@@ -65,7 +62,6 @@ export default function Login() {
                 style={{ width: '100%', padding: '12px 16px', border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 15, background: C.bg }}>
                 <option value="reporter">📝 Reporter — Report emergency cases</option>
                 <option value="donor">💳 Donor / Sponsor — Fund verified cases</option>
-                <option value="field_agent">🔍 Field Agent — Investigate cases</option>
               </select>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 {inp('country', 'Country')}
@@ -79,20 +75,6 @@ export default function Login() {
             {loading ? '⏳ Please wait...' : tab === 'login' ? '🔐 Sign In' : '✨ Create Account'}
           </button>
         </form>
-
-        {/* Demo credentials */}
-        {tab === 'login' && (
-          <div style={{ marginTop: 20, padding: 14, background: C.bg, borderRadius: 10, fontSize: 13 }}>
-            <div style={{ fontWeight: 600, color: C.primary, marginBottom: 8 }}>🔑 Demo Accounts</div>
-            {[['admin@kafaale.org','Admin'],['donor@kafaale.org','Donor'],['reporter@kafaale.org','Reporter'],['agent@kafaale.org','Field Agent']].map(([email, label]) => (
-              <div key={email} onClick={() => setForm(p => ({ ...p, email, password: 'Kafaale123!' }))}
-                style={{ cursor: 'pointer', color: C.primary, marginBottom: 4, fontSize: 12, display: 'flex', justifyContent: 'space-between' }}>
-                <span>{email}</span><span style={{ background: C.primary, color: '#fff', padding: '1px 6px', borderRadius: 4 }}>{label}</span>
-              </div>
-            ))}
-            <div style={{ color: '#6B7280', marginTop: 6, fontSize: 11 }}>Password: <strong>Kafaale123!</strong> · Click any to fill</div>
-          </div>
-        )}
 
         <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#6B7280' }}>
           <Link to="/" style={{ color: C.primary }}>← Back to Home</Link>
