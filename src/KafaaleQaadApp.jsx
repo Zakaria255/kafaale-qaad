@@ -3061,8 +3061,6 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
       {tab === "users" && (
         <UsersTab users={users} isSuperAdmin={isSuperAdmin} onDeleteUser={onDeleteUser} onChangeRole={onChangeRole} />
       )}
-        </div>
-      )}
 
       {tab === "cases" && (
         <div>
