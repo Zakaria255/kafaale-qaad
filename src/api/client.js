@@ -50,6 +50,7 @@ export const admin = {
   assign:           (id, agentId)             => req(`/admin/cases/${id}/assign`, { method: 'PATCH', body: JSON.stringify({ agentId }) }),
   publish:          (id, data)                => req(`/admin/cases/${id}/publish`, { method: 'PATCH', body: JSON.stringify(data) }),
   users:            ()                        => req('/admin/users'),
+  deleteUser:       (id)                      => req(`/admin/users/${id}`, { method: 'DELETE' }),
   audit:            ()                        => req('/admin/audit'),
   donations:        ()                        => req('/admin/donations'),
   confirmDonation:  (id)                      => req(`/admin/donations/${id}/confirm`,         { method: 'PATCH' }),

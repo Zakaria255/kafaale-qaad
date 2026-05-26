@@ -276,6 +276,33 @@ router.patch('/cases/:id/complete', async (req: AuthRequest, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to complete case' }); }
 });
 
+// DELETE /api/admin/users/:id — Delete a user (super_admin only)
+router.delete('/users/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.user!.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Only Super Admin can delete users' });
+    }
+    const { id } = req.params;
+    if (id === req.user!.id) {
+      return res.status(400).json({ error: 'You cannot delete your own account' });
+    }
+    const target = await prisma.user.findUnique({ where: { id } });
+    if (!target) return res.status(404).json({ error: 'User not found' });
+    if (target.role === 'super_admin') {
+      return res.status(400).json({ error: 'Cannot delete another Super Admin account' });
+    }
+    await prisma.user.delete({ where: { id } });
+    await prisma.adminAuditLog.create({
+      data: { adminId: req.user!.id, action: 'user_deleted', notes: `Deleted user ${target.email} (${target.role})` },
+    });
+    sysLog.info(`Super admin ${req.user!.email} deleted user ${target.email}`);
+    res.json({ message: 'User deleted', userId: id });
+  } catch (err: any) {
+    sysLog.error('Failed to delete user', { error: err.message });
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
 // GET /api/admin/audit — Audit log
 router.get('/audit', async (_req: AuthRequest, res: Response) => {
   try {
