@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
+import { useLang } from "./context/LanguageContext.jsx";
 import { cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact } from "./api/client.js";
 import "./responsive.css";
 
@@ -412,7 +413,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
       {/* ── DETAILS TAB ── */}
       {activeTab === "details" && (
         <div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
             {[["Victim Name", c.victim_name], ["Age", c.age], ["Gender", c.gender], ["Location", c.location], ["Reporter", c.reporter_id], ["Team", c.team_id || "Not Assigned"], ["Created", c.created_at], ["Donation", c.donation_amount ? `$${c.donation_amount}` : "None"]].map(([k, v]) => (
               <div key={k} style={{ background: "#F8FAFC", borderRadius: 10, padding: "10px 14px" }}>
                 <div style={{ fontSize: 11, color: COLORS.muted, fontWeight: 600, marginBottom: 2 }}>{k}</div>
@@ -713,7 +714,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
           <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>🔐 Private Victim Information</div>
           <Input label="Victim Full Name *" value={form.privateVictimName}
             onChange={e => set("privateVictimName", e.target.value)} placeholder="Full name" />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
             <Input label="Age" type="number" value={form.privateVictimAge}
               onChange={e => set("privateVictimAge", e.target.value)} placeholder="Years" />
             <Select label="Gender" value={form.privateVictimGender} onChange={e => set("privateVictimGender", e.target.value)}>
@@ -995,7 +996,7 @@ const ExportModal = ({ cases, onClose }) => {
   return (
     <Modal title="📥 Export Data" onClose={onClose}>
       <p style={{ margin: "0 0 20px", color: COLORS.muted, fontSize: 14 }}>Export {cases.length} cases in your preferred format:</p>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 20 }}>
         <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 14, padding: 24, textAlign: "center", cursor: "pointer" }} onClick={exportCSV}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>📊</div>
           <div style={{ fontWeight: 700, color: COLORS.primary }}>CSV Export</div>
@@ -1231,7 +1232,7 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
         placeholder="e.g. Emergency medical support for displaced family" />
       <Textarea label="Public Story *" value={form.publicStory} onChange={e => set("publicStory", e.target.value)}
         placeholder="Describe the situation without revealing private identity details…" style={{ minHeight: 120 }} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
         <Input label="Public City / Region *" value={form.publicCity} onChange={e => set("publicCity", e.target.value)}
           placeholder="e.g. Mogadishu, Hodan" />
         <Input label="Funding Goal (USD) *" type="number" value={form.targetGoal} onChange={e => set("targetGoal", e.target.value)}
@@ -1495,7 +1496,7 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
       {/* Delivery method */}
       <div style={{ marginBottom: 16 }}>
         <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>📦 WHAT WAS DELIVERED</label>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
           {METHOD_OPTIONS.map(opt => (
             <button key={opt.val} onClick={() => set("deliveryMethod", opt.val)}
               style={{ padding: "10px 12px", borderRadius: 10, border: `2px solid ${form.deliveryMethod === opt.val ? COLORS.secondary : COLORS.border}`, background: form.deliveryMethod === opt.val ? COLORS.secondary + "10" : "#fff", cursor: "pointer", fontSize: 13, fontWeight: form.deliveryMethod === opt.val ? 700 : 500, textAlign: "left", color: form.deliveryMethod === opt.val ? COLORS.secondary : COLORS.text }}>
@@ -2056,7 +2057,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24, marginBottom: 24 }}>
         {/* Case pipeline bar chart */}
         <div style={{ background: "#fff", borderRadius: 14, padding: 24, boxShadow: "0 2px 8px #0001" }}>
           <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>📊 Case Distribution by Status</h3>
@@ -2093,7 +2094,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
       {/* Urgency distribution */}
       <div style={{ background: "#fff", borderRadius: 14, padding: 24, boxShadow: "0 2px 8px #0001", marginBottom: 24 }}>
         <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>🚦 Cases by Urgency Level</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 16 }}>
           {["Critical", "High", "Medium", "Low"].map(level => {
             const count = cases.filter(c => c.urgency_level === level).length;
             return (
@@ -2110,7 +2111,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
       {/* Team performance */}
       <div style={{ background: "#fff", borderRadius: 14, padding: 24, boxShadow: "0 2px 8px #0001" }}>
         <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>🏆 Team Performance Metrics</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
           {[
             { team: "Field Team Alpha",   investigations: 12, completed: 10, avgTime: "3.2 days", rating: 4.8 },
             { team: "Field Team Beta",    investigations: 9,  completed: 7,  avgTime: "4.1 days", rating: 4.5 },
@@ -2865,6 +2866,7 @@ const ROLE_COLORS = {
 };
 
 const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
+  const { t } = useLang();
   const [editingId, setEditingId] = useState(null);
   const [savingId,  setSavingId]  = useState(null);
 
@@ -2884,7 +2886,7 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#F8FAFC" }}>
-            {["", "Name", "Email", "Phone", "Role", "Status", isSuperAdmin ? "Actions" : null].filter(Boolean).map(h => (
+            {["", t("name"), "Email", "Phone", t("role"), t("status"), isSuperAdmin ? t("actions") : null].filter(Boolean).map(h => (
               <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.muted, borderBottom: `1px solid ${COLORS.border}` }}>{h}</th>
             ))}
           </tr>
@@ -2934,7 +2936,7 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
                     {u.role !== "super_admin" && (
                       <button onClick={() => onDeleteUser && onDeleteUser(u)}
                         style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#FEE2E2", color: "#DC2626", border: "1px solid #FCA5A5", cursor: "pointer" }}>
-                        🗑️ Delete
+                        {t("deleteUser")}
                       </button>
                     )}
                   </td>
@@ -2951,6 +2953,7 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
 const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, isSuperAdmin }) => {
   const [tab, setTab] = useState("overview");
   const [donFilter, setDonFilter] = useState("all");
+  const { t } = useLang();
   const totalDonated = donations.reduce((a, d) => a + (d.amount || 0), 0);
   const confirmedTotal = donations.filter(d => d.status === "confirmed").reduce((a, d) => a + (d.amount || 0), 0);
   const pendingTotal   = donations.filter(d => d.status === "pending").reduce((a, d) => a + (d.amount || 0), 0);
@@ -2961,23 +2964,23 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   const filteredDonations = donFilter === "all" ? donations : donations.filter(d => d.status === donFilter);
 
   const TABS = [
-    { id: "overview",   label: "🏠 Overview"   },
-    { id: "analytics",  label: "📊 Analytics"  },
-    { id: "users",      label: "👥 Users"      },
-    { id: "cases",      label: "📋 All Cases"  },
-    { id: "donations",  label: "💰 Donations"  },
+    { id: "overview",   label: t("overview")   },
+    { id: "analytics",  label: t("analytics")  },
+    { id: "users",      label: t("users")      },
+    { id: "cases",      label: t("allCases")   },
+    { id: "donations",  label: t("donations")  },
   ];
 
   return (
     <div>
       <div className="kf-action-row">
         <div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>🛡️ Admin Command Center</h2>
-          <p style={{ margin: "4px 0 0", color: COLORS.muted, fontSize: 13 }}>Full system oversight & management</p>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>{t("adminCommandCenter")}</h2>
+          <p style={{ margin: "4px 0 0", color: COLORS.muted, fontSize: 13 }}>{t("fullOversight")}</p>
         </div>
         <div className="kf-action-btns">
-          <Btn variant="teal" onClick={onExport}>📥 Export</Btn>
-          <Btn variant="primary" onClick={onAddUser}>+ Add User</Btn>
+          <Btn variant="teal" onClick={onExport}>{t("exportData")}</Btn>
+          <Btn variant="primary" onClick={onAddUser}>{t("addUser")}</Btn>
         </div>
       </div>
 
@@ -2994,10 +2997,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
       {tab === "overview" && (
         <div>
           <div className="kf-stats-row">
-            <StatCard label="Total Cases"   value={cases.length}    icon="📋" color={COLORS.primary} />
-            <StatCard label="Total Users"   value={users.length}    icon="👥" color="#8B5CF6" />
-            <StatCard label="Total Donated" value={`$${totalDonated.toLocaleString()}`} icon="💰" color={COLORS.secondary} />
-            <StatCard label="Completed"     value={cases.filter(c => c.status === "Completed").length} icon="🏁" color="#6B7280" />
+            <StatCard label={t("totalCases")}   value={cases.length}    icon="📋" color={COLORS.primary} />
+            <StatCard label={t("totalUsers")}   value={users.length}    icon="👥" color="#8B5CF6" />
+            <StatCard label={t("totalDonated")} value={`$${totalDonated.toLocaleString()}`} icon="💰" color={COLORS.secondary} />
+            <StatCard label={t("completed")}    value={cases.filter(c => c.status === "Completed").length} icon="🏁" color="#6B7280" />
           </div>
 
           {/* Proof pending alert */}
@@ -3481,6 +3484,8 @@ export default function KafaaleQaadApp() {
   };
 
   const isMobile = useIsMobile();
+  const { t, lang, changeLang, LANGUAGES, currentLang } = useLang();
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
@@ -3536,8 +3541,26 @@ export default function KafaaleQaadApp() {
 
             <UserAvatar name={currentUser.fullname} size={34} />
 
+            {/* Language switcher */}
+            <div style={{ position: "relative" }}>
+              <button onClick={() => setShowLangMenu(v => !v)}
+                style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 15, color: "#fff", display: "flex", alignItems: "center", gap: 4 }}>
+                {currentLang.flag}{!isMobile && <span style={{ fontSize: 11 }}> ▾</span>}
+              </button>
+              {showLangMenu && (
+                <div style={{ position: "absolute", top: 42, right: 0, background: "#fff", borderRadius: 12, boxShadow: "0 8px 32px #0003", zIndex: 200, minWidth: 160, border: `1px solid ${COLORS.border}` }}>
+                  {LANGUAGES.map(l => (
+                    <div key={l.code} onClick={() => { changeLang(l.code); setShowLangMenu(false); }}
+                      style={{ padding: "10px 16px", fontSize: 13, cursor: "pointer", background: lang === l.code ? COLORS.primary + "10" : "", fontWeight: lang === l.code ? 700 : 400, display: "flex", alignItems: "center", gap: 8, color: COLORS.text }}>
+                      {l.flag} {l.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Btn variant="muted" size="sm" onClick={handleLogout} style={{ padding: "6px 10px", fontSize: 12 }}>
-              {isMobile ? "⏻" : "Exit"}
+              {isMobile ? "⏻" : t("exit")}
             </Btn>
           </div>
         </div>

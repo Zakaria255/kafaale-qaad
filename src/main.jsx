@@ -5,6 +5,7 @@ import Navbar       from './components/Navbar.jsx';
 import Footer       from './components/Footer.jsx';
 import AiAssistant  from './components/AiAssistant.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { LanguageProvider } from './context/LanguageContext.jsx';
 import Home         from './pages/Home.jsx';
 import About        from './pages/About.jsx';
 import HowItWorks   from './pages/HowItWorks.jsx';
@@ -27,6 +28,7 @@ function Layout({ children }) {
 
 function App() {
   return (
+    <LanguageProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -42,6 +44,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </LanguageProvider>
   );
 }
 
