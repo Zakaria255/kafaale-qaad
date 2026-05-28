@@ -105,7 +105,7 @@ export default function Login() {
           {/* Logo */}
           <div style={{ textAlign:'center' }}>
             <div style={{ display:'flex', justifyContent:'center', marginBottom:14 }}>
-              <Logo size="lg" linked={false} />
+              <Logo size="lg" linked={false} dark />
             </div>
             <div style={{ fontSize:12, color:'rgba(255,255,255,0.55)', marginTop:6 }}>{t('appTagline')}</div>
           </div>
