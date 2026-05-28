@@ -10,13 +10,13 @@ import { Link } from "react-router-dom";
  */
 export default function Logo({ size = "md", variant = "full", linked = true, dark = false, style = {} }) {
   const s = {
-    sm: { img: 32, title: 12, sub: 7,  gap: 8  },
-    md: { img: 40, title: 15, sub: 8,  gap: 10 },
-    lg: { img: 56, title: 20, sub: 10, gap: 12 },
-  }[size] || { img: 40, title: 15, sub: 8, gap: 10 };
+    sm: { img: 36, title: 13, sub: 8,  gap: 9  },
+    md: { img: 44, title: 16, sub: 9,  gap: 11 },
+    lg: { img: 60, title: 22, sub: 11, gap: 13 },
+  }[size] || { img: 44, title: 16, sub: 9, gap: 11 };
 
-  const titleColor = dark ? "#ffffff" : "#002651";
-  const subColor   = dark ? "rgba(255,255,255,0.65)" : "#4B7D19";
+  const titleColor = dark ? "#ffffff"   : "#002651";
+  const subColor   = dark ? "#E0AB21"   : "#4B7D19";
 
   const inner = (
     <div style={{
