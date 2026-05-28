@@ -3224,6 +3224,9 @@ export default function KafaaleQaadApp() {
   const [notifs,            setNotifs]           = useState([]);
   const [agents,            setAgents]           = useState([]);
   const [dataLoading,       setDataLoading]      = useState(true);
+  const isMobile = useIsMobile();
+  const { t, lang, changeLang, LANGUAGES, currentLang } = useLang();
+  const [showLangMenu,      setShowLangMenu]     = useState(false);
   const [selectedCase,      setSelectedCase]     = useState(null);
   const [showReport,        setShowReport]       = useState(false);
   const [sponsorCase,       setSponsorCase]      = useState(null);
@@ -3491,10 +3494,6 @@ export default function KafaaleQaadApp() {
         onStartDelivery={setDeliveryAssign} onFullReport={setFullReportId} />
     ),
   };
-
-  const isMobile = useIsMobile();
-  const { t, lang, changeLang, LANGUAGES, currentLang } = useLang();
-  const [showLangMenu, setShowLangMenu] = useState(false);
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
