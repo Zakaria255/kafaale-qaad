@@ -2913,23 +2913,10 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
   );
 };
 
-const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, isSuperAdmin, onLoadUsers, onLoadDonations }) => {
+const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, isSuperAdmin }) => {
   const [tab, setTab] = useState("overview");
   const [donFilter, setDonFilter] = useState("all");
   const { t } = useLang();
-  const loadedTabs = useRef(new Set(["overview"]));
-
-  const handleTab = (id) => {
-    setTab(id);
-    if (id === "users" && !loadedTabs.current.has("users")) {
-      loadedTabs.current.add("users");
-      onLoadUsers?.();
-    }
-    if ((id === "donations" || id === "analytics") && !loadedTabs.current.has("donations")) {
-      loadedTabs.current.add("donations");
-      onLoadDonations?.();
-    }
-  };
   const totalDonated = donations.reduce((a, d) => a + (d.amount || 0), 0);
   const confirmedTotal = donations.filter(d => d.status === "confirmed").reduce((a, d) => a + (d.amount || 0), 0);
   const pendingTotal   = donations.filter(d => d.status === "pending").reduce((a, d) => a + (d.amount || 0), 0);
@@ -2963,7 +2950,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
       {/* Tab bar — scrollable on mobile */}
       <div className="kf-tabs">
         {TABS.map(t => (
-          <button key={t.id} onClick={() => handleTab(t.id)}
+          <button key={t.id} onClick={() => setTab(t.id)}
             style={{ padding: "10px 16px", fontSize: 13, fontWeight: 700, border: "none", background: "none", cursor: "pointer", color: tab === t.id ? COLORS.primary : COLORS.muted, borderBottom: tab === t.id ? `2px solid ${COLORS.primary}` : "2px solid transparent", marginBottom: -2 }}>
             {t.label}
           </button>
@@ -3042,7 +3029,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                 ))}
                 {donations.length > 5 && (
                   <div style={{ padding: "10px 16px", textAlign: "center" }}>
-                    <button onClick={() => handleTab("donations")} style={{ fontSize: 12, color: COLORS.primary, background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}>View all {donations.length} donations →</button>
+                    <button onClick={() => setTab("donations")} style={{ fontSize: 12, color: COLORS.primary, background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}>View all {donations.length} donations →</button>
                   </div>
                 )}
               </div>
@@ -3285,6 +3272,18 @@ export default function KafaaleQaadApp() {
       if (["admin","super_admin","verification_office"].includes(authUser.role)) {
         const data = await adminApi.cases({ limit: 30 });
         if (data?.cases) setCases(data.cases.map(c => mapCase(c, "admin")));
+        // Load users + donations after dashboard is visible (non-blocking)
+        setTimeout(async () => {
+          try {
+            const [usersRes, donRes] = await Promise.allSettled([adminApi.users(), adminApi.donations()]);
+            if (usersRes.status === "fulfilled" && Array.isArray(usersRes.value)) {
+              setUsers(usersRes.value);
+              setAgents(usersRes.value.filter(u => u.role === "field_agent" && u.isActive));
+            }
+            if (donRes.status === "fulfilled" && donRes.value?.donations)
+              setDonations(donRes.value.donations);
+          } catch { /* ignore */ }
+        }, 800);
       } else if (authUser.role === "reporter") {
         const data = await casesApi.my();
         if (Array.isArray(data)) setCases(data.map(c => mapCase(c, "reporter")));
@@ -3489,8 +3488,7 @@ export default function KafaaleQaadApp() {
         onViewCase={setSelectedCase} onAddUser={() => setShowAddUser(true)} onDeleteUser={handleDeleteUser}
         onChangeRole={handleChangeRole} onExport={() => setShowExport(true)} isSuperAdmin={authUser?.role === "super_admin"}
         onConfirmDonation={handleConfirmDonation} onComplete={setCompleteCase}
-        onStartDelivery={setDeliveryAssign} onFullReport={setFullReportId}
-        onLoadUsers={reloadUsers} onLoadDonations={reloadDonations} />
+        onStartDelivery={setDeliveryAssign} onFullReport={setFullReportId} />
     ),
   };
 
