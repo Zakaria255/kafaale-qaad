@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Logo from "./Logo.jsx";
 import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
 import { useResponsive } from "../hooks/useResponsive.js";
@@ -35,40 +36,9 @@ export default function Footer() {
 
           {/* ── Brand ── */}
           <div>
-            {/* Logo card — white bg makes the navy/green emblem visible on dark footer */}
-            <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 14, marginBottom: 22, textDecoration: "none" }}>
-              <div
-                onMouseEnter={() => setLogoHover(true)}
-                onMouseLeave={() => setLogoHover(false)}
-                style={{
-                  width: 110, height: 110,
-                  background: "#ffffff",
-                  borderRadius: 22,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: logoHover
-                    ? `0 14px 40px rgba(0,0,0,0.55), 0 0 0 4px ${B.gold}`
-                    : `0 6px 28px rgba(0,0,0,0.4), 0 0 0 3px ${B.gold}50`,
-                  transform: logoHover ? "translateY(-5px) scale(1.05)" : "translateY(0) scale(1)",
-                  padding: 10,
-                  flexShrink: 0,
-                  cursor: "pointer",
-                  transition: "transform 0.22s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.22s ease",
-                }}>
-                <img
-                  src="/assets/brand/kafaala-qaad-hope-icon.png"
-                  alt="Kafaala Qaad HOPE"
-                  style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                />
-              </div>
-              {/* Wordmark next to icon */}
-              <div style={{ lineHeight: 1.2 }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: -0.3 }}>KAFAALA QAAD</div>
-                <div style={{ fontSize: 14, fontWeight: 900, color: B.gold, letterSpacing: 4, marginTop: 3 }}>HOPE</div>
-                <div style={{ fontSize: 9.5, fontWeight: 700, color: B.green, letterSpacing: 2.5, marginTop: 5, opacity: 1 }}>
-                  HUMANITARIAN AID PLATFORM
-                </div>
-              </div>
-            </Link>
+            <div style={{ marginBottom: 22 }}>
+              <Logo size="lg" />
+            </div>
 
             <p style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.65, maxWidth: 280, marginTop: 4 }}>{P.tagline}</p>
             <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>

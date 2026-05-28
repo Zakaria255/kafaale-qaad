@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useLang } from "../context/LanguageContext.jsx";
 import { useResponsive } from "../hooks/useResponsive.js";
+import Logo from "./Logo.jsx";
 
 // ── Brand colors from logo ─────────────────────────────────────────────
 const B = {
@@ -64,34 +65,7 @@ export default function Navbar() {
 
           {/* ── Logo ── */}
           <div onClick={closeAll} style={{ flexShrink: 0 }}>
-            <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 11, textDecoration: "none" }}>
-              <img
-                src="/assets/brand/kafaala-qaad-hope-icon.png"
-                alt="Kafaala Qaad HOPE"
-                style={{
-                  height: isMobile ? 54 : 80,
-                  width:  isMobile ? 54 : 80,
-                  objectFit: "contain",
-                  display: "block",
-                  flexShrink: 0,
-                }}
-              />
-              {/* Org wordmark — hidden only on very small screens */}
-              <div style={{ lineHeight: 1.2, display: isMobile ? "none" : "block" }}>
-                <div style={{
-                  fontSize: 19, fontWeight: 900, color: B.navy,
-                  letterSpacing: -0.4,
-                }}>KAFAALA QAAD</div>
-                <div style={{
-                  fontSize: 12, fontWeight: 900, color: B.gold,
-                  letterSpacing: 4, marginTop: 2,
-                }}>HOPE</div>
-                <div style={{
-                  fontSize: 9.5, fontWeight: 700, color: B.green,
-                  letterSpacing: 2, marginTop: 3, textTransform: "uppercase", opacity: 0.9,
-                }}>Humanitarian Aid Platform</div>
-              </div>
-            </Link>
+            <Logo size={isMobile ? "sm" : "md"} />
           </div>
 
           {/* ── Desktop nav links ── */}

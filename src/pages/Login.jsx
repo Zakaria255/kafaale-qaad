@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LanguageContext.jsx';
+import Logo from '../components/Logo.jsx';
 
 const C = {
   navy: "#002651", primary: "#004B96", green: "#4B7D19",
@@ -101,20 +102,11 @@ export default function Login() {
             )}
           </div>
 
-          {/* Logo + wordmark */}
+          {/* Logo */}
           <div style={{ textAlign:'center' }}>
-            <div style={{
-              width:72, height:72, background:'rgba(255,255,255,0.95)',
-              borderRadius:18, margin:'0 auto 14px',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              boxShadow:`0 4px 20px rgba(0,0,0,0.25), 0 0 0 2px ${C.gold}50`,
-              padding:8,
-            }}>
-              <img src="/assets/brand/kafaala-qaad-hope-icon.png" alt="Kafaala Qaad HOPE"
-                style={{ width:'100%', height:'100%', objectFit:'contain' }} />
+            <div style={{ display:'flex', justifyContent:'center', marginBottom:14 }}>
+              <Logo size="lg" linked={false} />
             </div>
-            <div style={{ fontSize:20, fontWeight:900, color:'#fff', letterSpacing:-0.3 }}>KAFAALA QAAD</div>
-            <div style={{ fontSize:11, fontWeight:900, color:C.gold, letterSpacing:4, marginTop:2 }}>HOPE</div>
             <div style={{ fontSize:12, color:'rgba(255,255,255,0.55)', marginTop:6 }}>{t('appTagline')}</div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
 import { cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact } from "./api/client.js";
+import Logo from "./components/Logo.jsx";
 import "./responsive.css";
 
 // ─── Responsive hook ──────────────────────────────────────────────────────────
@@ -3418,9 +3419,9 @@ export default function KafaaleQaadApp() {
   if (!authUser || !currentUser) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🤝</div>
-          <div style={{ fontSize: 18, color: COLORS.muted }}>Loading Kafaale Qaad...</div>
+        <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+          <Logo size="lg" linked={false} />
+          <div style={{ fontSize: 14, color: COLORS.muted }}>Loading...</div>
         </div>
       </div>
     );
@@ -3430,9 +3431,8 @@ export default function KafaaleQaadApp() {
   if (dataLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: COLORS.bg, gap: 20 }}>
-        <div style={{ fontSize: 52 }}>🤝</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.primary }}>KAFAALE QAAD</div>
-        <div style={{ fontSize: 13, color: COLORS.muted, marginTop: -8 }}>Loading your dashboard…</div>
+        <Logo size="lg" linked={false} />
+        <div style={{ fontSize: 13, color: COLORS.muted }}>Loading your dashboard…</div>
         {/* Animated dots */}
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           {[0,1,2].map(i => (
@@ -3502,13 +3502,7 @@ export default function KafaaleQaadApp() {
       <div className="kf-header">
         <div className="kf-header-inner">
           {/* Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            <span style={{ fontSize: 22 }}>🤝</span>
-            <div className="kf-hide-mobile" style={{ lineHeight: 1.2 }}>
-              <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: -0.5 }}>KAFAALE QAAD</div>
-              <div style={{ fontSize: 8, opacity: 0.65, letterSpacing: 1 }}>HUMANITARIAN AID</div>
-            </div>
-          </div>
+          <Logo size={isMobile ? "sm" : "md"} linked={false} />
 
           {/* Search bar */}
           <div className="kf-search" style={{ margin: "0 8px" }}>
