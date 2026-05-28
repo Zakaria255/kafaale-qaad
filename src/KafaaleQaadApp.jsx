@@ -3502,7 +3502,7 @@ export default function KafaaleQaadApp() {
       <div className="kf-header">
         <div className="kf-header-inner">
           {/* Logo */}
-          <Logo size={isMobile ? "sm" : "md"} linked={false} />
+          <Logo size={isMobile ? "sm" : "md"} linked={false} dark />
 
           {/* Search bar */}
           <div className="kf-search" style={{ margin: "0 8px" }}>

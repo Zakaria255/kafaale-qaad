@@ -37,7 +37,7 @@ export default function Footer() {
           {/* ── Brand ── */}
           <div>
             <div style={{ marginBottom: 22 }}>
-              <Logo size="lg" />
+              <Logo size="lg" dark />
             </div>
 
             <p style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.65, maxWidth: 280, marginTop: 4 }}>{P.tagline}</p>
