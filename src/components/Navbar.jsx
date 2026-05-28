@@ -65,7 +65,7 @@ export default function Navbar() {
 
           {/* ── Logo ── */}
           <div onClick={closeAll} style={{ flexShrink: 0 }}>
-            <Logo size={isMobile ? "sm" : "md"} dark />
+            <Logo size={isMobile ? "sm" : "md"} />
           </div>
 
           {/* ── Desktop nav links ── */}
