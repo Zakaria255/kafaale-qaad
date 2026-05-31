@@ -151,10 +151,14 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: IS_PROD ? 'Internal server error' : err.message });
 });
 
-server.listen(PORT, () => {
-  console.log(`🚀 Kafaale API running → http://localhost:${PORT}`);
-  console.log(`📡 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔒 CORS origins: ${[...ALLOWED_ORIGINS].join(', ')}`);
-});
+// On Vercel, just export the app — the serverless function handles requests directly.
+// On Railway/Node, start the HTTP server.
+if (!process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log(`🚀 Kafaale API running → http://localhost:${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/health`);
+    console.log(`🔒 CORS origins: ${[...ALLOWED_ORIGINS].join(', ')}`);
+  });
+}
 
 export default app;
