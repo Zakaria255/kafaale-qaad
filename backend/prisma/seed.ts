@@ -37,6 +37,7 @@ async function main() {
   // Case A — published, waiting for sponsor
   const caseA = await prisma.case.create({
     data: {
+      caseRef: 'KQ-2026-0001',
       reporterId: reporter.id,
       category: 'medical', emergencyLevel: 'critical', status: 'waiting_for_sponsor',
       privateVictimName: 'Faadumo Hassan', privateVictimPhone: '+252612999888',
@@ -95,6 +96,7 @@ async function main() {
   // Case B — food, pending review
   await prisma.case.create({
     data: {
+      caseRef: 'KQ-2026-0002',
       reporterId: reporter.id, category: 'food', emergencyLevel: 'high', status: 'pending_review',
       privateVictimName: 'Ibrahim Warsame', privateVictimPhone: '+252615000222',
       privateAddress: 'Aato IDP Camp, North-East Garowe, Puntland',
@@ -107,6 +109,7 @@ async function main() {
   // Case C — shelter, team assigned
   const caseC = await prisma.case.create({
     data: {
+      caseRef: 'KQ-2026-0003',
       reporterId: reporter.id, category: 'shelter', emergencyLevel: 'high', status: 'team_assigned',
       privateVictimName: 'Halima Nur', privateVictimPhone: '+252618000333',
       privateAddress: 'Daynile District Flood Zone, Mogadishu',
@@ -120,6 +123,7 @@ async function main() {
   // Case D — completed
   await prisma.case.create({
     data: {
+      caseRef: 'KQ-2026-0004',
       reporterId: reporter.id, category: 'orphan', emergencyLevel: 'critical', status: 'completed',
       privateVictimName: 'Mahad Jimcaale', privateVictimPhone: '+252617000444',
       privateAddress: 'Baidoa, Bay Region',

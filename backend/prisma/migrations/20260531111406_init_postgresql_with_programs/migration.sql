@@ -39,6 +39,7 @@ CREATE TABLE "Case" (
     "privateVictimGender" TEXT,
     "privateDescription" TEXT,
     "privateNotes" TEXT,
+    "caseRef" TEXT,
     "category" TEXT NOT NULL DEFAULT 'other',
     "emergencyLevel" TEXT NOT NULL DEFAULT 'medium',
     "supportType" TEXT,
@@ -411,6 +412,9 @@ CREATE INDEX "User_email_idx" ON "User"("email");
 
 -- CreateIndex
 CREATE INDEX "User_isActive_idx" ON "User"("isActive");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Case_caseRef_key" ON "Case"("caseRef");
 
 -- CreateIndex
 CREATE INDEX "Case_status_idx" ON "Case"("status");

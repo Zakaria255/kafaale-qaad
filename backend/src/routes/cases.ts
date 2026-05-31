@@ -36,7 +36,7 @@ router.get('/', async (req: Request, res: Response) => {
         orderBy: [{ createdAt: 'desc' }],
         skip, take: parseInt(limit),
         select: {
-          id: true, publicTitle: true, publicStory: true, publicCity: true, publicCountry: true,
+          id: true, caseRef: true, publicTitle: true, publicStory: true, publicCity: true, publicCountry: true,
           category: true, emergencyLevel: true, status: true,
           targetGoal: true, totalRaised: true, adminPublishedAt: true,
           _count: { select: { donations: true } },
@@ -56,7 +56,7 @@ router.get('/my', authenticate, async (req: AuthRequest, res: Response) => {
     const cases = await prisma.case.findMany({
       where: { reporterId: req.user!.id },
       orderBy: { createdAt: 'desc' },
-      select: { id: true, category: true, emergencyLevel: true, status: true, publicTitle: true, privateDescription: true, targetGoal: true, totalRaised: true, createdAt: true, rejectionReason: true },
+      select: { id: true, caseRef: true, category: true, emergencyLevel: true, status: true, publicTitle: true, privateDescription: true, targetGoal: true, totalRaised: true, createdAt: true, rejectionReason: true },
     });
     res.json(cases);
   } catch { res.status(500).json({ error: 'Failed to retrieve your cases' }); }
@@ -89,8 +89,11 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const data = CreateCaseSchema.parse(req.body);
+    const year = new Date().getFullYear();
+    const count = await prisma.case.count();
+    const caseRef = `KQ-${year}-${String(count + 1).padStart(4, '0')}`;
     const kase = await prisma.case.create({
-      data: { reporterId: req.user!.id, ...data, status: 'pending_review' },
+      data: { reporterId: req.user!.id, ...data, status: 'pending_review', caseRef },
     });
     // Notify admins
     const admins = await prisma.user.findMany({ where: { role: { in: ['admin','super_admin'] }, isActive: true }, select: { id: true } });

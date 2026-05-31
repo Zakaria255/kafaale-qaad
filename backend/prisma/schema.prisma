@@ -62,6 +62,8 @@ model Case {
   privateDescription  String?   // nullable — some cases start without full description
   privateNotes        String?
 
+  caseRef         String?  @unique  // e.g. KQ-2026-0001
+
   category        String   @default("other")
   emergencyLevel  String   @default("medium")
   supportType     String?

@@ -4015,7 +4015,7 @@ export default function KafaaleQaadApp() {
   };
 
   const mapCase = (c, role) => ({
-    id:               c.id,
+    id:               c.caseRef || c.id,
     victim_name:      role === "donor" ? (c.publicTitle || "Verified Case")
                     : (c.privateVictimName || c.publicTitle || "Pending Review"),
     age:              c.privateVictimAge || null,
