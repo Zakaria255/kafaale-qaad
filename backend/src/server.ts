@@ -34,7 +34,9 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:5174',
   'http://localhost:5175',
   'http://localhost:3000',
-  // Production frontend — set FRONTEND_URL in env
+  // Production frontends
+  'https://kafaale-qaad.vercel.app',
+  'https://kafaale-qaad1.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[]);
 
