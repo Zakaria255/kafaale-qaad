@@ -3,6 +3,18 @@
 /* ── Reset & base ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
+#root, html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%; /* prevent iOS font scaling */
+}
+
+html { scroll-behavior: smooth; }
+body { overflow-x: hidden; }
+
+/* ── Viewport meta fallback via CSS ────────────────────────────────────────── */
+img, video, canvas, svg { max-width: 100%; height: auto; }
+
 /* ── Responsive table wrapper ─────────────────────────────────────────────── */
 .kf-table-wrap {
   width: 100%;
@@ -11,9 +23,7 @@
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
-.kf-table-wrap table {
-  min-width: 600px;
-}
+.kf-table-wrap table { min-width: 600px; }
 
 /* ── Responsive stat-cards row ────────────────────────────────────────────── */
 .kf-stats-row {
@@ -54,14 +64,15 @@
   white-space: nowrap;
 }
 
-/* ── Modal — full screen on mobile ───────────────────────────────────────── */
+/* ── Modal ────────────────────────────────────────────────────────────────── */
 .kf-modal-inner {
   background: #fff;
   border-radius: 18px;
-  padding: 32px;
+  padding: 28px 24px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: 0 20px 60px rgba(0,0,0,0.18);
 }
 
@@ -136,121 +147,239 @@
   max-width: 420px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────── */
-/* BREAKPOINTS                                                                 */
-/* ─────────────────────────────────────────────────────────────────────────── */
-
-/* Tablet  ≤ 900px */
-@media (max-width: 900px) {
-  .kf-grid-2  { grid-template-columns: 1fr; }
-  .kf-grid-4  { grid-template-columns: repeat(2, 1fr); }
-  .kf-search  { max-width: 260px; }
-  .kf-card    { padding: 16px; }
-  .kf-modal-inner { padding: 24px; }
+/* ── Notification dropdown ───────────────────────────────────────────────── */
+.kf-notif-dropdown {
+  position: absolute;
+  top: 56px;
+  right: 0;
 }
 
-/* Mobile  ≤ 600px */
-@media (max-width: 600px) {
-  .kf-grid-4   { grid-template-columns: repeat(2, 1fr); }
-  .kf-stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .kf-modal-inner {
-    border-radius: 14px 14px 0 0;
-    padding: 20px 16px;
-    max-height: 92vh;
-  }
-  .kf-main     { padding: 12px 10px; }
-  .kf-card     { padding: 14px 12px; }
-  .kf-action-row { flex-direction: column; align-items: stretch; }
-  .kf-action-btns { justify-content: stretch; }
-  .kf-action-btns button { flex: 1; }
-  /* Hide secondary columns in tables on very small screens */
-  .kf-hide-xs  { display: none !important; }
-  /* Full-width modal on phone */
-  .kf-modal-outer {
-    align-items: flex-end !important;
-    padding: 0 !important;
-  }
-}
-
-/* Extra small ≤ 400px */
-@media (max-width: 400px) {
-  .kf-stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .kf-header-inner { height: 54px; }
+/* ── Language menu ────────────────────────────────────────────────────────── */
+.kf-lang-menu {
+  position: absolute;
+  top: 42px;
+  right: 0;
 }
 
 /* ── Utility helpers ──────────────────────────────────────────────────────── */
 .kf-hide-mobile { display: block; }
 .kf-show-mobile { display: none; }
 
-@media (max-width: 600px) {
-  .kf-hide-mobile { display: none !important; }
-  .kf-show-mobile { display: block !important; }
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* BREAKPOINTS                                                                 */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Tablet ≤ 900px ─────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .kf-grid-2  { grid-template-columns: 1fr; }
+  .kf-grid-4  { grid-template-columns: repeat(2, 1fr); }
+  .kf-search  { max-width: 260px; }
+  .kf-card    { padding: 16px; }
+  .kf-modal-inner { padding: 24px 20px; }
 }
 
-/* ── Smooth scrolling everywhere ──────────────────────────────────────────── */
-html { scroll-behavior: smooth; }
-
-/* ── Better touch targets ─────────────────────────────────────────────────── */
+/* ── Mobile ≤ 600px ─────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  button, select, input, textarea {
-    min-height: 40px;
+  /* Grid */
+  .kf-grid-4   { grid-template-columns: repeat(2, 1fr); }
+  .kf-stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+  /* Modals — slide up from bottom */
+  .kf-modal-outer {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+  .kf-modal-inner {
+    border-radius: 20px 20px 0 0;
+    padding: 20px 16px 28px;
+    max-height: 95vh;
+    width: 100vw;
+  }
+
+  /* Layout */
+  .kf-main     { padding: 12px 10px; }
+  .kf-card     { padding: 14px 12px; }
+  .kf-action-row { flex-direction: column; align-items: stretch; }
+  .kf-action-btns { justify-content: stretch; }
+  .kf-action-btns button { flex: 1; min-width: 0; }
+  .kf-action-row h2 { font-size: 18px !important; }
+
+  /* Hide secondary header text */
+  .kf-hide-mobile { display: none !important; }
+  .kf-show-mobile { display: block !important; }
+  .kf-hide-xs     { display: none !important; }
+
+  /* Touch targets */
+  button, select, input, textarea { min-height: 42px; }
+  input[type="checkbox"], input[type="radio"] { min-height: unset; }
+
+  /* Tab bar text shrink */
+  .kf-tabs button {
+    padding: 9px 11px !important;
+    font-size: 12px !important;
+  }
+
+  /* Header */
+  .kf-header-inner {
+    height: 54px;
+    padding: 0 12px;
+    gap: 8px;
   }
 }
 
-/* ── Prevent horizontal overflow ─────────────────────────────────────────── */
-body { overflow-x: hidden; }
-
-/* ── Samsung / Android small screen fixes ────────────────────────────────── */
+/* ── Small Android ≤ 480px ──────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  /* Dashboard header shrink on very small screens */
+  /* Header compact */
   .kf-header-inner {
     height: 52px;
     gap: 6px;
     padding: 0 10px;
   }
-  /* Notifications dropdown stays within screen */
+
+  /* Notifications dropdown — fixed to stay in viewport */
   .kf-notif-dropdown {
     position: fixed !important;
     top: 56px !important;
     left: 8px !important;
     right: 8px !important;
     width: auto !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
   }
-  /* Language menu stays within screen */
+
+  /* Language menu — fixed */
   .kf-lang-menu {
     position: fixed !important;
     top: 56px !important;
     right: 8px !important;
     left: auto !important;
     max-width: calc(100vw - 16px) !important;
+    z-index: 9999 !important;
   }
-  /* Stat cards: always 2 cols on tiny screens */
+
+  /* Stat cards: always 2 cols */
   .kf-stats-row {
     grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
   }
-  /* Tabs: smaller text */
-  .kf-tabs button {
-    padding: 8px 10px !important;
-    font-size: 12px !important;
-  }
-  /* Cards: reduce padding */
+
+  /* Cards reduce padding */
   .kf-card { padding: 12px 10px !important; }
   .kf-main { padding: 10px 8px !important; }
+
+  /* Pipeline: smaller text */
+  .kf-pipeline > div { font-size: 10px !important; }
 }
 
-/* ── Fix: no horizontal scroll on the page itself ─────────────────────────── */
-#root, html, body {
-  max-width: 100vw;
-  overflow-x: hidden;
+/* ── Very small ≤ 360px (Samsung Galaxy A-series etc.) ──────────────────── */
+@media (max-width: 360px) {
+  .kf-stats-row { grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
+  .kf-header-inner { height: 50px; padding: 0 8px; gap: 4px; }
+  .kf-main { padding: 8px 6px !important; }
+  .kf-modal-inner { padding: 16px 12px 24px !important; }
 }
 
-/* ── Dashboard action row on mobile ────────────────────────────────────────── */
+/* ── Public pages — Navbar ──────────────────────────────────────────────── */
+.nav-desktop {
+  display: flex;
+}
+@media (max-width: 900px) {
+  .nav-desktop { display: none; }
+}
+
+/* ── Mobile menu overlay ─────────────────────────────────────────────────── */
+.nav-mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 998;
+}
+.nav-mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 85vw;
+  background: #fff;
+  z-index: 999;
+  overflow-y: auto;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+  padding: 24px 0;
+}
+@media (max-width: 900px) {
+  .nav-mobile-menu { display: block; }
+}
+
+/* ── Forms on mobile ─────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .kf-action-row {
-    gap: 12px;
+  /* Prevent zoom on input focus (iOS) */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px !important; /* prevents iOS auto-zoom */
   }
-  .kf-action-row h2 {
-    font-size: 18px !important;
+}
+
+/* ── Cards with text overflow ─────────────────────────────────────────────── */
+.kf-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* ── Dashboard hero text clamp ─────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  h1 { font-size: clamp(22px, 6vw, 36px) !important; }
+  h2 { font-size: clamp(18px, 5vw, 28px) !important; }
+  h3 { font-size: clamp(15px, 4vw, 22px) !important; }
+}
+
+/* ── Safe area insets for iOS notch / Android gesture bar ────────────────── */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .kf-modal-inner {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
   }
+  .kf-header {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ── Fix: flex children don't overflow ───────────────────────────────────── */
+.kf-flex-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.kf-flex-row > * { min-width: 0; }
+
+/* ── Smooth scrolling for tab/pipeline bars ─────────────────────────────── */
+.kf-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.kf-scroll-x::-webkit-scrollbar { display: none; }
+
+/* ── Hero animated dots (public pages) ─────────────────────────────────── */
+.kf-hero-dots {
+  position: relative;
+}
+
+/* ── Global animation ────────────────────────────────────────────────────── */
+@keyframes kf-spin { to { transform: rotate(360deg); } }
+@keyframes kf-pulse { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+@keyframes kf-fadein { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+
+.kf-animate-in {
+  animation: kf-fadein 0.25s ease;
 }

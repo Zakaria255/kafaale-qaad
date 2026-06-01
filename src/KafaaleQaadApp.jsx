@@ -85,11 +85,11 @@ const UrgencyBadge = ({ level }) => (
 );
 
 const StatCard = ({ label, value, icon, color, sub }) => (
-  <div style={{ background: "#fff", borderRadius: 14, padding: "20px 24px", boxShadow: "0 2px 12px #0001", borderLeft: `4px solid ${color}`, display: "flex", alignItems: "center", gap: 16, flex: 1, minWidth: 140 }}>
-    <div style={{ fontSize: 32 }}>{icon}</div>
-    <div>
-      <div style={{ fontSize: 28, fontWeight: 800, color }}>{value}</div>
-      <div style={{ fontSize: 13, color: COLORS.muted, fontWeight: 500 }}>{label}</div>
+  <div style={{ background: "#fff", borderRadius: 14, padding: "14px 16px", boxShadow: "0 2px 12px #0001", borderLeft: `4px solid ${color}`, display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0, overflow: "hidden" }}>
+    <div style={{ fontSize: 26, flexShrink: 0 }}>{icon}</div>
+    <div style={{ minWidth: 0 }}>
+      <div style={{ fontSize: "clamp(18px,4vw,26px)", fontWeight: 800, color, lineHeight: 1.2 }}>{value}</div>
+      <div style={{ fontSize: "clamp(10px,2.5vw,13px)", color: COLORS.muted, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</div>
       {sub && <div style={{ fontSize: 10, color: COLORS.muted, marginTop: 2 }}>{sub}</div>}
     </div>
   </div>
@@ -343,9 +343,9 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
   return (
     <Modal title={`Case ${c.ref || c.id} — ${c.victim_name}`} onClose={onClose} wide>
       {/* Workflow bar */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 20, overflowX: "auto", paddingBottom: 8 }}>
+      <div style={{ display: "flex", gap: 4, marginBottom: 20, overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch" }}>
         {WORKFLOW_STEPS.map((s, i) => (
-          <div key={s.num} style={{ display: "flex", alignItems: "center", gap: 4, flex: 1, minWidth: 60 }}>
+          <div key={s.num} style={{ display: "flex", alignItems: "center", gap: 4, flex: "0 0 auto", minWidth: 52 }}>
             <div style={{ textAlign: "center", flex: 1 }}>
               <div style={{ width: 36, height: 36, borderRadius: "50%", background: i <= stepIdx ? s.color : "#E5E7EB", color: i <= stepIdx ? "#fff" : "#9CA3AF", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", fontSize: 16, fontWeight: 700 }}>
                 {i < stepIdx ? "✓" : s.num}
@@ -764,7 +764,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
         {/* Left: subject info */}
         <div>
           {isCommunity ? (
@@ -1515,7 +1515,7 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
         <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>{caseItem.description?.slice(0, 200)}</div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 24 }}>
         {/* Left column */}
         <div>
           <div style={{ fontWeight: 700, fontSize: 13, color: COLORS.primary, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>Verification Checks</div>
@@ -2595,7 +2595,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
       </div>
 
       {tab === "workflow" && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 24 }}>
           {/* Lane 1 — New Reports */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
@@ -2823,7 +2823,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
       {active.length > 0 && (
         <>
           <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: COLORS.primary }}>🎯 Active Missions — Need Your Action</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16, marginBottom: 28 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 28 }}>
             {active.map(c => <MissionCard key={c.id} c={c} />)}
           </div>
         </>
@@ -2832,7 +2832,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
       {toDeliver.length > 0 && (
         <>
           <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#9D174D" }}>🚚 Aid Delivery — Submit Your Proof</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16, marginBottom: 28 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 28 }}>
             {toDeliver.map(c => <MissionCard key={c.id} c={c} />)}
           </div>
         </>
@@ -2841,7 +2841,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
       {proofSent.length > 0 && (
         <>
           <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#065F46" }}>📤 Proof Submitted — Waiting for Admin to Close</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16, marginBottom: 28 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 28 }}>
             {proofSent.map(c => <MissionCard key={c.id} c={c} />)}
           </div>
         </>
@@ -2850,7 +2850,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
       {submitted.length > 0 && (
         <>
           <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: COLORS.secondary }}>📋 Reports Submitted — Awaiting Admin Review</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16, marginBottom: 28 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 28 }}>
             {submitted.map(c => <MissionCard key={c.id} c={c} />)}
           </div>
         </>
@@ -2909,7 +2909,7 @@ const FieldTeamProgramsSection = ({ currentUser, showToast }) => {
           ✅ {toast}
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 14 }}>
         {beneficiaries.map(b => {
           const pt = PROGRAM_TYPE_LABELS[b.programType] || { icon: "👤", color: COLORS.primary };
           return (
@@ -3016,7 +3016,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
           <div style={{ fontSize: 13, marginTop: 6 }}>Check back soon — new verified cases are added regularly.</div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 18, marginBottom: 36 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 18, marginBottom: 36 }}>
           {waitingCases.map(c => {
             const goal    = c.target_goal  || c._raw?.targetGoal  || 0;
             const raised  = c.donation_amount || c._raw?.totalRaised || 0;
@@ -3707,7 +3707,7 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
         🔐 Private information (full name, guardian, school, medical records) is <strong>never shown publicly</strong>. Only the public profile fields are visible to donors.
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 24 }}>
         {/* Left — private */}
         <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12, letterSpacing: 0.5 }}>🔐 Private Information</div>
@@ -3920,7 +3920,7 @@ const CreateProjectModal = ({ onClose, onDone, showToast }) => {
 
   return (
     <Modal title="🏗️ Create Community Project" onClose={onClose} wide>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
         <div>
           <Select label="Category *" value={form.category} onChange={e => set("category", e.target.value)}>
             {Object.entries(PROJECT_CAT_LABELS).map(([v,l]) => <option key={v} value={v}>{l.icon} {l.label}</option>)}
@@ -4047,7 +4047,7 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
               <div>No programs yet. Create your first program to get started.</div>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16, marginBottom: 32 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 32 }}>
               {programs.map(p => {
                 const t = PROGRAM_TYPE_LABELS[p.type] || { icon: "🌱", color: COLORS.primary };
                 return (
@@ -4067,7 +4067,7 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
           )}
 
           {/* Two engines explainer */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 16 }}>
             <div style={{ background: "#FEF2F2", borderRadius: 16, padding: 20, border: "1px solid #FECACA" }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>🚨</div>
               <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.danger, marginBottom: 6 }}>Emergency Response</div>
@@ -4591,6 +4591,19 @@ export default function KafaaleQaadApp() {
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      <style>{`
+        @media (max-width: 600px) {
+          /* Dashboard inline grids → single column */
+          [style*="grid-template-columns: repeat(auto-fit, minmax(min(260px"] { grid-template-columns: 1fr !important; }
+          [style*="grid-template-columns: repeat(auto-fill, minmax(min(260px"] { grid-template-columns: 1fr !important; }
+          /* Workflow cards buttons always wrap */
+          .kf-workflow-btns { flex-wrap: wrap !important; }
+          /* Modal inner has enough room */
+          .kf-modal-inner { max-width: 100vw !important; }
+          /* Prevent any fixed-width element from overflowing */
+          [style*="width: 340"] { width: 100% !important; max-width: 100% !important; }
+        }
+      `}</style>
 
       {/* ── Header ── */}
       <div className="kf-header">

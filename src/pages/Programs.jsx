@@ -580,7 +580,7 @@ export default function Programs() {
 
             {/* Program cards */}
             <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 20 }}>Active Programs</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20, marginBottom: 48 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 20, marginBottom: 48 }}>
               {programsList.length === 0 && (
                 <div style={{ gridColumn: "1/-1", textAlign: "center", padding: 40, color: C.muted }}>
                   <div style={{ fontSize: 40, marginBottom: 8 }}>🌱</div>
@@ -648,7 +648,7 @@ export default function Programs() {
                 <div style={{ fontSize: 14 }}>Our team is enrolling new beneficiaries. Check back soon!</div>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
                 {filteredBeneficiaries.map(b => (
                   <BeneficiaryCard key={b.id} b={b} onSponsor={setSponsorTarget} />
                 ))}
@@ -661,7 +661,7 @@ export default function Programs() {
               <p style={{ color: C.muted, fontSize: 14, lineHeight: 1.7, margin: "0 0 20px" }}>
                 Not ready to commit to one child? Sponsor an entire program. Your contribution is distributed across all eligible beneficiaries in that program.
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(160px, 100%), 1fr))", gap: 12 }}>
                 {programsList.map(p => (
                   <div key={p.id} style={{ background: "#fff", borderRadius: 12, padding: 16, border: `1px solid ${C.border}`, textAlign: "center" }}>
                     <div style={{ fontSize: 28, marginBottom: 6 }}>{p.icon}</div>
@@ -696,7 +696,7 @@ export default function Programs() {
                 <div style={{ fontSize: 14 }}>Community projects are being assessed. Check back soon!</div>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
                 {filteredProjects.map(p => (
                   <ProjectCard key={p.id} p={p} onContribute={setContributeTarget} />
                 ))}
