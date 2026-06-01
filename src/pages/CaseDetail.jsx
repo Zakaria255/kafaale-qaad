@@ -60,6 +60,9 @@ export default function CaseDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // Must call hooks before any conditional returns
+  const { isMobile, isTablet } = useResponsive();
+
   if (loading) return (
     <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg }}>
       <div style={{ textAlign: "center" }}>
@@ -81,8 +84,6 @@ export default function CaseDetail() {
       </div>
     </div>
   );
-
-  const { isMobile, isTablet } = useResponsive();
   const pct        = kase.targetGoal > 0 ? Math.min(100, Math.round((kase.totalRaised / kase.targetGoal) * 100)) : 0;
   const remaining  = Math.max(0, (kase.targetGoal || 0) - (kase.totalRaised || 0));
   const urgKey     = (kase.emergencyLevel || "medium").toLowerCase();

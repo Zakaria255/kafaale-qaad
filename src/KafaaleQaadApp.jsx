@@ -341,7 +341,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
   ];
 
   return (
-    <Modal title={`Case ${c.id} — ${c.victim_name}`} onClose={onClose} wide>
+    <Modal title={`Case ${c.ref || c.id} — ${c.victim_name}`} onClose={onClose} wide>
       {/* Workflow bar */}
       <div style={{ display: "flex", gap: 4, marginBottom: 20, overflowX: "auto", paddingBottom: 8 }}>
         {WORKFLOW_STEPS.map((s, i) => (
@@ -1063,7 +1063,7 @@ const AddUserModal = ({ onClose, onAdd }) => {
 const ExportModal = ({ cases, onClose }) => {
   const exportCSV = () => {
     const headers = ["Case ID","Victim Name","Age","Gender","Location","Urgency","Status","Created","Donation"];
-    const rows = cases.map(c => [c.id,c.victim_name,c.age,c.gender,c.location,c.urgency_level,c.status,c.created_at,c.donation_amount]);
+    const rows = cases.map(c => [c.ref,c.victim_name,c.age,c.gender,c.location,c.urgency_level,c.status,c.created_at,c.donation_amount]);
     const csv = [headers,...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `kafaale_cases_${Date.now()}.csv` });
@@ -1148,7 +1148,7 @@ const AssignAgentModal = ({ caseItem, agents, onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await adminApi.assign(caseItem.id, selectedAgent);
-      showToast(`🗺️ Agent assigned to ${caseItem.id} ✓`);
+      showToast(`🗺️ Agent assigned to ${caseItem.ref || caseItem.id} ✓`);
       onDone(caseItem.id, "Under Review");
       onClose();
     } catch (e) { showToast(e.message || "Failed to assign", "error"); }
@@ -1156,7 +1156,7 @@ const AssignAgentModal = ({ caseItem, agents, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title={`🗺️ Assign Field Agent — ${caseItem.id}`} onClose={onClose}>
+    <Modal title={`🗺️ Assign Field Agent — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       <div style={{ marginBottom: 16, background: "#FFF7ED", borderRadius: 12, padding: "14px 18px", border: "1px solid #FED7AA" }}>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{caseItem.victim_name}</div>
         <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>📍 {caseItem.location} · {caseItem.urgency_level} Priority · {caseItem.category || caseItem.status}</div>
@@ -1196,7 +1196,7 @@ const AssignDeliveryModal = ({ caseItem, agents, onClose, onDone, showToast }) =
     setLoading(true);
     try {
       await adminApi.assignDelivery(caseItem.id, selectedAgent);
-      showToast(`🚚 Delivery agent assigned to ${caseItem.id} — they've been notified!`);
+      showToast(`🚚 Delivery agent assigned to ${caseItem.ref || caseItem.id} — they've been notified!`);
       onDone();
       onClose();
     } catch (e) { showToast(e.message || "Failed to assign", "error"); }
@@ -1204,7 +1204,7 @@ const AssignDeliveryModal = ({ caseItem, agents, onClose, onDone, showToast }) =
   };
 
   return (
-    <Modal title={`🚚 Assign Delivery Agent — ${caseItem.id || caseItem._caseId}`} onClose={onClose}>
+    <Modal title={`🚚 Assign Delivery Agent — ${caseItem.ref || caseItem.id || caseItem._caseId}`} onClose={onClose}>
       <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "14px 18px", marginBottom: 16, border: "1px solid #BBF7D0" }}>
         <div style={{ fontWeight: 800, fontSize: 14, color: "#166534" }}>💰 Donation Confirmed — Ready for Delivery</div>
         <div style={{ fontSize: 13, color: COLORS.text, marginTop: 6 }}>{caseItem.victim_name || caseItem._caseTitle}</div>
@@ -1255,7 +1255,7 @@ const RequestMoreInfoModal = ({ caseItem, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title={`📋 Request More Information — ${caseItem.id}`} onClose={onClose}>
+    <Modal title={`📋 Request More Information — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       <div style={{ background: "#EFF6FF", borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: COLORS.primary }}>
         The reporter will receive a notification asking them to provide additional information before verification can proceed.
       </div>
@@ -1315,7 +1315,7 @@ const EnrollBeneficiaryFromCaseModal = ({ caseItem, onClose, onDone, showToast }
   ];
 
   return (
-    <Modal title={`🌱 Enroll as Program Beneficiary — ${caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`🌱 Enroll as Program Beneficiary — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       {/* Case summary */}
       <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "14px 18px", marginBottom: 20, border: "1px solid #BBF7D0" }}>
         <div style={{ fontSize: 14, fontWeight: 800, color: "#166534" }}>
@@ -1378,7 +1378,7 @@ const RejectCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await adminApi.updateStatus(caseItem.id, "rejected", "Rejected by admin", reason);
-      showToast(`❌ Case ${caseItem.id} rejected`);
+      showToast(`❌ Case ${caseItem.ref || caseItem.id} rejected`);
       onDone(caseItem.id, "Archived");
       onClose();
     } catch (e) { showToast(e.message || "Failed", "error"); }
@@ -1386,7 +1386,7 @@ const RejectCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title={`❌ Reject Case — ${caseItem.id}`} onClose={onClose}>
+    <Modal title={`❌ Reject Case — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       <div style={{ marginBottom: 16, background: "#FEF2F2", borderRadius: 12, padding: "14px 18px", border: "1px solid #FECACA" }}>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{caseItem.victim_name}</div>
         <div style={{ fontSize: 12, color: COLORS.muted }}>{caseItem.location} · {caseItem.status}</div>
@@ -1421,7 +1421,7 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal) });
-      showToast(`✅ Case ${caseItem.id} published to donor portal!`);
+      showToast(`✅ Case ${caseItem.ref || caseItem.id} published to donor portal!`);
       onDone(caseItem.id, "Waiting Sponsor");
       onClose();
     } catch (e) { showToast(e.message || "Failed to publish", "error"); }
@@ -1429,7 +1429,7 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title={`📢 Publish to Donor Portal — ${caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`📢 Publish to Donor Portal — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "12px 16px", marginBottom: 20, border: "1px solid #BBF7D0", fontSize: 13, color: "#065F46" }}>
         ✅ Victim's private data (name, phone, GPS) will <strong>never</strong> be shown publicly. Only the public story below will appear to donors.
       </div>
@@ -1492,7 +1492,7 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
         estimatedAmountNeeded: parseFloat(form.estimatedAmountNeeded),
         fraudRiskScore: parseInt(form.fraudRiskScore),
       });
-      showToast(`📋 Investigation report submitted for ${caseItem.id} ✓`);
+      showToast(`📋 Investigation report submitted for ${caseItem.ref || caseItem.id} ✓`);
       onDone(caseItem.id, "Awaiting Approval");
       onClose();
     } catch (e) { showToast(e.message || "Failed to submit", "error"); }
@@ -1508,7 +1508,7 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
   );
 
   return (
-    <Modal title={`📋 Submit Investigation Report — ${caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`📋 Submit Investigation Report — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       {/* Case summary */}
       <div style={{ background: "#EFF6FF", borderRadius: 12, padding: "14px 18px", marginBottom: 20, border: "1px solid #BFDBFE" }}>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{caseItem.victim_name} · {caseItem.location}</div>
@@ -1593,7 +1593,7 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
 const FieldReportModal = ({ caseItem, onClose }) => {
   const fi = caseItem._raw?.fieldInvestigation || caseItem.fieldInvestigation;
   if (!fi) return (
-    <Modal title={`📋 Field Report — ${caseItem.id}`} onClose={onClose}>
+    <Modal title={`📋 Field Report — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       <div style={{ textAlign: "center", padding: 40, color: COLORS.muted }}>
         <div style={{ fontSize: 40 }}>📋</div>
         <p>No field investigation report yet.</p>
@@ -1602,7 +1602,7 @@ const FieldReportModal = ({ caseItem, onClose }) => {
   );
   const riskColor = { low: COLORS.secondary, medium: "#F59E0B", high: COLORS.danger };
   return (
-    <Modal title={`📋 Field Investigation Report — ${caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`📋 Field Investigation Report — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 20 }}>
         {[
           { label: "Victim Verified",    val: fi.victimVerified     ? "✅ Yes" : "❌ No",  bg: fi.victimVerified     ? "#D1FAE5" : "#FEE2E2" },
@@ -1695,7 +1695,7 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
   ];
 
   return (
-    <Modal title={`📦 Submit Delivery Proof — ${caseItem.id}`} onClose={onClose}>
+    <Modal title={`📦 Submit Delivery Proof — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       {/* Case summary */}
       <div style={{ background: "#F0F9FF", borderRadius: 10, padding: "12px 16px", marginBottom: 20, border: "1px solid #BAE6FD" }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.primary }}>
@@ -1817,7 +1817,7 @@ const CompleteCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   );
 
   return (
-    <Modal title={`🏁 Review & Complete — ${caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`🏁 Review & Complete — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
 
       {/* Case header */}
       <div style={{ background: "#F8FAFC", borderRadius: 10, padding: "12px 16px", marginBottom: 20, display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -2372,7 +2372,7 @@ const CaseTable = ({ cases, onView, compact, onReport }) => (
           {cases.map((c, i) => (
             <tr key={c.id} style={{ borderBottom: i < cases.length - 1 ? `1px solid ${COLORS.border}` : "none" }}
               onMouseEnter={e => e.currentTarget.style.background = "#F8FAFC"} onMouseLeave={e => e.currentTarget.style.background = ""}>
-              <td style={{ padding: compact ? "10px 12px" : "12px 16px", fontSize: 12, fontWeight: 700, color: COLORS.primary }}>{c.id}</td>
+              <td style={{ padding: compact ? "10px 12px" : "12px 16px", fontSize: 12, fontWeight: 700, color: COLORS.primary }}>{c.ref}</td>
               <td style={{ padding: compact ? "10px 12px" : "12px 16px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{c.victim_name}</div>
                 {!compact && <div style={{ fontSize: 11, color: COLORS.muted }}>{c.age} yrs · {c.gender}</div>}
@@ -2482,7 +2482,7 @@ const ObserverDashboard = ({ cases, currentUser, onReport, onViewCase }) => {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, background: COLORS.primary + "12", borderRadius: 20, padding: "2px 10px" }}>{c.id}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, background: COLORS.primary + "12", borderRadius: 20, padding: "2px 10px" }}>{c.ref}</span>
                     <UrgencyBadge level={c.urgency_level} />
                     <Badge status={c.status} />
                   </div>
@@ -2532,7 +2532,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, background: COLORS.primary + "12", borderRadius: 20, padding: "2px 10px" }}>{c.id}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, background: COLORS.primary + "12", borderRadius: 20, padding: "2px 10px" }}>{c.ref}</span>
             <UrgencyBadge level={c.urgency_level} />
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{c.victim_name}</div>
@@ -2770,7 +2770,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
           <div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, background: COLORS.primary + "12", borderRadius: 20, padding: "2px 10px" }}>{c.id}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, background: COLORS.primary + "12", borderRadius: 20, padding: "2px 10px" }}>{c.ref}</span>
               <UrgencyBadge level={c.urgency_level} />
             </div>
             <div style={{ fontSize: 15, fontWeight: 800 }}>{c.victim_name}</div>
@@ -3442,7 +3442,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                 {proofPending.map(c => (
                   <button key={c.id} onClick={() => onComplete && onComplete(c)}
                     style={{ padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: COLORS.secondary, color: "#fff", border: "none", cursor: "pointer" }}>
-                    🏁 Complete {c.id}
+                    🏁 Complete {c.ref}
                   </button>
                 ))}
               </div>
@@ -4278,7 +4278,8 @@ export default function KafaaleQaadApp() {
   };
 
   const mapCase = (c, role) => ({
-    id:               c.caseRef || c.id,
+    id:               c.id,              // internal CUID — used for all API calls
+    ref:              c.caseRef || c.id, // short display ID (KQ-2026-0001)
     victim_name:      role === "donor" ? (c.publicTitle || "Verified Case")
                     : (c.privateVictimName || c.publicTitle || "Pending Review"),
     age:              c.privateVictimAge || null,

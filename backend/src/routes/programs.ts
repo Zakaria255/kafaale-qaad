@@ -28,7 +28,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   const schema = z.object({
     name: z.string().min(2).max(100),
     type: z.enum(['child_sponsorship','education','medical','family_care','nutrition','emergency_relief']),
-    description: z.string().min(10).max(2000),
+    description: z.string().min(10).max(10000),
     icon: z.string().optional(),
     color: z.string().optional(),
     monthlyBudget: z.number().optional(),
@@ -112,7 +112,7 @@ router.post('/beneficiaries', authenticate, async (req: AuthRequest, res: Respon
     publicRegion: z.string().max(100).optional(),
     publicCity: z.string().max(100).optional(),
     publicNeedsDesc: z.string().max(200).optional(),
-    publicStory: z.string().max(2000).optional(),
+    publicStory: z.string().max(10000).optional(),
     monthlyNeed: z.number().min(1).max(100000),
   });
   try {
