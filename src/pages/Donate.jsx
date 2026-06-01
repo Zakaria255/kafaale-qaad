@@ -208,8 +208,8 @@ export default function Donate() {
         </div>
       </section>
 
-      <section style={{ padding: "60px 24px 80px", background: C.bg }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: isMobile || isTablet ? "1fr" : "minmax(300px,1fr) minmax(340px,1.4fr)", gap: isMobile ? 24 : 36, alignItems: "start" }}>
+      <section style={{ padding: isMobile ? "24px 12px 40px" : "60px 24px 80px", background: C.bg }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: isMobile || isTablet ? "1fr" : "minmax(300px,1fr) minmax(340px,1.4fr)", gap: isMobile ? 20 : 36, alignItems: "start" }}>
 
           {/* ── Left: Case list ── */}
           <div>
@@ -266,19 +266,19 @@ export default function Donate() {
                         boxShadow: isSelected ? `0 0 0 3px ${C.accent}30` : "0 2px 8px #0001",
                         transition: "all .15s" }}>
 
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                        <div style={{ flex: 1, minWidth: 0, marginRight: 10 }}>
-                          <div style={{ fontSize: 11, color: C.muted, fontWeight: 700, marginBottom: 2 }}>{c.id?.slice(0,12)}…</div>
-                          <div style={{ fontSize: 15, fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.publicTitle || "Verified Case"}</div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, gap: 8 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 11, color: C.muted, fontWeight: 700, marginBottom: 2 }}>{c.caseRef || c.id?.slice(0,12)}</div>
+                          <div style={{ fontSize: 15, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.publicTitle || "Verified Case"}</div>
                           <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>📍 {c.publicCity || "Somalia"}</div>
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end", flexShrink: 0 }}>
-                          <span style={{ background: (URGENCY_COLOR[urgKey] || "#999") + "20", color: URGENCY_COLOR[urgKey] || "#999", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
-                            {URGENCY_LABEL[urgKey] || c.emergencyLevel}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end", flexShrink: 0, maxWidth: "45%" }}>
+                          <span style={{ background: (URGENCY_COLOR[urgKey] || "#999") + "20", color: URGENCY_COLOR[urgKey] || "#999", borderRadius: 20, padding: "3px 8px", fontSize: 10, fontWeight: 700, whiteSpace: "nowrap" }}>
+                            {isMobile ? (urgKey === "critical" ? "🚨" : urgKey === "high" ? "🔴" : urgKey === "medium" ? "🟡" : "🟢") : (URGENCY_LABEL[urgKey] || c.emergencyLevel)}
                           </span>
                           {goal > 0 && (
-                            <span style={{ fontSize: 13, fontWeight: 800, color: remain > 0 ? C.danger : C.secondary }}>
-                              {remain > 0 ? `$${remain.toLocaleString()} needed` : "✅ Funded"}
+                            <span style={{ fontSize: 12, fontWeight: 800, color: remain > 0 ? C.danger : C.secondary, textAlign: "right" }}>
+                              {remain > 0 ? `$${remain.toLocaleString()}` : "✅ Funded"}
                             </span>
                           )}
                         </div>
@@ -294,7 +294,7 @@ export default function Donate() {
                       {/* Progress bar */}
                       {goal > 0 && (
                         <div>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: C.muted, marginBottom: 4 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: C.muted, marginBottom: 4, flexWrap: "wrap", gap: 2 }}>
                             <span>Raised: <strong style={{ color: C.secondary }}>${raised.toLocaleString()}</strong></span>
                             <span>Goal: <strong>${goal.toLocaleString()}</strong></span>
                           </div>
@@ -320,25 +320,27 @@ export default function Donate() {
           </div>
 
           {/* ── Right: Donation form ── */}
-          <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? 20 : 36, boxShadow: "0 4px 24px #0001", position: isMobile ? "static" : "sticky", top: 80 }}>
+          <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? "16px 14px" : 36, boxShadow: "0 4px 24px #0001", position: isMobile ? "static" : "sticky", top: 80, overflow: "hidden" }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, margin: "0 0 16px" }}>Sponsorship Details</h2>
 
             {/* Selected case summary */}
             {selectedCase ? (
-              <div style={{ background: "linear-gradient(135deg, #004B96 0%, #4B7D19 100%)", borderRadius: 14, padding: "16px 20px", marginBottom: 24, color: "#fff" }}>
-                <div style={{ fontSize: 15, fontWeight: 800 }}>{selectedCase.publicTitle?.slice(0,50)}</div>
-                <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>📍 {selectedCase.publicCity || "Somalia"}</div>
+              <div style={{ background: "linear-gradient(135deg, #004B96 0%, #4B7D19 100%)", borderRadius: 14, padding: "14px 16px", marginBottom: 20, color: "#fff", overflow: "hidden" }}>
+                <div style={{ fontSize: 14, fontWeight: 800, lineHeight: 1.4, wordBreak: "break-word", marginBottom: 4 }}>
+                  {isMobile ? (selectedCase.publicTitle?.slice(0, 40) + (selectedCase.publicTitle?.length > 40 ? "…" : "")) : selectedCase.publicTitle}
+                </div>
+                <div style={{ fontSize: 11, opacity: 0.8 }}>📍 {selectedCase.publicCity || "Somalia"}</div>
                 {(selectedCase.targetGoal || 0) > 0 && (
                   <div style={{ marginTop: 10 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, opacity: 0.85, marginBottom: 5 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, opacity: 0.85, marginBottom: 5, flexWrap: "wrap", gap: 4 }}>
                       <span>Raised: <strong>${(selectedCase.totalRaised || 0).toLocaleString()}</strong></span>
                       <span>Goal: <strong>${selectedCase.targetGoal.toLocaleString()}</strong></span>
                     </div>
-                    <div style={{ background: "rgba(255,255,255,0.25)", borderRadius: 20, height: 8 }}>
+                    <div style={{ background: "rgba(255,255,255,0.25)", borderRadius: 20, height: 7, overflow: "hidden" }}>
                       <div style={{ background: "#FCD34D", borderRadius: 20, height: "100%",
                         width: `${Math.min(100, Math.round(((selectedCase.totalRaised||0)/selectedCase.targetGoal)*100))}%` }} />
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 12 }}>
+                    <div style={{ marginTop: 5, fontSize: 12 }}>
                       <strong style={{ color: "#FCD34D" }}>
                         ${Math.max(0, selectedCase.targetGoal - (selectedCase.totalRaised||0)).toLocaleString()} still needed
                       </strong>
@@ -368,14 +370,15 @@ export default function Donate() {
                 return tiers.length > 0 ? (
                   <div style={{ marginBottom: 20 }}>
                     <label style={{ fontSize: 13, fontWeight: 700, display: "block", marginBottom: 10 }}>Quick amounts</label>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
                       {tiers.map((t, i) => (
                         <button type="button" key={i}
                           onClick={() => setAmount(String(t.val))}
                           title={t.desc}
-                          style={{ padding: "8px 14px", border: `2px solid ${amount === String(t.val) ? C.accent : C.border}`, borderRadius: 10,
+                          style={{ padding: "8px 6px", border: `2px solid ${amount === String(t.val) ? C.accent : C.border}`, borderRadius: 10,
                             background: amount === String(t.val) ? C.accent + "15" : "#fff", color: amount === String(t.val) ? C.accent : C.text,
-                            fontSize: 13, fontWeight: 700, cursor: "pointer", flex: 1 }}>
+                            fontSize: isMobile ? 11 : 13, fontWeight: 700, cursor: "pointer",
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
                           {t.label}
                         </button>
                       ))}
