@@ -94,6 +94,22 @@ router.get('/beneficiaries/admin', authenticate, async (req: AuthRequest, res: R
   } catch { res.status(500).json({ error: 'Failed to fetch beneficiaries' }); }
 });
 
+// GET /api/programs/beneficiaries/:id — Single beneficiary detail
+router.get('/beneficiaries/:id', async (req: Request, res: Response) => {
+  try {
+    const beneficiary = await prisma.beneficiary.findUnique({
+      where: { id: req.params.id },
+      include: {
+        program: { select: { id: true, name: true, type: true, icon: true, color: true } },
+        monthlyUpdates: { where: { isPublished: true }, orderBy: [{ year: 'desc' }, { month: 'desc' }], take: 6 },
+        _count: { select: { sponsorships: true, monthlyUpdates: true } },
+      },
+    });
+    if (!beneficiary) return res.status(404).json({ error: 'Beneficiary not found' });
+    res.json({ beneficiary });
+  } catch { res.status(500).json({ error: 'Failed to fetch beneficiary' }); }
+});
+
 // POST /api/programs/beneficiaries — Enroll beneficiary
 router.post('/beneficiaries', authenticate, async (req: AuthRequest, res: Response) => {
   if (!isAdmin(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
