@@ -23,6 +23,7 @@ import aiRoutes from './routes/ai';
 import partnersRoutes from './routes/partners';
 import programsRoutes from './routes/programs';
 import projectsRoutes from './routes/projects';
+import searchRoutes from './routes/search';
 import { sysLog } from './services/logger';
 
 const app = express();
@@ -128,6 +129,7 @@ app.use('/api/ai',            aiLimiter, aiRoutes);
 app.use('/api/partners',      partnersRoutes);
 app.use('/api/programs',      programsRoutes);
 app.use('/api/projects',      projectsRoutes);
+app.use('/api/search',        searchRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
