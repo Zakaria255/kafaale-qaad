@@ -201,26 +201,50 @@ router.get('/donations', async (req: AuthRequest, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to retrieve donations' }); }
 });
 
-// PATCH /api/admin/donations/:id/confirm — Confirm a pending donation
+// PATCH /api/admin/donations/:id/confirm — Confirm a pending donation (atomic)
 router.patch('/donations/:id/confirm', async (req: AuthRequest, res: Response) => {
   try {
-    const donation = await prisma.donation.update({
+    const existing = await prisma.donation.findUnique({
       where: { id: req.params.id },
-      data:  { status: 'confirmed' },
-      include: { case: { select: { id: true, status: true, targetGoal: true, totalRaised: true } } },
+      include: { case: { select: { id: true, status: true, totalRaised: true } } },
     }) as any;
-    // Update case totalRaised
-    const newTotal = (donation.case?.totalRaised || 0) + donation.amount;
-    await prisma.case.update({ where: { id: donation.caseId }, data: { totalRaised: newTotal } });
-    // Update case status to 'sponsored' if it was waiting
-    if (donation.case?.status === 'waiting_for_sponsor') {
-      await prisma.case.update({ where: { id: donation.caseId }, data: { status: 'sponsored' } });
-    }
-    await prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: donation.caseId, action: 'donation_confirmed', notes: `Confirmed $${donation.amount} donation` } });
-    // Notify donor
-    await prisma.notification.create({ data: { userId: donation.donorId, caseId: donation.caseId, type: 'donation_confirmed', title: '✅ Donation Confirmed', message: `Your donation of $${donation.amount} has been confirmed. The field team will deliver aid shortly.` } });
-    res.json({ message: 'Donation confirmed', donationId: donation.id, newCaseTotal: newTotal });
+    if (!existing) return res.status(404).json({ error: 'Donation not found' });
+    if (existing.status === 'confirmed') return res.status(400).json({ error: 'Donation already confirmed' });
+    if (existing.status === 'refunded')  return res.status(400).json({ error: 'Donation was refunded — cannot confirm' });
+
+    const wasWaiting = existing.case?.status === 'waiting_for_sponsor';
+
+    // Atomic: update donation + increment totalRaised + optionally update case status
+    await prisma.$transaction([
+      prisma.donation.update({ where: { id: req.params.id }, data: { status: 'confirmed', confirmedAt: new Date() } }),
+      prisma.case.update({ where: { id: existing.caseId }, data: { totalRaised: { increment: existing.amount }, ...(wasWaiting && { status: 'sponsored', sponsoredAt: new Date() }) } }),
+      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: existing.caseId, action: 'donation_confirmed', notes: `Confirmed $${existing.amount} donation from donor ${existing.donorId}` } }),
+    ]);
+    await prisma.notification.create({ data: { userId: existing.donorId, caseId: existing.caseId, type: 'donation_confirmed', title: '✅ Donation Confirmed', message: `Your donation of $${existing.amount} has been confirmed. The field team will deliver aid shortly.` } });
+    res.json({ message: 'Donation confirmed', donationId: existing.id });
   } catch { res.status(500).json({ error: 'Failed to confirm donation' }); }
+});
+
+// PATCH /api/admin/donations/:id/refund — Refund a donation (super_admin only)
+router.patch('/donations/:id/refund', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    const { reason } = req.body;
+    if (!reason?.trim()) return res.status(400).json({ error: 'Refund reason required' });
+
+    const donation = await prisma.donation.findUnique({ where: { id: req.params.id } });
+    if (!donation) return res.status(404).json({ error: 'Donation not found' });
+    if (donation.status === 'refunded') return res.status(400).json({ error: 'Already refunded' });
+
+    const wasConfirmed = donation.status === 'confirmed';
+    await prisma.$transaction([
+      prisma.donation.update({ where: { id: req.params.id }, data: { status: 'refunded' } }),
+      ...(wasConfirmed ? [prisma.case.update({ where: { id: donation.caseId }, data: { totalRaised: { decrement: donation.amount } } })] : []),
+      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: donation.caseId, action: 'donation_confirmed', notes: `REFUND: $${donation.amount} — reason: ${reason}` } }),
+    ]);
+    await prisma.notification.create({ data: { userId: donation.donorId, caseId: donation.caseId, type: 'donation_confirmed', title: '↩️ Donation Refunded', message: `Your donation of $${donation.amount} has been marked for refund. Reason: ${reason}` } });
+    res.json({ message: 'Refund processed', donationId: donation.id });
+  } catch { res.status(500).json({ error: 'Failed to process refund' }); }
 });
 
 // PATCH /api/admin/cases/:id/complete — Mark case complete after delivery proof reviewed
@@ -295,7 +319,7 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
     }
     const { id } = req.params;
     const { role } = req.body;
-    const validRoles = ['reporter', 'donor', 'field_agent', 'admin', 'super_admin'];
+    const validRoles = ['reporter','sponsor','field_agent','office_staff','program_manager','project_manager','partner','admin','super_admin'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
     }
