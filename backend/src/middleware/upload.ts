@@ -42,7 +42,7 @@ const ALLOWED = new Set([
   'text/plain',
 ]);
 
-const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (_req: Request, file: any, cb: multer.FileFilterCallback) => {
   ALLOWED.has(file.mimetype) ? cb(null, true) : cb(new Error(`File type not allowed: ${file.mimetype}`));
 };
 
@@ -58,9 +58,9 @@ export async function processUploads(folder: string, fields: string[], req: Requ
   try {
     // req.files is a dict when using .fields(), flat array when using .array()
     const raw = req.files;
-    const files: Express.Multer.File[] = Array.isArray(raw)
+    const files: any[] = Array.isArray(raw)
       ? raw
-      : raw ? Object.values(raw as Record<string, Express.Multer.File[]>).flat() : [];
+      : raw ? Object.values(raw as Record<string, any[]>).flat() : [];
     if (files.length === 0) return next();
 
     const byField: Record<string, string[]> = {};

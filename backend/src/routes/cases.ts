@@ -150,9 +150,9 @@ router.post('/',
       const mediaUrls: string[] = [...(uploaded.media || []), ...(uploaded.documents || [])];
       if (mediaUrls.length > 0) {
         const files = (req.files as any) || {};
-        const allFiles: Express.Multer.File[] = [
-          ...((files.media || []) as Express.Multer.File[]),
-          ...((files.documents || []) as Express.Multer.File[]),
+        const allFiles: any[] = [
+          ...(files.media || []),
+          ...(files.documents || []),
         ];
         await prisma.caseMedia.createMany({
           data: mediaUrls.map((url, i) => ({

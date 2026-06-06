@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken';
 export interface AuthRequest extends Request {
   user?: { id: string; role: string; email: string };
   params: Record<string, string>;
+  file?: any;
+  files?: any;
 }
 
 export function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
