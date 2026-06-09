@@ -24,6 +24,7 @@ model User {
   city              String?
   organization      String?
   isActive          Boolean   @default(true)
+  isApproved        Boolean   @default(true)
   expoPushToken     String?
   lastLoginAt       DateTime?
   createdAt         DateTime  @default(now())
@@ -46,6 +47,7 @@ model User {
   @@index([role])
   @@index([email])
   @@index([isActive])
+  @@index([isApproved])
 }
 
 model Case {
@@ -285,6 +287,7 @@ enum NotificationType {
   monthly_update_published
   project_funded
   project_completed
+  account_approved
 }
 
 model AdminAuditLog {

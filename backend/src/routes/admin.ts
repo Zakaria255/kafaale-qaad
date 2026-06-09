@@ -164,16 +164,62 @@ router.get('/stats', async (_req: AuthRequest, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to retrieve stats' }); }
 });
 
-// GET /api/admin/users — All users (admin/super_admin only — not verification_office)
+// GET /api/admin/users — All users (admin/super_admin only)
 router.get('/users', async (req: AuthRequest, res: Response) => {
   if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
   try {
+    const { status } = req.query as Record<string, string>;
+    const where: any = {};
+    if (status === 'pending') where.isApproved = false;
     const users = await prisma.user.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
-      select: { id: true, name: true, email: true, role: true, phone: true, country: true, city: true, isActive: true, createdAt: true, lastLoginAt: true, _count: { select: { reportedCases: true, donations: true } } },
+      select: {
+        id: true, name: true, email: true, role: true, phone: true,
+        country: true, city: true, organization: true,
+        isActive: true, isApproved: true, createdAt: true, lastLoginAt: true,
+        _count: { select: { reportedCases: true, donations: true } },
+      },
     });
     res.json(users);
   } catch { res.status(500).json({ error: 'Failed to retrieve users' }); }
+});
+
+// PATCH /api/admin/users/:id/approve — Approve a pending staff account
+router.patch('/users/:id/approve', async (req: AuthRequest, res: Response) => {
+  if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data:  { isApproved: true },
+      select: { id: true, name: true, email: true, role: true },
+    });
+    await prisma.notification.create({
+      data: {
+        userId:  user.id,
+        type:    'account_approved',
+        title:   '✅ Account Approved',
+        message: `Your ${user.role.replace(/_/g,' ')} account has been approved. You can now sign in to Kafaale Qaad.`,
+      },
+    }).catch(() => {});
+    sysLog.info(`Admin ${req.user!.email} approved user ${user.email} [${user.role}]`);
+    res.json({ message: 'User approved', user });
+  } catch { res.status(500).json({ error: 'Failed to approve user' }); }
+});
+
+// PATCH /api/admin/users/:id/reject — Reject and deactivate a pending account
+router.patch('/users/:id/reject', async (req: AuthRequest, res: Response) => {
+  if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const { reason } = req.body;
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data:  { isApproved: false, isActive: false },
+      select: { id: true, name: true, email: true, role: true },
+    });
+    sysLog.info(`Admin ${req.user!.email} rejected user ${user.email} [${user.role}] — reason: ${reason || 'not provided'}`);
+    res.json({ message: 'User rejected', user });
+  } catch { res.status(500).json({ error: 'Failed to reject user' }); }
 });
 
 // GET /api/admin/donations — All donations with full details (admin/super_admin only)

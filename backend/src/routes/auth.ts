@@ -10,12 +10,16 @@ import { sysLog } from '../services/logger';
 
 const router = Router();
 
-// Single source of truth for all valid roles
 export const ALL_ROLES = [
   'reporter','sponsor','field_agent','office_staff',
   'program_manager','project_manager','partner','admin','super_admin',
 ] as const;
 export type AppRole = typeof ALL_ROLES[number];
+
+// Roles that require admin approval before accessing the system
+const APPROVAL_REQUIRED_ROLES = new Set([
+  'field_agent','office_staff','program_manager','project_manager','partner',
+]);
 
 const RegisterSchema = z.object({
   name:              z.string().min(2).max(100),
@@ -29,7 +33,6 @@ const RegisterSchema = z.object({
   role:              z.enum(ALL_ROLES).default('reporter'),
 });
 
-// Email helper — logs to console if SMTP not configured
 async function sendEmail(to: string, subject: string, text: string) {
   if (process.env.SMTP_HOST) {
     const transporter = nodemailer.createTransport({
@@ -56,19 +59,37 @@ router.post('/register', async (req: Request, res: Response) => {
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
+    const requiresApproval = APPROVAL_REQUIRED_ROLES.has(data.role);
     const hashedPassword = await bcrypt.hash(data.password, 12);
+
     const user = await prisma.user.create({
       data: {
         name: data.name, email: data.email, password: hashedPassword, role: data.role,
         phone: data.phone, country: data.country, city: data.city,
         organization: data.organization, preferredLanguage: data.preferredLanguage,
+        isApproved: !requiresApproval,
       },
-      select: { id: true, name: true, email: true, role: true, preferredLanguage: true },
+      select: {
+        id: true, name: true, email: true, role: true,
+        preferredLanguage: true, isApproved: true,
+      },
     });
 
-    const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
-    sysLog.info(`✅ New user registered: ${user.email} [${user.role}]`);
-    res.status(201).json({ user, token });
+    // For approved roles, issue a JWT immediately
+    if (!requiresApproval) {
+      const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
+      sysLog.info(`✅ New user registered: ${user.email} [${user.role}]`);
+      return res.status(201).json({ user, token });
+    }
+
+    // Staff/agent: account created but pending approval — no token issued
+    sysLog.info(`✅ New staff registration (pending approval): ${user.email} [${user.role}]`);
+    res.status(201).json({
+      user,
+      token: null,
+      pendingApproval: true,
+      message: 'Account created. An admin will review and approve your account within 24 hours.',
+    });
   } catch (err: any) {
     if (err instanceof z.ZodError) return res.status(400).json({ error: 'Validation failed', details: err.issues });
     res.status(400).json({ error: err.message });
@@ -85,13 +106,24 @@ router.post('/login', async (req: Request, res: Response) => {
     const valid = await bcrypt.compare(data.password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
-    // Update last login
+    // Staff/agent account awaiting admin approval
+    if (!user.isApproved) {
+      return res.status(403).json({
+        error: 'Your account is pending admin approval. You will be notified when access is granted.',
+        code: 'PENDING_APPROVAL',
+        role: user.role,
+      });
+    }
+
     await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
     sysLog.info(`🔐 User login: ${user.email} [${user.role}]`);
     res.json({
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, preferredLanguage: user.preferredLanguage },
+      user: {
+        id: user.id, name: user.name, email: user.email, role: user.role,
+        preferredLanguage: user.preferredLanguage, isApproved: user.isApproved,
+      },
       token,
     });
   } catch (err: any) {
@@ -100,7 +132,7 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/auth/push-token — Save Expo push token for this device
+// POST /api/auth/push-token
 router.post('/push-token', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { token } = req.body;
@@ -110,7 +142,7 @@ router.post('/push-token', authenticate, async (req: AuthRequest, res: Response)
   } catch { res.status(500).json({ error: 'Failed to save push token' }); }
 });
 
-// GET /api/auth/me — Get current user profile
+// GET /api/auth/me
 router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
@@ -118,18 +150,16 @@ router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
       select: {
         id: true, name: true, email: true, phone: true, role: true,
         country: true, city: true, organization: true, preferredLanguage: true,
-        createdAt: true, lastLoginAt: true,
+        isApproved: true, createdAt: true, lastLoginAt: true,
         _count: { select: { reportedCases: true, donations: true } },
       },
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
-  } catch (err: any) {
-    res.status(500).json({ error: 'Failed to retrieve profile' });
-  }
+  } catch { res.status(500).json({ error: 'Failed to retrieve profile' }); }
 });
 
-// PATCH /api/auth/profile — Update own profile
+// PATCH /api/auth/profile
 router.patch('/profile', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const schema = z.object({
@@ -151,16 +181,15 @@ router.patch('/profile', authenticate, async (req: AuthRequest, res: Response) =
   }
 });
 
-// POST /api/auth/forgot-password — Send OTP to email
+// POST /api/auth/forgot-password
 router.post('/forgot-password', async (req: Request, res: Response) => {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);
     const user = await prisma.user.findUnique({ where: { email } });
-    // Always respond 200 to prevent email enumeration
     if (!user) return res.json({ message: 'If that email exists, a code has been sent.' });
 
     const code      = crypto.randomInt(100000, 999999).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await prisma.otpRecord.create({ data: { email, code, expiresAt } });
     await sendEmail(email, 'Kafaale Qaad — Password Reset Code', `Your password reset code is: ${code}\n\nThis code expires in 15 minutes. Do not share it with anyone.`);
@@ -173,7 +202,7 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/auth/resend-otp — Resend OTP
+// POST /api/auth/resend-otp
 router.post('/resend-otp', async (req: Request, res: Response) => {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);
@@ -190,7 +219,7 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to resend OTP' }); }
 });
 
-// POST /api/auth/verify-otp — Verify OTP (registration email confirmation)
+// POST /api/auth/verify-otp
 router.post('/verify-otp', async (req: Request, res: Response) => {
   try {
     const { email, otp } = z.object({ email: z.string().email(), otp: z.string().length(6) }).parse(req.body);
@@ -201,7 +230,10 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
     if (!record) return res.status(400).json({ error: 'Invalid or expired code' });
 
     await prisma.otpRecord.update({ where: { id: record.id }, data: { used: true } });
-    const user = await prisma.user.findUnique({ where: { email }, select: { id: true, name: true, email: true, role: true } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, name: true, email: true, role: true, isApproved: true },
+    });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
@@ -212,7 +244,7 @@ router.post('/verify-otp', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/auth/reset-password — Reset password with OTP
+// POST /api/auth/reset-password
 router.post('/reset-password', async (req: Request, res: Response) => {
   try {
     const { email, otp, newPassword } = z.object({
@@ -239,7 +271,7 @@ router.post('/reset-password', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/auth/change-password — Change password for logged-in user
+// PATCH /api/auth/change-password
 router.patch('/change-password', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { currentPassword, newPassword } = z.object({
