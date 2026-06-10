@@ -15,24 +15,32 @@ const DonationSchema = z.object({
 
 router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    // Idempotency: client sends Idempotency-Key header to prevent duplicate submissions
-    const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
-    if (idempotencyKey) {
-      const existing = await prisma.idempotencyKey.findUnique({ where: { key: idempotencyKey } }).catch(() => null);
-      if (existing) return res.status(200).json({ message: 'Donation already submitted', idempotent: true });
-    }
-
     const data = DonationSchema.parse(req.body);
     const kase = await prisma.case.findUnique({ where: { id: data.caseId } });
-    if (!kase || !['waiting_for_sponsor','sponsored'].includes(kase.status)) return res.status(400).json({ error: 'Case not available for donation' });
+    if (!kase || !['waiting_for_sponsor','sponsored'].includes(kase.status)) {
+      return res.status(400).json({ error: 'Case not available for donation' });
+    }
+
+    // Idempotency: atomically claim the key then create the donation inside a transaction.
+    // This prevents TOCTOU races where two concurrent requests both pass the existence check.
+    const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+
+    if (idempotencyKey) {
+      try {
+        // Attempt to INSERT the idempotency key — unique constraint makes this atomic.
+        // If the key already exists this will throw P2002, which we catch below.
+        await prisma.idempotencyKey.create({ data: { key: idempotencyKey } });
+      } catch (idempErr: any) {
+        if (idempErr?.code === 'P2002') {
+          return res.status(200).json({ message: 'Donation already submitted', idempotent: true });
+        }
+        throw idempErr; // unexpected DB error — bubble up
+      }
+    }
 
     const donation = await prisma.donation.create({
       data: { donorId: req.user!.id, ...data, status: 'pending' },
     });
-
-    if (idempotencyKey) {
-      await prisma.idempotencyKey.create({ data: { key: idempotencyKey } }).catch(() => {});
-    }
 
     res.status(201).json({ message: 'Donation submitted', donationId: donation.id, donation: { id: donation.id, amount: donation.amount }, status: 'pending' });
   } catch (err: any) {

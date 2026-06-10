@@ -1,5 +1,6 @@
 import { Router, Response, Request } from 'express';
 import { z } from 'zod';
+import crypto from 'crypto';
 import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { uploadCases, processUploads, getMediaType } from '../middleware/upload';
@@ -132,29 +133,27 @@ router.post('/',
       const data = CreateCaseSchema.parse(req.body);
       const year = new Date().getFullYear();
 
-      // Use random suffix to prevent race-condition duplicate caseRef on concurrent submissions
+      // Generate a collision-resistant caseRef using a crypto random suffix.
+      // This replaces the COUNT()-based approach which had TOCTOU race conditions.
       let kase: Awaited<ReturnType<typeof prisma.case.create>>;
       let attempts = 0;
       while (true) {
-        const count = await prisma.case.count();
-        const suffix = attempts > 0
-          ? `${String(count + 1).padStart(4, '0')}-${Math.floor(Math.random() * 100)}`
-          : String(count + 1).padStart(4, '0');
-        const caseRef = `KQ-${year}-${suffix}`;
+        const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
+        const caseRef = `KQ-${year}-${randomSuffix}`;
         try {
           kase = await prisma.case.create({
             data: {
-              reporterId:    req.user!.id,
+              reporterId:     req.user!.id,
               ...data,
               needsChecklist: data.needsChecklist || [],
-              caseType:      data.caseType || 'emergency',
-              status:        'pending_review',
+              caseType:       data.caseType || 'emergency',
+              status:         'pending_review',
               caseRef,
             },
           });
           break;
         } catch (createErr: any) {
-          if (createErr.code === 'P2002' && ++attempts < 5) continue; // unique constraint — retry
+          if (createErr.code === 'P2002' && ++attempts < 5) continue; // collision — retry (extremely rare)
           throw createErr;
         }
       }

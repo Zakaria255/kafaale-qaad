@@ -11,28 +11,46 @@ router.use(authenticate, requireRole(['field_agent','admin','super_admin','offic
 router.get('/assignments', async (req: AuthRequest, res: Response) => {
   try {
     const assignments = await prisma.case.findMany({
-      where: { assignedAgentId: req.user!.id, status: { in: ['team_assigned','investigating','investigation_completed','ai_sanitized','sponsored','delivering','proof_uploaded'] } },
-      include: { reporter: { select: { name: true, phone: true } }, fieldInvestigation: true },
+      where: {
+        assignedAgentId: req.user!.id,
+        // Include all active workload statuses for this agent
+        status: { in: [
+          'team_assigned',
+          'investigating',
+          'investigation_completed',
+          'ai_sanitized',
+          'waiting_for_sponsor',
+          'sponsored',
+          'delivering',
+          'proof_uploaded',
+        ]},
+      },
+      include: {
+        reporter:          { select: { name: true, phone: true } },
+        fieldInvestigation: true,
+        deliveryProof:     { select: { adminConfirmed: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
     });
     res.json({ assignments });
-  } catch { res.status(500).json({ error: 'Failed' }); }
+  } catch { res.status(500).json({ error: 'Failed to load assignments' }); }
 });
 
 const InvestigationSchema = z.object({
-  caseId: z.string(),
-  victimVerified: z.boolean(),
-  situationAccurate: z.boolean(),
-  situationNotes: z.string().max(2000).optional(),
-  estimatedAmountNeeded: z.number().positive(),
-  urgencyConfirmed: z.enum(['low','medium','high','critical']),
-  deliveryFeasible: z.boolean().default(true),
-  deliveryMethod: z.string().max(200).optional(),
-  deliveryNotes: z.string().max(1000).optional(),
-  fraudRiskScore: z.number().int().min(0).max(100).default(0),
-  fraudRiskLevel: z.enum(['low','medium','high']).default('low'),
-  fraudRiskNotes: z.string().max(500).optional(),
-  verificationStatus: z.enum(['verified','rejected','needs_review']),
-  officialNotes: z.string().max(2000).optional(),
+  caseId:                z.string(),
+  victimVerified:        z.coerce.boolean(),
+  situationAccurate:     z.coerce.boolean(),
+  situationNotes:        z.string().max(2000).optional(),
+  estimatedAmountNeeded: z.coerce.number().positive(),
+  urgencyConfirmed:      z.enum(['low','medium','high','critical']),
+  deliveryFeasible:      z.coerce.boolean().default(true),
+  deliveryMethod:        z.string().max(200).optional(),
+  deliveryNotes:         z.string().max(1000).optional(),
+  fraudRiskScore:        z.coerce.number().int().min(0).max(100).default(0),
+  fraudRiskLevel:        z.enum(['low','medium','high']).default('low'),
+  fraudRiskNotes:        z.string().max(500).optional(),
+  verificationStatus:    z.enum(['verified','rejected','needs_review']),
+  officialNotes:         z.string().max(2000).optional(),
   programRecommendation: z.enum(['child_sponsorship','education','medical','family_care','emergency']).optional(),
 });
 
@@ -93,10 +111,23 @@ async function investigateHandler(req: AuthRequest, res: Response) {
           });
           // Only auto-publish if confidence >= 70
           if (result.confidenceScore >= 70) {
+            const aiPayload = {
+              generatedTitle:    result.generatedTitle,
+              generatedStory:    result.generatedStory,
+              generatedCategory: fullCase.category,
+              generatedCity:     result.generatedCity,
+              generatedUrgency:  result.generatedUrgency,
+              safeMediaUrls:     result.safeMediaUrls,
+              piiDetected:       result.piiDetected,
+              piiRemoved:        result.piiRemoved,
+              mediaFlagged:      result.mediaFlagged,   // was missing — caused silent data loss
+              confidenceScore:   result.confidenceScore,
+              tokensUsed:        result.tokensUsed,
+            };
             await prisma.aiPublicData.upsert({
-              where: { caseId: fullCase.id },
-              update: { generatedTitle: result.generatedTitle, generatedStory: result.generatedStory, generatedCategory: fullCase.category, generatedCity: result.generatedCity, generatedUrgency: result.generatedUrgency, safeMediaUrls: result.safeMediaUrls, piiDetected: result.piiDetected, piiRemoved: result.piiRemoved, confidenceScore: result.confidenceScore, tokensUsed: result.tokensUsed, updatedAt: new Date() },
-              create: { caseId: fullCase.id, generatedTitle: result.generatedTitle, generatedStory: result.generatedStory, generatedCategory: fullCase.category, generatedCity: result.generatedCity, generatedUrgency: result.generatedUrgency, safeMediaUrls: result.safeMediaUrls, piiDetected: result.piiDetected, piiRemoved: result.piiRemoved, confidenceScore: result.confidenceScore, tokensUsed: result.tokensUsed },
+              where:  { caseId: fullCase.id },
+              update: { ...aiPayload, updatedAt: new Date() },
+              create: { caseId: fullCase.id, ...aiPayload },
             });
             await prisma.case.update({ where: { id: fullCase.id }, data: { status: 'ai_sanitized', aiSanitizedAt: new Date() } });
           }
@@ -132,10 +163,10 @@ async function investigateHandler(req: AuthRequest, res: Response) {
 const DeliverySchema = z.object({
   caseId:          z.string(),
   deliveryMethod:  z.enum(['cash','food_package','medical_supplies','clothing','goods','mixed']),
-  amountDelivered: z.number().positive(),
+  amountDelivered: z.coerce.number().positive(),  // coerce: multipart/form-data sends strings
   recipientName:   z.string().max(200).optional(),
   deliveryNotes:   z.string().max(2000),
-  deliveryDate:    z.string().datetime().optional(),  // ISO string; defaults to now
+  deliveryDate:    z.string().datetime().optional(),
 });
 
 // POST /api/field/delivery — Field agent submits delivery proof

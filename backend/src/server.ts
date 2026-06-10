@@ -55,7 +55,10 @@ const ALLOWED_ORIGINS = new Set([
   // Production frontends
   'https://kafaale-qaad.vercel.app',
   'https://kafaale-qaad1.vercel.app',
+  'https://kafaaleqaad.org',
+  'https://www.kafaaleqaad.org',
   process.env.FRONTEND_URL,
+  process.env.CLOUDFLARE_TUNNEL_URL,   // dev tunnel for mobile testing
 ].filter(Boolean) as string[]);
 
 // ── Security headers ─────────────────────────────────────────────────────────
@@ -126,6 +129,13 @@ const aiLimiter = rateLimit({
   message: { error: 'AI request limit reached. Please try again in an hour.' },
 });
 
+// Upload: 50 uploads per hour (bandwidth protection)
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 50,
+  message: { error: 'Too many uploads. Please try again later.' },
+});
+
 app.use(globalLimiter);
 
 // ── Static uploads ───────────────────────────────────────────────────────────
@@ -133,9 +143,9 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth',          authLimiter, authRoutes);
-app.use('/api/cases',         casesRoutes);
+app.use('/api/cases',         uploadLimiter, casesRoutes);
 app.use('/api/admin',         adminRoutes);
-app.use('/api/field',         fieldRoutes);
+app.use('/api/field',         uploadLimiter, fieldRoutes);
 app.use('/api/donate',        donationLimiter, donationRoutes);
 app.use('/api/impact',        impactRoutes);
 app.use('/api/notifications', notificationRoutes);

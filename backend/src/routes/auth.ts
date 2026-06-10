@@ -304,6 +304,23 @@ router.patch('/change-password', authenticate, async (req: AuthRequest, res: Res
   }
 });
 
+// GET /api/auth/approval-status?email=... — lets pending users poll without storing their password
+router.get('/approval-status', async (req: Request, res: Response) => {
+  try {
+    const email = String(req.query.email || '').toLowerCase().trim();
+    if (!email) return res.status(400).json({ error: 'email required' });
+    const user = await prisma.user.findUnique({
+      where:  { email },
+      select: { isApproved: true, isActive: true, role: true },
+    });
+    // Intentionally vague — don't confirm whether the email exists to prevent enumeration
+    if (!user) return res.json({ status: 'pending' });
+    if (!user.isActive)   return res.json({ status: 'rejected' });
+    if (!user.isApproved) return res.json({ status: 'pending'  });
+    return res.json({ status: 'approved', role: user.role });
+  } catch { res.status(500).json({ error: 'Failed to check status' }); }
+});
+
 // POST /api/auth/refresh — issue a fresh 7-day token (rotates the old one out)
 router.post('/refresh', authenticate, async (req: AuthRequest, res: Response) => {
   try {

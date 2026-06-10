@@ -289,6 +289,8 @@ enum NotificationType {
   project_funded
   project_completed
   account_approved
+  donation_refunded
+  new_message
 }
 
 model AdminAuditLog {

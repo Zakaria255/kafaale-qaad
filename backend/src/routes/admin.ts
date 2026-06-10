@@ -62,15 +62,26 @@ router.patch('/cases/:id/status', async (req: AuthRequest, res: Response) => {
     const { status, notes, rejectionReason } = req.body;
     const validStatuses = ['pending_review','team_assigned','investigating','investigation_completed','ai_sanitized','waiting_for_sponsor','sponsored','delivering','proof_uploaded','completed','rejected'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
-    
+
     const updateData: any = { status };
     if (status === 'rejected') { updateData.rejectedAt = new Date(); updateData.rejectionReason = rejectionReason; }
     if (status === 'waiting_for_sponsor') updateData.adminPublishedAt = new Date();
     if (status === 'completed') updateData.completedAt = new Date();
 
+    // Map case status → correct audit action
+    const STATUS_TO_ACTION: Record<string, string> = {
+      rejected:                'rejected',
+      waiting_for_sponsor:     'published',
+      completed:               'completed',
+      ai_sanitized:            'triggered_ai',
+      investigation_completed: 'approved',
+      team_assigned:           'assigned_team',
+    };
+    const auditAction = STATUS_TO_ACTION[status] || 'approved';
+
     const kase = await prisma.case.update({ where: { id: req.params.id }, data: updateData });
     await prisma.adminAuditLog.create({
-      data: { adminId: req.user!.id, caseId: kase.id, action: status === 'rejected' ? 'rejected' : 'approved', notes },
+      data: { adminId: req.user!.id, caseId: kase.id, action: auditAction as any, notes },
     });
     sysLog.info(`Admin ${req.user!.email} updated case ${kase.id} → ${status}`);
     res.json({ message: 'Status updated', caseId: kase.id, status });
@@ -289,7 +300,7 @@ router.patch('/donations/:id/refund', async (req: AuthRequest, res: Response) =>
       ...(wasConfirmed ? [prisma.case.update({ where: { id: donation.caseId }, data: { totalRaised: { decrement: donation.amount } } })] : []),
       prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: donation.caseId, action: 'donation_refunded', notes: `REFUND: $${donation.amount} — reason: ${reason}` } }),
     ]);
-    await prisma.notification.create({ data: { userId: donation.donorId, caseId: donation.caseId, type: 'donation_confirmed', title: '↩️ Donation Refunded', message: `Your donation of $${donation.amount} has been marked for refund. Reason: ${reason}` } });
+    await prisma.notification.create({ data: { userId: donation.donorId, caseId: donation.caseId, type: 'donation_refunded', title: '↩️ Donation Refunded', message: `Your donation of $${donation.amount} has been marked for refund. Reason: ${reason}` } });
     res.json({ message: 'Refund processed', donationId: donation.id });
   } catch { res.status(500).json({ error: 'Failed to process refund' }); }
 });
@@ -391,7 +402,9 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// DELETE /api/admin/users/:id — Delete a user (super_admin only)
+// DELETE /api/admin/users/:id — Soft-delete (deactivate + anonymise) a user (super_admin only)
+// Hard prisma.user.delete() fails with FK constraint if the user has cases/donations/notifications.
+// Instead we deactivate and anonymise the account — preserving audit trail integrity.
 router.delete('/users/:id', async (req: AuthRequest, res: Response) => {
   try {
     if (req.user!.role !== 'super_admin') {
@@ -406,9 +419,26 @@ router.delete('/users/:id', async (req: AuthRequest, res: Response) => {
     if (target.role === 'super_admin') {
       return res.status(400).json({ error: 'Cannot delete another Super Admin account' });
     }
-    await prisma.user.delete({ where: { id } });
+
+    // Anonymise PII so the account is functionally deleted but FK integrity is preserved
+    const anonEmail = `deleted_${id}@kafaaleqaad.invalid`;
+    await prisma.user.update({
+      where: { id },
+      data: {
+        isActive:      false,
+        isApproved:    false,
+        name:          '[Deleted User]',
+        email:         anonEmail,
+        phone:         null,
+        expoPushToken: null,
+        city:          null,
+        organization:  null,
+        country:       null,
+      },
+    });
+
     await prisma.adminAuditLog.create({
-      data: { adminId: req.user!.id, action: 'user_deleted', notes: `Deleted user ${target.email} (${target.role})` },
+      data: { adminId: req.user!.id, action: 'user_deleted', notes: `Deleted (anonymised) user ${target.email} (${target.role})` },
     });
     sysLog.info(`Super admin ${req.user!.email} deleted user ${target.email}`);
     res.json({ message: 'User deleted', userId: id });
@@ -516,20 +546,35 @@ router.get('/fraud', async (_req: AuthRequest, res: Response) => {
   try {
     const [highRiskCases, suspiciousReporters, recentFlags] = await Promise.all([
       fraudDetectionService.getFraudAudits(),
-      // Reporters with >50% rejection rate and >1 case
-      prisma.user.findMany({
-        where: { role: 'reporter', isActive: true },
-        select: {
-          id: true, name: true, email: true, createdAt: true,
-          _count: { select: { reportedCases: true } },
-        },
-      }).then(async (reporters) => {
-        const withRates = await Promise.all(reporters.map(async (r) => {
-          const rejected = await prisma.case.count({ where: { reporterId: r.id, status: 'rejected' } });
-          const total = r._count.reportedCases;
-          return { ...r, total, rejected, rejectionRate: total > 1 ? Math.round((rejected / total) * 100) : 0 };
+      // Reporters with >50% rejection rate and >1 case — single grouped query (no N+1)
+      prisma.case.groupBy({
+        by: ['reporterId'],
+        _count: { id: true },
+        where: { reporterId: { not: null } },
+      }).then(async (groups) => {
+        const rejectedGroups = await prisma.case.groupBy({
+          by: ['reporterId'],
+          _count: { id: true },
+          where: { reporterId: { not: null }, status: 'rejected' },
+        });
+        const rejectedMap = new Map(rejectedGroups.map(g => [g.reporterId!, g._count.id]));
+        const highRisk = groups
+          .filter(g => g.reporterId && g._count.id > 1)
+          .map(g => ({ reporterId: g.reporterId!, total: g._count.id, rejected: rejectedMap.get(g.reporterId!) || 0 }))
+          .filter(r => Math.round((r.rejected / r.total) * 100) > 50)
+          .sort((a, b) => (b.rejected / b.total) - (a.rejected / a.total));
+        if (highRisk.length === 0) return [];
+        const users = await prisma.user.findMany({
+          where: { id: { in: highRisk.map(r => r.reporterId) } },
+          select: { id: true, name: true, email: true, createdAt: true },
+        });
+        const userMap = new Map(users.map(u => [u.id, u]));
+        return highRisk.map(r => ({
+          ...userMap.get(r.reporterId),
+          total: r.total,
+          rejected: r.rejected,
+          rejectionRate: Math.round((r.rejected / r.total) * 100),
         }));
-        return withRates.filter(r => r.total > 1 && r.rejectionRate > 50).sort((a, b) => b.rejectionRate - a.rejectionRate);
       }),
       // Cases near GPS clusters
       prisma.case.findMany({
@@ -569,11 +614,11 @@ router.patch('/users/:id/suspend', async (req: AuthRequest, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to update user status' }); }
 });
 
-// GET /api/admin/field-agents — All active field agents
+// GET /api/admin/field-agents — All active, approved field agents
 router.get('/field-agents', async (_req: AuthRequest, res: Response) => {
   try {
     const agents = await prisma.user.findMany({
-      where: { role: 'field_agent', isActive: true },
+      where: { role: 'field_agent', isActive: true, isApproved: true },
       select: { id: true, name: true, email: true, phone: true, city: true, organization: true, createdAt: true,
         _count: { select: { assignedCases: true } } },
       orderBy: { name: 'asc' },

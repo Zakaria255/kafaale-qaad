@@ -44,6 +44,7 @@ router.get('/', async (req: Request, res: Response) => {
 
       prisma.communityProject.findMany({
         where: {
+          status: { in: ['seeking_funding','funded','in_progress','completed'] },
           OR: [{ title: term }, { description: term }, { category: term }, { location: term }],
         },
         take: 10,
@@ -56,6 +57,7 @@ router.get('/', async (req: Request, res: Response) => {
 
       prisma.beneficiary.findMany({
         where: {
+          status: { in: ['seeking_sponsor','sponsored','active'] },
           OR: [
             { publicId: term },
             { publicNeedsDesc: term },

@@ -1,5 +1,6 @@
 import { Router, Response, Request } from 'express';
 import { z } from 'zod';
+import crypto from 'crypto';
 import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
@@ -139,11 +140,8 @@ router.post('/beneficiaries', authenticate, async (req: AuthRequest, res: Respon
     let beneficiary: any;
     let attempts = 0;
     while (true) {
-      const count = await prisma.beneficiary.count();
-      const suffix = attempts > 0
-        ? `${String(count + 1).padStart(3, '0')}-${Math.floor(Math.random() * 100)}`
-        : String(count + 1).padStart(3, '0');
-      const publicId = `${prefix}-${year}-${suffix}`;
+      const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
+      const publicId = `${prefix}-${year}-${randomSuffix}`;
       try {
         beneficiary = await prisma.beneficiary.create({
           data: { ...data, publicId, enrolledBy: req.user!.id, status: 'pending_verification' },
@@ -328,6 +326,7 @@ router.get('/stats', async (_req: Request, res: Response) => {
 
 // PATCH /api/programs/beneficiaries/:id/transfer — Move beneficiary to a different program type
 router.patch('/beneficiaries/:id/transfer', authenticate, async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const { toProgramType, reason } = z.object({
       toProgramType: z.string().min(1),

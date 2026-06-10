@@ -93,7 +93,7 @@ router.post('/threads', async (req: AuthRequest, res: Response) => {
 
     // Notify recipient
     await prisma.notification.create({
-      data: { userId: recipientId, caseId: caseId || null, type: 'case_submitted', title: '💬 New Message', message: `You have a new message` },
+      data: { userId: recipientId, caseId: caseId || null, type: 'new_message', title: '💬 New Message', message: `You have a new message` },
     }).catch(() => {});
 
     res.status(201).json({ thread: { id: thread.id }, message: { id: message.id, text } });
@@ -117,7 +117,7 @@ router.post('/threads/:id', async (req: AuthRequest, res: Response) => {
 
     const recipientId = thread.participantA === uid ? thread.participantB : thread.participantA;
     await prisma.notification.create({
-      data: { userId: recipientId, caseId: thread.caseId, type: 'case_submitted', title: '💬 New Message', message: `You have a new message` },
+      data: { userId: recipientId, caseId: thread.caseId, type: 'new_message', title: '💬 New Message', message: `You have a new message` },
     }).catch(() => {});
 
     res.status(201).json({ message: { id: message.id, text, createdAt: message.createdAt } });
