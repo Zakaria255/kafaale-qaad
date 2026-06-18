@@ -14,11 +14,10 @@ const C = {
 const URGENCY_COLOR = { Low: "#10B981", Medium: "#F59E0B", High: "#C0392B", Critical: "#7C3AED" };
 const URGENCY_BG    = { Low: "#D1FAE5", Medium: "#FEF3C7", High: "#FEE2E2", Critical: "#EDE9FE" };
 
-// Privacy: no hardcoded names — featured cases are loaded live from the API
 const FEATURED_CASES = [
-  { id: "sample-1", name: "Anonymous",  age: null, location: "Mogadishu Region", urgency: "High",     funded: 68, goal: "$850",  desc: "Elderly community member with chronic illness needs medication and food support. Case verified.", color: "#C0392B" },
-  { id: "sample-2", name: "Anonymous",  age: null, location: "Mogadishu Region", urgency: "Critical", funded: 45, goal: "$1,200",desc: "Family displaced by flooding needs immediate shelter and essential supplies. Situation confirmed.", color: "#7C3AED" },
-  { id: "sample-3", name: "Anonymous",  age: null, location: "Mogadishu Region", urgency: "Medium",   funded: 82, goal: "$600",  desc: "Young person with no family support seeking education assistance and safe shelter.", color: "#F59E0B" },
+  { id: "sample-1", location: "Mogadishu Region", urgency: "High",     funded: 68, goal: 850,   desc: "Elderly community member with chronic illness needs medication and food support. Case verified.",         img: "https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=600&q=75" },
+  { id: "sample-2", location: "Mogadishu Region", urgency: "Critical", funded: 45, goal: 1200,  desc: "Family displaced by flooding needs immediate shelter and essential supplies. Situation confirmed.",        img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&q=75" },
+  { id: "sample-3", location: "Mogadishu Region", urgency: "Medium",   funded: 82, goal: 600,   desc: "Young person with no family support seeking education assistance and safe shelter.", img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=75" },
 ];
 
 
@@ -347,26 +346,32 @@ export default function Home() {
                 background:"#fff", borderRadius:20, overflow:"hidden",
                 boxShadow:"0 2px 16px rgba(0,38,81,0.07)", border:`1px solid ${C.border}`,
               }}>
-                <div style={{ height:5, background:URGENCY_COLOR[c.urgency] }} />
-                <div style={{ padding: isMobile?20:26 }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
-                    <div>
-                      <div style={{ fontSize:10, color:C.muted, fontWeight:700, letterSpacing:1, textTransform:"uppercase" }}>CASE {c.id}</div>
-                      <div style={{ fontSize:19, fontWeight:900, color:C.text, marginTop:3 }}>{c.name}</div>
-                      <div style={{ fontSize:12, color:C.muted, marginTop:3 }}>{c.age != null ? `Age ${c.age} · ` : ""}📍 {c.location}</div>
-                    </div>
-                    <span style={{ background:URGENCY_BG[c.urgency], color:URGENCY_COLOR[c.urgency], border:`1px solid ${URGENCY_COLOR[c.urgency]}30`, borderRadius:100, padding:"4px 11px", fontSize:10, fontWeight:800, whiteSpace:"nowrap", flexShrink:0, marginLeft:8 }}>{c.urgency}</span>
-                  </div>
-                  <p style={{ fontSize:13, color:"#4A5568", lineHeight:1.65, margin:"0 0 18px" }}>{c.desc}</p>
-                  <div style={{ marginBottom:20 }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:7 }}>
-                      <span style={{ fontSize:11, fontWeight:700, color:URGENCY_COLOR[c.urgency] }}>{c.funded}% funded</span>
-                      <span style={{ fontSize:11, color:C.muted, fontWeight:600 }}>Goal: {c.goal}</span>
+                {/* Cover image */}
+                <div style={{ position:"relative", height:180, overflow:"hidden", background:C.bg }}>
+                  <img src={c.img} alt="" loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+                  <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.52) 100%)" }} />
+                  <span style={{ position:"absolute", top:10, left:10, background:URGENCY_COLOR[c.urgency], color:"#fff", padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:800 }}>{c.urgency}</span>
+                  <span style={{ position:"absolute", top:10, right:10, background:"rgba(6,95,70,0.75)", backdropFilter:"blur(4px)", color:"#D1FAE5", padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:700 }}>✓ Field Verified</span>
+                  <div style={{ position:"absolute", bottom:10, left:14, color:"rgba(255,255,255,0.8)", fontSize:12 }}>📍 {c.location}</div>
+                </div>
+
+                <div style={{ padding: isMobile?16:20 }}>
+                  <p style={{ fontSize:13, color:"#4A5568", lineHeight:1.65, margin:"0 0 14px" }}>{c.desc}</p>
+
+                  {/* % funded — goal $ only when 100% */}
+                  <div style={{ marginBottom:16 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:6 }}>
+                      <span style={{ fontSize:22, fontWeight:900, color: c.funded >= 100 ? C.green : C.primary, lineHeight:1 }}>{c.funded}%</span>
+                      <span style={{ fontSize:11, color:C.muted, fontWeight:600 }}>
+                        {c.funded >= 100 ? `Goal: $${c.goal.toLocaleString()} ✓` : "funded"}
+                      </span>
                     </div>
                     <div className="kf-prog-track">
-                      <div className="kf-prog-fill" style={{ width:`${c.funded}%`, background:`linear-gradient(90deg, ${URGENCY_COLOR[c.urgency]}80, ${URGENCY_COLOR[c.urgency]})` }} />
+                      <div className="kf-prog-fill" style={{ width:`${c.funded}%`, background:`linear-gradient(90deg, ${URGENCY_COLOR[c.urgency]}90, ${URGENCY_COLOR[c.urgency]})` }} />
                     </div>
+                    {c.funded >= 100 && <div style={{ fontSize:11, color:C.green, fontWeight:700, marginTop:4 }}>🎉 Fully Funded</div>}
                   </div>
+
                   <div style={{ display:"flex", gap:10 }}>
                     <Link to="/cases" className="kf-btn kf-btn-outline" style={{ flex:1, padding:"10px 0", borderRadius:10, fontSize:13, fontWeight:700, textAlign:"center", border:`1.5px solid ${C.primary}` }}>{P.case_view}</Link>
                     <Link to="/donate" className="kf-btn kf-btn-gold" style={{ flex:1, padding:"10px 0", borderRadius:10, fontSize:13, fontWeight:800, textAlign:"center", border:"none" }}>{P.case_sponsor}</Link>

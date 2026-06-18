@@ -1420,11 +1420,13 @@ const RejectCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
 const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   const raw = caseItem._raw || {};
   const ai  = raw.aiPublicData  || {};
+  const savedImgs = (() => { try { return JSON.parse(localStorage.getItem("kf_case_cover_imgs") || "{}"); } catch { return {}; } })();
   const [form, setForm] = useState({
-    publicTitle: ai.generatedTitle || caseItem.victim_name || "",
-    publicStory: ai.generatedStory || caseItem.description || "",
-    publicCity:  ai.generatedCity  || caseItem.location    || "",
-    targetGoal:  raw.targetGoal    || "",
+    publicTitle:    ai.generatedTitle || caseItem.victim_name || "",
+    publicStory:    ai.generatedStory || caseItem.description || "",
+    publicCity:     ai.generatedCity  || caseItem.location    || "",
+    targetGoal:     raw.targetGoal    || "",
+    coverImageUrl:  savedImgs[caseItem.id] || "",
   });
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -1434,6 +1436,14 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal) });
+      // Save cover image locally so case cards can display it immediately
+      if (form.coverImageUrl) {
+        try {
+          const imgs = JSON.parse(localStorage.getItem("kf_case_cover_imgs") || "{}");
+          imgs[caseItem.id] = form.coverImageUrl;
+          localStorage.setItem("kf_case_cover_imgs", JSON.stringify(imgs));
+        } catch {}
+      }
       showToast(`✅ Case ${caseItem.ref || caseItem.id} published to donor portal!`);
       onDone(caseItem.id, "Waiting Sponsor");
       onClose();
@@ -1463,6 +1473,12 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
         <Input label="Funding Goal (USD) *" type="number" value={form.targetGoal} onChange={e => set("targetGoal", e.target.value)}
           placeholder="e.g. 1500" />
       </div>
+      <Input label="Cover Image URL (optional)" value={form.coverImageUrl} onChange={e => set("coverImageUrl", e.target.value)}
+        placeholder="https://images.unsplash.com/… or upload to storage and paste URL" />
+      {form.coverImageUrl && (
+        <img src={form.coverImageUrl} alt="preview" onError={e => e.currentTarget.style.display="none"}
+          style={{ width: "100%", height: 160, objectFit: "cover", borderRadius: 10, marginTop: -8, border: "1px solid #E5E7EB" }} />
+      )}
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>

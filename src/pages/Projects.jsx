@@ -13,8 +13,8 @@ const PROJECTS = [
     title: "Baidoa District Water Well",
     location: "Baidoa, Bay Region",
     goal: 8000, raised: 6400,
-    beneficiaries: 320,
-    status: "active",
+    beneficiaries: 320, status: "active",
+    img: "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?w=600&q=75",
     desc: "Deep borehole well providing clean drinking water to 4 neighbouring villages. Reduces waterborne disease and travel time for women and children.",
     updates: ["Foundation dug — 18 June 2026", "Pump equipment delivered — 5 June 2026"],
   },
@@ -23,8 +23,8 @@ const PROJECTS = [
     title: "Garowe Primary School Renovation",
     location: "Garowe, Nugaal Region",
     goal: 15000, raised: 9300,
-    beneficiaries: 480,
-    status: "active",
+    beneficiaries: 480, status: "active",
+    img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=75",
     desc: "Rebuilding 3 collapsed classrooms, installing desks and solar lighting for 480 students. IDP-host community school running 2 shifts.",
     updates: ["Roof installed on block A — 12 June 2026", "Materials delivered — 28 May 2026"],
   },
@@ -33,8 +33,8 @@ const PROJECTS = [
     title: "Kismayo Mobile Clinic",
     location: "Kismayo, Lower Jubba",
     goal: 12000, raised: 12000,
-    beneficiaries: 1200,
-    status: "completed",
+    beneficiaries: 1200, status: "completed",
+    img: "https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=600&q=75",
     desc: "Monthly mobile clinic providing maternal health, vaccinations and basic medicine to 5 underserved communities. Fully funded and operational.",
     updates: ["Month 6 completed — 1 June 2026", "Fully funded — April 2026"],
   },
@@ -43,8 +43,8 @@ const PROJECTS = [
     title: "Beledweyne Community Centre",
     location: "Beledweyne, Hiran",
     goal: 6500, raised: 1950,
-    beneficiaries: 600,
-    status: "fundraising",
+    beneficiaries: 600, status: "fundraising",
+    img: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&q=75",
     desc: "Multi-purpose community hall for women's literacy classes, youth skills training, and community meetings. Currently in fundraising phase.",
     updates: ["Land identified and cleared — 10 June 2026"],
   },
@@ -53,8 +53,8 @@ const PROJECTS = [
     title: "Afgooye Irrigation Scheme",
     location: "Afgooye, Lower Shabelle",
     goal: 20000, raised: 4000,
-    beneficiaries: 85,
-    status: "fundraising",
+    beneficiaries: 85, status: "fundraising",
+    img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=75",
     desc: "Micro-irrigation canals and seed distribution for 85 farming families recovering from drought. Expected to triple crop yield by harvest season.",
     updates: ["Survey complete — 14 June 2026"],
   },
@@ -63,8 +63,8 @@ const PROJECTS = [
     title: "Mogadishu IDP Camp Solar",
     location: "Mogadishu, Benadir",
     goal: 9500, raised: 9500,
-    beneficiaries: 210,
-    status: "completed",
+    beneficiaries: 210, status: "completed",
+    img: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=600&q=75",
     desc: "Solar panel installation providing lighting to 210 IDP camp families, reducing safety incidents at night. Fully funded and commissioned.",
     updates: ["Commissioned — 20 May 2026", "Installation complete — 15 May 2026"],
   },
@@ -157,25 +157,33 @@ export default function Projects() {
                 onMouseOver={e => { e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,38,81,0.14)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
                 onMouseOut={e  => { e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,38,81,0.07)"; e.currentTarget.style.transform = "none"; }}
               >
-                {/* Card top bar */}
-                <div style={{ height: 6, background: pct >= 100 ? B.green : B.blue }} />
-                <div style={{ padding: "22px 22px 20px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ ...tc, borderRadius: 8, padding: "3px 10px", fontSize: 11, fontWeight: 800 }}>{p.icon} {p.type}</span>
-                      <span style={{ background: sc.bg, color: sc.color, borderRadius: 8, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{sc.label}</span>
-                    </div>
+                {/* Cover image */}
+                <div style={{ position: "relative", height: 180, overflow: "hidden", background: B.bg }}>
+                  <img src={p.img} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.5) 100%)" }} />
+                  <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
+                    <span style={{ ...tc, borderRadius: 8, padding: "3px 10px", fontSize: 10, fontWeight: 800 }}>{p.icon} {p.type}</span>
+                    <span style={{ background: sc.bg, color: sc.color, borderRadius: 8, padding: "3px 10px", fontSize: 10, fontWeight: 700 }}>{sc.label}</span>
                   </div>
-                  <h3 style={{ fontSize: 16, fontWeight: 800, margin: "0 0 6px", lineHeight: 1.4 }}>{p.title}</h3>
-                  <div style={{ fontSize: 12, color: B.muted, marginBottom: 12 }}>📍 {p.location}</div>
-                  <p style={{ fontSize: 13, color: B.muted, lineHeight: 1.6, margin: "0 0 18px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", bottom: 10, left: 14, right: 14 }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 800, margin: 0, color: "#fff", lineHeight: 1.35, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{p.title}</h3>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>📍 {p.location}</div>
+                  </div>
+                </div>
+
+                <div style={{ padding: "18px 20px 20px" }}>
+                  <p style={{ fontSize: 13, color: B.muted, lineHeight: 1.6, margin: "0 0 14px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                     {p.desc}
                   </p>
-                  <ProgressBar pct={pct} color={pct >= 100 ? B.green : B.blue} />
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 12 }}>
-                    <span style={{ color: B.blue, fontWeight: 800 }}>${p.raised.toLocaleString()} raised</span>
-                    <span style={{ color: B.muted }}>of ${p.goal.toLocaleString()} ({pct}%)</span>
+                  {/* % as main stat */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                    <span style={{ fontSize: 22, fontWeight: 900, color: pct >= 100 ? B.green : B.blue, lineHeight: 1 }}>{pct}%</span>
+                    <span style={{ fontSize: 11, color: B.muted }}>
+                      {pct >= 100 ? `Goal: $${p.goal.toLocaleString()} ✓` : "funded"}
+                    </span>
                   </div>
+                  <ProgressBar pct={pct} color={pct >= 100 ? B.green : B.blue} />
+                  {pct >= 100 && <div style={{ fontSize: 11, color: B.green, fontWeight: 700, marginTop: 5 }}>🎉 Fully Funded</div>}
                   <div style={{ marginTop: 10, fontSize: 12, color: B.muted }}>👥 {p.beneficiaries.toLocaleString()} beneficiaries</div>
                 </div>
               </div>
@@ -212,14 +220,18 @@ export default function Projects() {
               <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 6px" }}>{proj.title}</h2>
               <div style={{ fontSize: 13, color: B.muted, marginBottom: 18 }}>📍 {proj.location}</div>
               <p style={{ fontSize: 14, lineHeight: 1.8, color: B.text, marginBottom: 24 }}>{proj.desc}</p>
-              {/* Progress */}
+              {/* Progress — % main, goal $ only at 100% */}
               <div style={{ background: B.bg, borderRadius: 12, padding: "16px 18px", marginBottom: 24 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13, fontWeight: 700 }}>
-                  <span style={{ color: B.blue }}>${proj.raised.toLocaleString()} raised</span>
-                  <span style={{ color: B.muted }}>${proj.goal.toLocaleString()} goal</span>
-                </div>
-                <ProgressBar pct={Math.round(proj.raised/proj.goal*100)} color={proj.raised>=proj.goal ? B.green : B.blue} />
-                <div style={{ marginTop: 8, fontSize: 12, color: B.muted, textAlign: "right" }}>{Math.round(proj.raised/proj.goal*100)}% funded · 👥 {proj.beneficiaries.toLocaleString()} beneficiaries</div>
+                {(() => { const mp = Math.round(proj.raised/proj.goal*100); return (<>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                    <span style={{ fontSize: 28, fontWeight: 900, color: mp >= 100 ? B.green : B.blue, lineHeight: 1 }}>{mp}%</span>
+                    <span style={{ fontSize: 12, color: B.muted }}>{mp >= 100 ? `Goal: $${proj.goal.toLocaleString()} ✓` : "funded"}</span>
+                  </div>
+                  <ProgressBar pct={mp} color={mp >= 100 ? B.green : B.blue} />
+                  <div style={{ marginTop: 8, fontSize: 12, color: B.muted, textAlign: "right" }}>
+                    {mp >= 100 ? "🎉 Fully Funded · " : ""} 👥 {proj.beneficiaries.toLocaleString()} beneficiaries
+                  </div>
+                </>); })()}
               </div>
               {/* Updates */}
               <h4 style={{ fontSize: 13, fontWeight: 800, color: B.navy, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>Latest Updates</h4>

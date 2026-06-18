@@ -279,22 +279,26 @@ export default function CaseDetail() {
 
           {/* Funding Card */}
           <div style={{ background: "#fff", borderRadius: 20, padding: 28, boxShadow: "0 4px 24px rgba(0,0,0,0.1)", border: `1px solid ${C.border}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 28, fontWeight: 900, color: C.secondary }}>${(kase.totalRaised || 0).toLocaleString()}</span>
-              <span style={{ fontSize: 14, color: C.muted }}>raised</span>
-            </div>
-            <div style={{ fontSize: 13, color: C.muted, marginBottom: 12 }}>
-              of <strong style={{ color: C.text }}>${(kase.targetGoal || 0).toLocaleString()}</strong> goal
+            {/* Big % as main stat */}
+            <div style={{ textAlign: "center", marginBottom: 16 }}>
+              <div style={{ fontSize: 52, fontWeight: 900, lineHeight: 1, color: pct >= 100 ? C.secondary : C.primary }}>{pct}%</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 4, fontWeight: 600 }}>
+                {pct >= 100 ? "Fully Funded 🎉" : "funded so far"}
+              </div>
+              {/* Show goal $ only when 100% */}
+              {pct >= 100 && (
+                <div style={{ fontSize: 13, color: C.secondary, fontWeight: 700, marginTop: 6 }}>
+                  Goal: ${(kase.targetGoal || 0).toLocaleString()} ✓
+                </div>
+              )}
             </div>
 
             {/* Progress bar */}
-            <div style={{ background: "#F3F4F6", borderRadius: 20, height: 10, overflow: "hidden", marginBottom: 8 }}>
+            <div style={{ background: "#F3F4F6", borderRadius: 20, height: 10, overflow: "hidden", marginBottom: 10 }}>
               <div style={{ width: `${pct}%`, height: "100%", background: pct >= 100 ? C.secondary : `linear-gradient(90deg, ${C.primary}, ${C.accent})`, borderRadius: 20, transition: "width .6s ease" }} />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.muted, marginBottom: 20 }}>
-              <span><strong style={{ color: pct >= 100 ? C.secondary : C.accent }}>{pct}%</strong> funded</span>
+            <div style={{ display: "flex", justifyContent: "flex-end", fontSize: 12, color: C.muted, marginBottom: 20 }}>
               {remaining > 0 && <span><strong style={{ color: C.danger }}>${remaining.toLocaleString()}</strong> still needed</span>}
-              {remaining <= 0 && <span style={{ color: C.secondary, fontWeight: 700 }}>🎉 Fully Funded!</span>}
             </div>
 
             {/* Donate button */}
