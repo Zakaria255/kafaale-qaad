@@ -1,13 +1,7 @@
 {
-  "buildCommand": "npm run build && cd backend && npm ci && npx prisma generate && npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "backend/dist/**,backend/prisma/**,backend/node_modules/.prisma/**,backend/node_modules/@prisma/**"
-    }
-  },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
