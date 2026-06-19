@@ -35,7 +35,7 @@ const STATUS_LABEL = {
 };
 const CAT_ICON = { food: "🍚", medical: "🏥", shelter: "🏠", orphan: "👶", disaster: "🌪️", education: "📚", other: "🌍" };
 
-function CaseCard({ c, P }) {
+function CaseCard({ c, P, vis = {} }) {
   const pct = c.targetGoal > 0 ? Math.min(100, Math.round((c.totalRaised / c.targetGoal) * 100)) : 0;
   const full = pct >= 100;
   const barColor = full ? C.secondary : `linear-gradient(90deg, ${C.primary}, ${C.accent})`;
@@ -53,9 +53,11 @@ function CaseCard({ c, P }) {
             {c.emergencyLevel}
           </span>
         </div>
-        <span style={{ position: "absolute", top: 10, right: 10, background: "#065F4690", backdropFilter: "blur(4px)", color: "#D1FAE5", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700 }}>
-          ✓ {P.field_verified}
-        </span>
+        {vis.showVerificationBadge !== false && (
+          <span style={{ position: "absolute", top: 10, right: 10, background: "#065F4690", backdropFilter: "blur(4px)", color: "#D1FAE5", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700 }}>
+            ✓ {P.field_verified}
+          </span>
+        )}
         <div style={{ position: "absolute", bottom: 12, left: 14, right: 14 }}>
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#fff", lineHeight: 1.35, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
             {c.publicTitle || "Emergency Case"}
@@ -70,20 +72,22 @@ function CaseCard({ c, P }) {
         </p>
 
         {/* Funding — % only; show goal $ only when fully funded */}
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-            <span style={{ fontSize: 22, fontWeight: 900, color: full ? C.secondary : C.primary, lineHeight: 1 }}>
-              {pct}%
-            </span>
-            <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>
-              {full ? `Goal: $${(c.targetGoal || 0).toLocaleString()} ✓` : "funded"}
-            </span>
+        {vis.showFundingBar !== false && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+              <span style={{ fontSize: 22, fontWeight: 900, color: full ? C.secondary : C.primary, lineHeight: 1 }}>
+                {pct}%
+              </span>
+              <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>
+                {full ? `Goal: $${(c.targetGoal || 0).toLocaleString()} ✓` : "funded"}
+              </span>
+            </div>
+            <div style={{ background: C.bg, borderRadius: 10, height: 7, overflow: "hidden" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: barColor, borderRadius: 10, transition: "width 0.6s ease" }} />
+            </div>
+            {full && <div style={{ fontSize: 11, color: C.secondary, fontWeight: 700, marginTop: 5 }}>🎉 Fully Funded</div>}
           </div>
-          <div style={{ background: C.bg, borderRadius: 10, height: 7, overflow: "hidden" }}>
-            <div style={{ width: `${pct}%`, height: "100%", background: barColor, borderRadius: 10, transition: "width 0.6s ease" }} />
-          </div>
-          {full && <div style={{ fontSize: 11, color: C.secondary, fontWeight: 700, marginTop: 5 }}>🎉 Fully Funded</div>}
-        </div>
+        )}
 
         <div style={{ display: "flex", gap: 8 }}>
           <Link to={`/cases/${c.id}`}
@@ -102,6 +106,17 @@ function CaseCard({ c, P }) {
   );
 }
 
+const CASES_VIS_KEY = "kf_cases_display";
+const CASES_VIS_DEFAULTS = {
+  showTrustBadges: true, showVerificationBadge: true,
+  showFundingBar: true, showCategoryFilter: true,
+  showUrgencyFilter: true, showTableView: true,
+};
+function loadCasesVis() {
+  try { return { ...CASES_VIS_DEFAULTS, ...JSON.parse(localStorage.getItem(CASES_VIS_KEY) || "{}") }; }
+  catch { return CASES_VIS_DEFAULTS; }
+}
+
 export default function Cases() {
   const { lang } = useLang();
   const P = PT.cases[lang] || PT.cases.en;
@@ -114,6 +129,13 @@ export default function Cases() {
   const [urgFilter, setUrgFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [view, setView] = useState("grid");
+  const [vis, setVis] = useState(loadCasesVis);
+
+  useEffect(() => {
+    const sync = () => setVis(loadCasesVis());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
 
   useEffect(() => {
     casesApi.list()
@@ -147,13 +169,15 @@ export default function Cases() {
         <p style={{ margin: 0, opacity: 0.85, fontSize: 16, maxWidth: 600, marginInline: "auto" }}>
           {P.hero_sub}
         </p>
-        <div style={{ display: "flex", gap: 24, justifyContent: "center", marginTop: 28, flexWrap: "wrap" }}>
-          {TRUST_BADGES.map(([icon, label]) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", padding: "8px 16px", borderRadius: 20 }}>
-              <span>{icon}</span><span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
-            </div>
-          ))}
-        </div>
+        {vis.showTrustBadges && (
+          <div style={{ display: "flex", gap: 24, justifyContent: "center", marginTop: 28, flexWrap: "wrap" }}>
+            {TRUST_BADGES.map(([icon, label]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", padding: "8px 16px", borderRadius: 20 }}>
+                <span>{icon}</span><span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -163,19 +187,25 @@ export default function Cases() {
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={P.search_ph}
               style={{ flex: 1, minWidth: 0, padding: "10px 16px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14 }} />
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-                style={{ flex: 1, minWidth: 110, padding: "10px 14px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14 }}>
-                {cats.map(c => <option key={c} value={c}>{CAT_ICON[c] || "🌍"} {c === "all" ? P.cat_all : c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
-              </select>
-              <select value={urgFilter} onChange={e => setUrgFilter(e.target.value)}
-                style={{ flex: 1, minWidth: 100, padding: "10px 14px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14 }}>
-                {urgs.map(u => <option key={u} value={u}>{u === "all" ? P.urg_all : u.charAt(0).toUpperCase()+u.slice(1)}</option>)}
-              </select>
-              <div style={{ display: "flex", gap: 4 }}>
-                {[["⊞","grid"],["☰","table"]].map(([icon, v]) => (
-                  <button key={v} onClick={() => setView(v)} style={{ padding: "8px 12px", border: `1px solid ${C.border}`, borderRadius: 8, background: view===v ? C.primary : "#fff", color: view===v ? "#fff" : C.muted, cursor: "pointer" }}>{icon}</button>
-                ))}
-              </div>
+              {vis.showCategoryFilter && (
+                <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+                  style={{ flex: 1, minWidth: 110, padding: "10px 14px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14 }}>
+                  {cats.map(c => <option key={c} value={c}>{CAT_ICON[c] || "🌍"} {c === "all" ? P.cat_all : c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
+                </select>
+              )}
+              {vis.showUrgencyFilter && (
+                <select value={urgFilter} onChange={e => setUrgFilter(e.target.value)}
+                  style={{ flex: 1, minWidth: 100, padding: "10px 14px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14 }}>
+                  {urgs.map(u => <option key={u} value={u}>{u === "all" ? P.urg_all : u.charAt(0).toUpperCase()+u.slice(1)}</option>)}
+                </select>
+              )}
+              {vis.showTableView && (
+                <div style={{ display: "flex", gap: 4 }}>
+                  {[["⊞","grid"],["☰","table"]].map(([icon, v]) => (
+                    <button key={v} onClick={() => setView(v)} style={{ padding: "8px 12px", border: `1px solid ${C.border}`, borderRadius: 8, background: view===v ? C.primary : "#fff", color: view===v ? "#fff" : C.muted, cursor: "pointer" }}>{icon}</button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -186,7 +216,7 @@ export default function Cases() {
 
         {!loading && filtered.length > 0 && view === "grid" && (
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 16 : 24 }}>
-            {filtered.map(c => <CaseCard key={c.id} c={c} P={P} />)}
+            {filtered.map(c => <CaseCard key={c.id} c={c} P={P} vis={vis} />)}
           </div>
         )}
 

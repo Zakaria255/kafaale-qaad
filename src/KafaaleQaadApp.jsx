@@ -3577,10 +3577,34 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
     { id: "pages",       label: "📄 Page Visibility" },
     { id: "siteinfo",   label: "🏢 Site Information" },
     { id: "homepage",   label: "🏠 Homepage Content" },
+    { id: "cases_display", label: "📋 Cases Display" },
     { id: "social",     label: "📱 Social & Contact" },
     { id: "team",       label: "👥 Meet the Team" },
     { id: "updates_mgr",label: "🚨 Updates" },
   ];
+
+  // ── Cases display settings ───────────────────────────────────────
+  const CASES_VIS_KEY = "kf_cases_display";
+  const CASES_VIS_DEFAULTS = {
+    showTrustBadges: true, showVerificationBadge: true,
+    showFieldVerified: true, showFundingBar: true,
+    showCategoryFilter: true, showUrgencyFilter: true,
+    showTableView: true,
+  };
+  const [casesVis, setCasesVis] = useState(() => {
+    try { return { ...CASES_VIS_DEFAULTS, ...JSON.parse(localStorage.getItem(CASES_VIS_KEY)||"{}") }; }
+    catch { return CASES_VIS_DEFAULTS; }
+  });
+  const saveCasesVis = (next) => {
+    setCasesVis(next);
+    localStorage.setItem(CASES_VIS_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event("storage"));
+    showToast?.("Cases display updated", "success");
+  };
+  const toggleCasesVis = (key) => {
+    if (!isSuperAdmin) return;
+    saveCasesVis({ ...casesVis, [key]: !casesVis[key] });
+  };
 
   const fieldStyle = {
     width: "100%", padding: "10px 14px", borderRadius: 10,
@@ -3988,6 +4012,50 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── CASES DISPLAY ── */}
+      {settingsTab === "cases_display" && (
+        <div>
+          <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:12, padding:"14px 18px", marginBottom:24, display:"flex", gap:10 }}>
+            <span style={{ fontSize:18 }}>📋</span>
+            <div style={{ fontSize:13, color:"#1E40AF" }}>
+              Control what information is displayed on the public <strong>Cases page</strong>. Changes apply immediately for all visitors.
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:12 }}>
+            {[
+              { key:"showTrustBadges",       icon:"🔐", label:"Trust Badges Strip",     desc:"Field Verified · Privacy · Escrow badges at top" },
+              { key:"showVerificationBadge", icon:"✅", label:"'Field Verified' Badge",  desc:"Green verified badge on each case card" },
+              { key:"showFundingBar",        icon:"💰", label:"Funding Progress Bar",    desc:"% funded bar and goal amount on cards" },
+              { key:"showCategoryFilter",    icon:"🗂️", label:"Category Filter",         desc:"Food, Medical, Shelter… filter dropdown" },
+              { key:"showUrgencyFilter",     icon:"⚡", label:"Urgency Filter",          desc:"Critical, High, Medium, Low filter" },
+              { key:"showTableView",         icon:"☰",  label:"Table View Option",       desc:"Allow visitors to switch to table layout" },
+            ].map(({ key, icon, label, desc }) => {
+              const on = casesVis[key] !== false;
+              return (
+                <div key={key} onClick={() => toggleCasesVis(key)} style={{
+                  display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
+                  borderRadius:12, border:`1.5px solid ${on ? C.primary+"40" : C.border}`,
+                  background: on ? C.primary+"06" : C.bg,
+                  cursor: isSuperAdmin ? "pointer" : "default", transition:"all .15s",
+                }}>
+                  <span style={{ fontSize:22, flexShrink:0 }}>{icon}</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:14, fontWeight:700, color:C.text }}>{label}</div>
+                    <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{desc}</div>
+                  </div>
+                  <div style={{ width:44, height:24, borderRadius:99, position:"relative", flexShrink:0, background: on ? C.primary : "#D1D5DB", transition:"background .2s", opacity: isSuperAdmin ? 1 : 0.5 }}>
+                    <div style={{ position:"absolute", top:3, left: on ? 23 : 3, width:18, height:18, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.25)", transition:"left .2s" }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop:20, padding:"12px 16px", background:"#F0FDF4", borderRadius:10, fontSize:12, color:"#166534" }}>
+            ✅ Changes take effect immediately — no save needed.
+          </div>
         </div>
       )}
     </div>
