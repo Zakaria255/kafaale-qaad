@@ -4600,57 +4600,402 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
   );
 };
 
+// ─── PARTNER APPLICATIONS ADMIN PANEL ────────────────────────────────────────
+const PartnerApplicationsPanel = ({ showToast }) => {
+  const [apps, setApps] = useState(() => { try { return JSON.parse(localStorage.getItem("kf_partner_applications") || "[]"); } catch { return []; } });
+  const [selected, setSelected] = useState(null);
+  const updateStatus = (id, status) => {
+    const updated = apps.map(a => a.id === id ? { ...a, status } : a);
+    setApps(updated);
+    localStorage.setItem("kf_partner_applications", JSON.stringify(updated));
+    setSelected(null);
+    showToast?.(`Application ${status}`, status === "approved" ? "success" : "error");
+  };
+  const ST = { pending:{ bg:"#FEF3C7", color:"#92400E", label:"⏳ Pending" }, approved:{ bg:"#D1FAE5", color:"#065F46", label:"✅ Approved" }, rejected:{ bg:"#FEE2E2", color:"#991B1B", label:"❌ Rejected" } };
+  return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>🤝 Partner Applications</h3>
+        <span style={{ fontSize:13, color:COLORS.muted }}>{apps.length} applications · {apps.filter(a=>a.status==="pending").length} pending review</span>
+      </div>
+      {apps.length === 0 && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.muted, background:"#fff", borderRadius:16 }}>No partner applications yet</div>}
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {apps.map(a => (
+          <div key={a.id} style={{ background:"#fff", borderRadius:14, padding:"16px 20px", boxShadow:"0 2px 8px #0001", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, border:`1px solid ${COLORS.border}` }}>
+            <div>
+              <div style={{ fontSize:15, fontWeight:800, color:COLORS.text }}>{a.orgName || "Unknown Organization"}</div>
+              <div style={{ fontSize:12, color:COLORS.muted, marginTop:2 }}>{a.orgType} · {a.country} · {a.email}</div>
+              <div style={{ fontSize:11, color:COLORS.muted }}>Submitted {a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : "—"}</div>
+            </div>
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <span style={{ ...((ST[a.status]||ST.pending)), borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>{(ST[a.status]||ST.pending).label}</span>
+              <button onClick={() => setSelected(a)} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.primary, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Review</button>
+              {a.status === "pending" && <>
+                <button onClick={() => updateStatus(a.id,"approved")} style={{ padding:"7px 14px", borderRadius:8, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>✅ Approve</button>
+                <button onClick={() => updateStatus(a.id,"rejected")} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>❌ Reject</button>
+              </>}
+            </div>
+          </div>
+        ))}
+      </div>
+      {selected && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ background:"#fff", borderRadius:20, padding:28, maxWidth:560, width:"100%", maxHeight:"85vh", overflowY:"auto" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+              <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>{selected.orgName}</h3>
+              <button onClick={() => setSelected(null)} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:COLORS.muted }}>✕</button>
+            </div>
+            {[["Organization",`${selected.orgName} · ${selected.orgType}`],["Country",selected.country],["Website",selected.website||"—"],["Reg. Number",selected.regNumber||"—"],["Founded",selected.founded||"—"],["Contact",`${selected.contactName} · ${selected.contactTitle}`],["Email",selected.email],["Phone",selected.phone||"—"],["Focus Areas",(selected.focusAreas||[]).join(", ")],["Description",selected.description||"—"]].map(([k,v])=>(
+              <div key={k} style={{ display:"grid", gridTemplateColumns:"140px 1fr", gap:8, padding:"10px 0", borderBottom:`1px solid ${COLORS.border}` }}>
+                <div style={{ fontSize:12, fontWeight:700, color:COLORS.muted }}>{k}</div>
+                <div style={{ fontSize:13, color:COLORS.text }}>{v}</div>
+              </div>
+            ))}
+            {selected.status === "pending" && (
+              <div style={{ display:"flex", gap:10, marginTop:20 }}>
+                <button onClick={() => updateStatus(selected.id,"approved")} style={{ flex:1, padding:"12px", borderRadius:10, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>✅ Approve Partner</button>
+                <button onClick={() => updateStatus(selected.id,"rejected")} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>❌ Reject</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── VOLUNTEER APPLICATIONS ADMIN PANEL ──────────────────────────────────────
+const VolunteerApplicationsPanel = ({ showToast }) => {
+  const [apps, setApps] = useState(() => { try { return JSON.parse(localStorage.getItem("kf_volunteer_applications") || "[]"); } catch { return []; } });
+  const [selected, setSelected] = useState(null);
+  const updateStatus = (id, status) => {
+    const updated = apps.map(a => a.id === id ? { ...a, status } : a);
+    setApps(updated);
+    localStorage.setItem("kf_volunteer_applications", JSON.stringify(updated));
+    setSelected(null);
+    showToast?.(`Volunteer application ${status}`, status === "approved" ? "success" : "error");
+  };
+  const CAT_ICONS = { reporter:"📝", field:"🗺️", medical:"🏥", education:"🎓", legal:"⚖️", translator:"🌐", tech:"💻", coordinator:"🤝" };
+  const ST = { pending:{ bg:"#FEF3C7", color:"#92400E", label:"⏳ Pending" }, approved:{ bg:"#D1FAE5", color:"#065F46", label:"✅ Approved" }, rejected:{ bg:"#FEE2E2", color:"#991B1B", label:"❌ Rejected" } };
+  return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>🙋 Volunteer Applications</h3>
+        <span style={{ fontSize:13, color:COLORS.muted }}>{apps.length} applications · {apps.filter(a=>a.status==="pending").length} pending</span>
+      </div>
+      {apps.length === 0 && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.muted, background:"#fff", borderRadius:16 }}>No volunteer applications yet</div>}
+      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+        {apps.map(a => (
+          <div key={a.id} style={{ background:"#fff", borderRadius:14, padding:"16px 20px", boxShadow:"0 2px 8px #0001", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, border:`1px solid ${COLORS.border}` }}>
+            <div style={{ display:"flex", gap:12, alignItems:"center" }}>
+              <div style={{ width:44, height:44, borderRadius:"50%", background:COLORS.primary+"20", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{CAT_ICONS[a.category]||"🙋"}</div>
+              <div>
+                <div style={{ fontSize:15, fontWeight:800 }}>{a.name}</div>
+                <div style={{ fontSize:12, color:COLORS.muted }}>{a.category?.replace(/_/g," ")} · {a.city}, {a.country}</div>
+                <div style={{ fontSize:11, color:COLORS.muted }}>{a.email} · {a.availability}</div>
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <span style={{ ...((ST[a.status]||ST.pending)), borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>{(ST[a.status]||ST.pending).label}</span>
+              <button onClick={() => setSelected(a)} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.primary, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>View</button>
+              {a.status === "pending" && <>
+                <button onClick={() => updateStatus(a.id,"approved")} style={{ padding:"7px 14px", borderRadius:8, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>✅ Approve</button>
+                <button onClick={() => updateStatus(a.id,"rejected")} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>❌ Reject</button>
+              </>}
+            </div>
+          </div>
+        ))}
+      </div>
+      {selected && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ background:"#fff", borderRadius:20, padding:28, maxWidth:520, width:"100%", maxHeight:"85vh", overflowY:"auto" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+              <h3 style={{ margin:0 }}>{CAT_ICONS[selected.category]||"🙋"} {selected.name}</h3>
+              <button onClick={() => setSelected(null)} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:COLORS.muted }}>✕</button>
+            </div>
+            {[["Role",selected.category],["City",selected.city],["Country",selected.country],["Email",selected.email],["Phone",selected.phone||"—"],["Availability",selected.availability||"—"],["Experience",selected.experience||"—"],["Motivation",selected.motivation||"—"]].map(([k,v])=>(
+              <div key={k} style={{ display:"grid", gridTemplateColumns:"130px 1fr", gap:8, padding:"10px 0", borderBottom:`1px solid ${COLORS.border}` }}>
+                <div style={{ fontSize:12, fontWeight:700, color:COLORS.muted }}>{k}</div>
+                <div style={{ fontSize:13, color:COLORS.text }}>{v}</div>
+              </div>
+            ))}
+            {selected.status === "pending" && (
+              <div style={{ display:"flex", gap:10, marginTop:20 }}>
+                <button onClick={() => updateStatus(selected.id,"approved")} style={{ flex:1, padding:"12px", borderRadius:10, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>✅ Approve</button>
+                <button onClick={() => updateStatus(selected.id,"rejected")} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>❌ Reject</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── HISTORY ADMIN PANEL ─────────────────────────────────────────────────────
+const HISTORY_KEY = "kf_history_entries";
+const BLANK_HIST = { title:"", date:"", location:"", category:"", description:"", fullDetail:"", photos:["","","",""] };
+const HistoryPanel = ({ showToast }) => {
+  const [entries, setEntries] = useState(() => { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch { return []; } });
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(BLANK_HIST);
+  const [viewIdx, setViewIdx] = useState(null); // slideshow index
+  const [slideIdx, setSlideIdx] = useState(0);
+
+  const save = () => {
+    const photos = form.photos.filter(p => p.trim());
+    if (!form.title.trim() || !form.date) { showToast?.("Title and date are required","error"); return; }
+    const entry = { ...form, photos, id: editing?.id || "hist-"+Date.now(), createdAt: editing?.createdAt || new Date().toISOString() };
+    const updated = editing ? entries.map(e => e.id===editing.id ? entry : e) : [entry, ...entries];
+    setEntries(updated);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    setEditing(null); setForm(BLANK_HIST);
+    showToast?.("History entry saved","success");
+  };
+  const del = (id) => { if (!window.confirm("Delete this history entry?")) return; const u = entries.filter(e=>e.id!==id); setEntries(u); localStorage.setItem(HISTORY_KEY,JSON.stringify(u)); };
+  const startEdit = (e) => { setEditing(e); const photos = [...(e.photos||[])]; while(photos.length<4) photos.push(""); setForm({ ...e, photos }); };
+  const setPhoto = (i, v) => setForm(f => { const p=[...f.photos]; p[i]=v; return {...f,photos:p}; });
+
+  const viewing = viewIdx !== null ? entries[viewIdx] : null;
+  const viewPhotos = (viewing?.photos||[]).filter(p=>p.trim());
+
+  return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>📚 History Records</h3>
+        <button onClick={() => { setEditing({}); setForm(BLANK_HIST); }}
+          style={{ padding:"10px 18px", background:COLORS.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800 }}>+ New Record</button>
+      </div>
+
+      {/* Form */}
+      {editing !== null && (
+        <div style={{ background:"#fff", borderRadius:18, padding:"24px 20px", marginBottom:24, boxShadow:"0 4px 20px #0002", border:`1px solid ${COLORS.border}` }}>
+          <h4 style={{ margin:"0 0 18px", fontSize:16, fontWeight:800 }}>{editing.id ? "Edit Record" : "New History Record"}</h4>
+          <div style={{ display:"grid", gap:14 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+              <div>
+                <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Title *</label>
+                <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} style={{ width:"100%", padding:"10px 13px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:14, boxSizing:"border-box" }} />
+              </div>
+              <div>
+                <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Date *</label>
+                <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ width:"100%", padding:"10px 13px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:14, boxSizing:"border-box" }} />
+              </div>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+              <div>
+                <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Location</label>
+                <input value={form.location} onChange={e=>setForm(f=>({...f,location:e.target.value}))} placeholder="e.g. Mogadishu, Somalia" style={{ width:"100%", padding:"10px 13px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:14, boxSizing:"border-box" }} />
+              </div>
+              <div>
+                <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Category</label>
+                <select value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value}))} style={{ width:"100%", padding:"10px 13px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:14, boxSizing:"border-box", background:"#fff" }}>
+                  <option value="">Select…</option>
+                  {["Case Delivery","Aid Program","Medical Mission","Education Drive","Emergency Response","Community Event","Partnership","Milestone"].map(o=><option key={o}>{o}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Short Summary</label>
+              <textarea rows={2} value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} style={{ width:"100%", padding:"10px 13px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:14, boxSizing:"border-box", resize:"vertical" }} />
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Full Detail</label>
+              <textarea rows={4} value={form.fullDetail} onChange={e=>setForm(f=>({...f,fullDetail:e.target.value}))} placeholder="Full story, impact, beneficiaries, outcomes…" style={{ width:"100%", padding:"10px 13px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:14, boxSizing:"border-box", resize:"vertical" }} />
+            </div>
+            {/* Flexible photo gallery — 1 to 4 photos */}
+            <div>
+              <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:10, textTransform:"uppercase", letterSpacing:.5 }}>Photos (1–4 URLs)</label>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                {[0,1,2,3].map(i => (
+                  <div key={i} style={{ position:"relative" }}>
+                    <input value={form.photos[i]||""} onChange={e=>setPhoto(i,e.target.value)} placeholder={`Photo ${i+1} URL${i<1?" (required)":""}`} style={{ width:"100%", padding:"9px 12px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:13, boxSizing:"border-box" }} />
+                    {form.photos[i] && <div style={{ marginTop:4, borderRadius:8, overflow:"hidden", height:80 }}><img src={form.photos[i]} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>e.target.style.display="none"} /></div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <button onClick={save} style={{ flex:1, padding:"12px", background:COLORS.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800 }}>💾 Save Record</button>
+              <button onClick={() => { setEditing(null); setForm(BLANK_HIST); }} style={{ padding:"12px 20px", background:"#F3F4F6", color:COLORS.text, border:"none", borderRadius:10, cursor:"pointer", fontWeight:700 }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Entry list */}
+      {entries.length === 0 && editing === null && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.muted, background:"#fff", borderRadius:16 }}>No history records yet. Create one above.</div>}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:18 }}>
+        {entries.map((e, idx) => (
+          <div key={e.id} style={{ background:"#fff", borderRadius:16, overflow:"hidden", boxShadow:"0 4px 16px #0002", border:`1px solid ${COLORS.border}` }}>
+            {/* Photo(s) */}
+            {(e.photos||[]).filter(p=>p).length > 0 && (
+              <div style={{ position:"relative", height:160, background:"#F4F7FC", cursor:"pointer" }} onClick={() => { setViewIdx(idx); setSlideIdx(0); }}>
+                <img src={(e.photos||[])[0]} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                {(e.photos||[]).filter(p=>p).length > 1 && (
+                  <div style={{ position:"absolute", bottom:8, right:8, background:"rgba(0,0,0,0.65)", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:12, fontWeight:700 }}>+{(e.photos||[]).filter(p=>p).length-1} more</div>
+                )}
+              </div>
+            )}
+            <div style={{ padding:"14px 16px 18px" }}>
+              <div style={{ fontSize:11, fontWeight:700, color:COLORS.primary, textTransform:"uppercase", letterSpacing:1, marginBottom:4 }}>{e.category||"Record"} · {e.date}</div>
+              <div style={{ fontSize:15, fontWeight:800, marginBottom:4 }}>{e.title}</div>
+              {e.location && <div style={{ fontSize:12, color:COLORS.muted, marginBottom:6 }}>📍 {e.location}</div>}
+              <div style={{ fontSize:13, color:COLORS.muted, lineHeight:1.6 }}>{(e.description||"").slice(0,90)}{(e.description||"").length>90?"…":""}</div>
+              <div style={{ display:"flex", gap:8, marginTop:12 }}>
+                <button onClick={() => startEdit(e)} style={{ padding:"6px 14px", borderRadius:8, background:COLORS.primary+"15", color:COLORS.primary, border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>✏️ Edit</button>
+                <button onClick={() => del(e.id)} style={{ padding:"6px 14px", borderRadius:8, background:"#FEE2E2", color:COLORS.danger, border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>🗑 Delete</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Photo slideshow modal */}
+      {viewIdx !== null && viewPhotos.length > 0 && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.9)", zIndex:400, display:"flex", alignItems:"center", justifyContent:"center" }} onClick={() => setViewIdx(null)}>
+          <div style={{ position:"relative", maxWidth:800, width:"95%", maxHeight:"90vh" }} onClick={e=>e.stopPropagation()}>
+            <img src={viewPhotos[slideIdx]} alt="" style={{ width:"100%", maxHeight:"80vh", objectFit:"contain", borderRadius:12 }} />
+            <div style={{ textAlign:"center", color:"#fff", marginTop:10, fontSize:14 }}>{viewing?.title} · Photo {slideIdx+1} of {viewPhotos.length}</div>
+            {viewPhotos.length > 1 && (
+              <div style={{ display:"flex", justifyContent:"center", gap:10, marginTop:12 }}>
+                {viewPhotos.map((p,i) => <button key={i} onClick={() => setSlideIdx(i)} style={{ width:10, height:10, borderRadius:"50%", border:"none", cursor:"pointer", background: i===slideIdx?"#fff":"rgba(255,255,255,0.4)" }} />)}
+              </div>
+            )}
+            {slideIdx > 0 && <button onClick={()=>setSlideIdx(s=>s-1)} style={{ position:"absolute", left:-40, top:"50%", transform:"translateY(-50%)", background:"rgba(255,255,255,0.2)", border:"none", color:"#fff", fontSize:24, cursor:"pointer", borderRadius:"50%", width:36, height:36 }}>‹</button>}
+            {slideIdx < viewPhotos.length-1 && <button onClick={()=>setSlideIdx(s=>s+1)} style={{ position:"absolute", right:-40, top:"50%", transform:"translateY(-50%)", background:"rgba(255,255,255,0.2)", border:"none", color:"#fff", fontSize:24, cursor:"pointer", borderRadius:"50%", width:36, height:36 }}>›</button>}
+            <button onClick={() => setViewIdx(null)} style={{ position:"absolute", top:-12, right:-12, background:"rgba(255,255,255,0.2)", border:"none", color:"#fff", fontSize:20, cursor:"pointer", borderRadius:"50%", width:32, height:32 }}>✕</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── ADMIN DASHBOARD — app-launcher grid ─────────────────────────────────────
 const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, isSuperAdmin, currentUser, showToast }) => {
-  const initTab = (() => { try { const p = new URLSearchParams(window.location.search); return p.get("tab") || "overview"; } catch { return "overview"; } })();
-  const [tab, setTab] = useState(initTab);
+  const [activeModule, setActiveModule] = useState(null);
   const [donFilter, setDonFilter] = useState("all");
   const { t } = useLang();
+  const isMob = useIsMobile();
   const totalDonated = donations.reduce((a, d) => a + (d.amount || 0), 0);
   const confirmedTotal = donations.filter(d => d.status === "confirmed").reduce((a, d) => a + (d.amount || 0), 0);
   const pendingTotal   = donations.filter(d => d.status === "pending").reduce((a, d) => a + (d.amount || 0), 0);
   const byStatus = WORKFLOW_STEPS.reduce((acc, s) => { acc[s.status] = cases.filter(c => c.status === s.status).length; return acc; }, {});
   const pendingCases   = cases.filter(c => ["Pending Verification","Under Review","Investigating"].includes(c.status));
-  const proofPending   = cases.filter(c => c.status === "Proof Submitted"); // awaiting admin complete
+  const proofPending   = cases.filter(c => c.status === "Proof Submitted");
   const recentDonations = donations.slice(0, 5);
   const filteredDonations = donFilter === "all" ? donations : donations.filter(d => d.status === donFilter);
+  const partnerApps = (() => { try { return JSON.parse(localStorage.getItem("kf_partner_applications")||"[]"); } catch { return []; } })();
+  const volApps     = (() => { try { return JSON.parse(localStorage.getItem("kf_volunteer_applications")||"[]"); } catch { return []; } })();
 
-  const TABS = [
-    { id: "overview",       label: t("overview")        },
-    { id: "analytics",      label: t("analytics")       },
-    { id: "users",          label: t("users")           },
-    { id: "cases",          label: t("allCases")        },
-    { id: "donations",      label: t("donations")       },
-    { id: "programs",       label: "🌱 Programs"        },
-    { id: "impact_stories",    label: "📸 Impact Stories"    },
-    { id: "community_stories", label: "📝 Community Stories" },
-    { id: "bulk_import",       label: "📥 Bulk Import"       },
-    ...(isSuperAdmin ? [{ id: "settings", label: "⚙️ Settings" }] : []),
+  const SUPER_MODULES = [
+    { id:"overview",   icon:"📊", label:"Overview",        sub:`${cases.length} cases`,         color:"#004B96", g:"linear-gradient(135deg,#004B96,#0072CE)", badge: pendingCases.length },
+    { id:"users",      icon:"👥", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
+    { id:"cases",      icon:"📋", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
+    { id:"donations",  icon:"💰", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:"#4B7D19", g:"linear-gradient(135deg,#4B7D19,#65A30D)", badge: donations.filter(d=>d.status==="pending").length },
+    { id:"analytics",  icon:"📈", label:"Analytics",       sub:"Charts & reports",               color:"#EA580C", g:"linear-gradient(135deg,#EA580C,#F97316)", badge: 0 },
+    { id:"programs",   icon:"🌱", label:"Programs",        sub:"Children enrolled",              color:"#059669", g:"linear-gradient(135deg,#059669,#10B981)", badge: 0 },
+    { id:"partners",   icon:"🤝", label:"Partners",        sub:`${partnerApps.filter(a=>a.status==="pending").length} pending`, color:"#2563EB", g:"linear-gradient(135deg,#2563EB,#3B82F6)", badge: partnerApps.filter(a=>a.status==="pending").length },
+    { id:"volunteers", icon:"🙋", label:"Volunteers",      sub:`${volApps.filter(a=>a.status==="pending").length} pending`,    color:"#9333EA", g:"linear-gradient(135deg,#9333EA,#C026D3)", badge: volApps.filter(a=>a.status==="pending").length },
+    { id:"impact_stories", icon:"📸", label:"Stories",    sub:"Impact content",                 color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: 0 },
+    { id:"updates",    icon:"🚨", label:"Updates",         sub:"Alerts & news",                  color:"#D97706", g:"linear-gradient(135deg,#D97706,#F59E0B)", badge: 0 },
+    { id:"history",    icon:"📚", label:"History",         sub:"Records & archive",              color:"#0F766E", g:"linear-gradient(135deg,#0F766E,#14B8A6)", badge: 0 },
+    { id:"settings",   icon:"⚙️", label:"Settings",        sub:"Site configuration",             color:"#374151", g:"linear-gradient(135deg,#374151,#6B7280)", badge: 0 },
   ];
+  const ADMIN_MODULES = SUPER_MODULES.filter(m => !["users","settings"].includes(m.id));
+  const modules = isSuperAdmin ? SUPER_MODULES : ADMIN_MODULES;
+  const activeModuleInfo = modules.find(m => m.id === activeModule);
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  const backBtn = (
+    <button onClick={() => setActiveModule(null)} style={{
+      display:"inline-flex", alignItems:"center", gap:6, padding:"8px 18px", borderRadius:10,
+      background:"#F4F7FC", border:`1px solid ${COLORS.border}`, cursor:"pointer",
+      fontSize:13, fontWeight:700, color:COLORS.text, marginBottom:20,
+    }}>← Back to Dashboard</button>
+  );
 
   return (
     <div>
-      <div className="kf-action-row">
+      {/* ── HOME GRID ── */}
+      {!activeModule && (
         <div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>{t("adminCommandCenter")}</h2>
-          <p style={{ margin: "4px 0 0", color: COLORS.muted, fontSize: 13 }}>{t("fullOversight")}</p>
-        </div>
-        <div className="kf-action-btns">
-          <Btn variant="teal" onClick={onExport}>{t("exportData")}</Btn>
-          <Btn variant="primary" onClick={onAddUser}>{t("addUser")}</Btn>
-        </div>
-      </div>
+          {/* Welcome header */}
+          <div style={{ background:`linear-gradient(135deg, ${COLORS.navy} 0%, ${COLORS.primary} 100%)`, borderRadius:20, padding:"28px 28px 24px", marginBottom:24, color:"#fff", position:"relative", overflow:"hidden" }}>
+            <div style={{ position:"absolute", right:-20, top:-20, width:200, height:200, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }} />
+            <div style={{ position:"absolute", right:60, bottom:-40, width:140, height:140, borderRadius:"50%", background:"rgba(255,255,255,0.03)" }} />
+            <div style={{ position:"relative", zIndex:1 }}>
+              <div style={{ fontSize:13, opacity:0.7, fontWeight:600, marginBottom:4 }}>{greeting},</div>
+              <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:900 }}>{currentUser?.fullname || "Administrator"}</h2>
+              <div style={{ fontSize:12, opacity:0.65 }}>{isSuperAdmin ? "🛡️ Super Administrator · Full System Access" : "🟠 Administrator · Limited Access"}</div>
+            </div>
+          </div>
 
-      {/* Tab bar — scrollable on mobile */}
-      <div className="kf-tabs">
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ padding: "10px 16px", fontSize: 13, fontWeight: 700, border: "none", background: "none", cursor: "pointer", color: tab === t.id ? COLORS.primary : COLORS.muted, borderBottom: tab === t.id ? `2px solid ${COLORS.primary}` : "2px solid transparent", marginBottom: -2 }}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+          {/* Quick stats strip */}
+          <div style={{ display:"grid", gridTemplateColumns:`repeat(${isMob?2:4},1fr)`, gap:12, marginBottom:28 }}>
+            {[
+              { label:"Active Cases",  value:cases.length,  icon:"📋", color:COLORS.primary },
+              { label:"Total Donated", value:`$${totalDonated.toLocaleString()}`, icon:"💰", color:COLORS.secondary },
+              { label:"Pending Review",value:pendingCases.length, icon:"⏳", color:"#D97706" },
+              { label:"Users",         value:users.length,  icon:"👥", color:"#7C3AED" },
+            ].map(s => (
+              <div key={s.label} style={{ background:"#fff", borderRadius:14, padding:"16px 16px", boxShadow:"0 2px 8px #0001", textAlign:"center", border:`1px solid ${COLORS.border}` }}>
+                <div style={{ fontSize:24 }}>{s.icon}</div>
+                <div style={{ fontSize:22, fontWeight:900, color:s.color, lineHeight:1, marginTop:6 }}>{s.value}</div>
+                <div style={{ fontSize:11, color:COLORS.muted, marginTop:4, fontWeight:600 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
 
-      {tab === "overview" && (
+          {/* App icon grid */}
+          <div style={{ display:"grid", gridTemplateColumns:`repeat(${isMob?2:4},1fr)`, gap:isMob?14:20 }}>
+            {modules.map(mod => (
+              <button key={mod.id} onClick={() => setActiveModule(mod.id)} style={{
+                position:"relative", background:mod.g, borderRadius:20, border:"none", cursor:"pointer",
+                padding:"28px 16px 22px", display:"flex", flexDirection:"column", alignItems:"center",
+                color:"#fff", boxShadow:`0 6px 24px ${mod.color}35`,
+                transition:"transform .2s, box-shadow .2s",
+              }}
+                onMouseOver={e => { e.currentTarget.style.transform="translateY(-4px)"; e.currentTarget.style.boxShadow=`0 14px 36px ${mod.color}50`; }}
+                onMouseOut={e  => { e.currentTarget.style.transform=""; e.currentTarget.style.boxShadow=`0 6px 24px ${mod.color}35`; }}
+              >
+                {/* Badge */}
+                {mod.badge > 0 && <div style={{ position:"absolute", top:10, right:10, background:"#EF4444", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:10, fontWeight:800, minWidth:20, textAlign:"center" }}>{mod.badge}</div>}
+                {/* Icon */}
+                <div style={{ fontSize:isMob?34:44, marginBottom:12, lineHeight:1 }}>{mod.icon}</div>
+                {/* Label */}
+                <div style={{ fontSize:isMob?13:15, fontWeight:800, letterSpacing:-0.3 }}>{mod.label}</div>
+                {/* Sub */}
+                <div style={{ fontSize:10, opacity:0.75, marginTop:4, fontWeight:600 }}>{mod.sub}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODULE CONTENT ── */}
+      {activeModule && (
+        <div>
+          {/* Module header */}
+          <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20, padding:"14px 18px", background:"#fff", borderRadius:14, border:`1px solid ${COLORS.border}`, boxShadow:"0 2px 8px #0001" }}>
+            {backBtn}
+            <div style={{ width:36, height:36, borderRadius:10, background:activeModuleInfo?.g, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>{activeModuleInfo?.icon}</div>
+            <div>
+              <div style={{ fontSize:16, fontWeight:800 }}>{activeModuleInfo?.label}</div>
+              <div style={{ fontSize:11, color:COLORS.muted }}>{activeModuleInfo?.sub}</div>
+            </div>
+            {activeModule === "cases" && (
+              <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
+                <Btn variant="teal" onClick={onExport}>Export</Btn>
+                <Btn variant="primary" onClick={onAddUser}>Add User</Btn>
+              </div>
+            )}
+          </div>
+
+          {/* Overview */}
+          {activeModule === "overview" && (
         <div>
           <div className="kf-stats-row">
             <StatCard label={t("totalCases")}   value={cases.length}    icon="📋" color={COLORS.primary} />
@@ -4722,139 +5067,98 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                 ))}
                 {donations.length > 5 && (
                   <div style={{ padding: "10px 16px", textAlign: "center" }}>
-                    <button onClick={() => setTab("donations")} style={{ fontSize: 12, color: COLORS.primary, background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}>View all {donations.length} donations →</button>
+                    <button onClick={() => setActiveModule("donations")} style={{ fontSize: 12, color: COLORS.primary, background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}>View all {donations.length} donations →</button>
                   </div>
                 )}
               </div>
             </div>
           </div>
         </div>
-      )}
+          )}
 
-      {tab === "analytics" && <AnalyticsDashboard cases={cases} donations={donations} users={users} />}
+          {activeModule === "analytics" && <AnalyticsDashboard cases={cases} donations={donations} users={users} />}
 
-      {tab === "users" && (
-        <UsersTab users={users} isSuperAdmin={isSuperAdmin} onDeleteUser={onDeleteUser} onChangeRole={onChangeRole} />
-      )}
+          {activeModule === "users" && (
+            <UsersTab users={users} isSuperAdmin={isSuperAdmin} onDeleteUser={onDeleteUser} onChangeRole={onChangeRole} />
+          )}
 
-      {tab === "cases" && (
-        <div>
-          <CaseTable cases={cases} onView={onViewCase} onReport={onFullReport} />
-        </div>
-      )}
+          {activeModule === "cases" && (
+            <CaseTable cases={cases} onView={onViewCase} onReport={onFullReport} />
+          )}
 
-      {tab === "donations" && (
-        <div>
-          {/* Summary cards */}
-          <div className="kf-stats-row">
-            <StatCard label="Total Received"   value={`$${totalDonated.toLocaleString()}`}   icon="💵" color={COLORS.secondary} />
-            <StatCard label="Confirmed"        value={`$${confirmedTotal.toLocaleString()}`}  icon="✅" color="#10B981" />
-            <StatCard label="Pending Confirm"  value={`$${pendingTotal.toLocaleString()}`}    icon="⏳" color="#F59E0B" />
-            <StatCard label="# Donations"      value={donations.length}                       icon="📊" color={COLORS.primary} />
-          </div>
-
-          {/* Filter bar */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-            {["all","pending","confirmed"].map(f => (
-              <button key={f} onClick={() => setDonFilter(f)}
-                style={{ padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, border: `1.5px solid ${donFilter === f ? COLORS.primary : COLORS.border}`, background: donFilter === f ? COLORS.primary : "#fff", color: donFilter === f ? "#fff" : COLORS.muted, cursor: "pointer" }}>
-                {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
-                {f !== "all" && <span style={{ marginLeft: 6, background: "rgba(255,255,255,0.25)", borderRadius: 10, padding: "1px 6px" }}>{donations.filter(d => d.status === f).length}</span>}
-              </button>
-            ))}
-          </div>
-
-          {/* Donations table */}
-          <div className="kf-table-wrap">
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "#F8FAFC" }}>
-                  {["Donor","Amount","Case","Method","Date","Status","Action"].map(h => (
-                    <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.muted, borderBottom: `1px solid ${COLORS.border}` }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDonations.length === 0 && (
-                  <tr><td colSpan={7} style={{ padding: "32px 16px", textAlign: "center", color: COLORS.muted, fontSize: 14 }}>No donations found</td></tr>
-                )}
-                {filteredDonations.map((d, i) => (
-                  <tr key={d.id} style={{ borderBottom: i < filteredDonations.length - 1 ? `1px solid ${COLORS.border}` : "none" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "#F8FAFC"} onMouseLeave={e => e.currentTarget.style.background = ""}>
-                    <td style={{ padding: "12px 16px" }}>
-                      <div style={{ fontSize: 13, fontWeight: 700 }}>{d.isAnonymous ? "Anonymous" : (d.donor?.name || "—")}</div>
-                      {!d.isAnonymous && <div style={{ fontSize: 11, color: COLORS.muted }}>{d.donor?.email || ""}</div>}
-                    </td>
-                    <td style={{ padding: "12px 16px", fontSize: 16, fontWeight: 800, color: COLORS.secondary }}>${(d.amount || 0).toLocaleString()}</td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <div style={{ fontSize: 12, fontWeight: 700 }}>{d.case?.publicTitle || `Case #${(d.caseId || "").slice(-6)}`}</div>
-                      <div style={{ fontSize: 11, color: COLORS.muted }}>{d.case?.publicCity || ""}</div>
-                    </td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: COLORS.muted }}>{(d.method || "—").replace(/_/g," ")}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: COLORS.muted }}>{d.createdAt ? new Date(d.createdAt).toLocaleDateString() : "—"}</td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <span style={{ background: d.status === "confirmed" ? "#D1FAE5" : d.status === "pending" ? "#FEF3C7" : "#FEE2E2", color: d.status === "confirmed" ? "#065F46" : d.status === "pending" ? "#92400E" : "#991B1B", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
-                        {d.status === "confirmed" ? "✅ Confirmed" : d.status === "pending" ? "⏳ Pending" : d.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: "12px 16px" }}>
-                      {d.status === "pending" && onConfirmDonation && (
-                        <button onClick={() => onConfirmDonation(d.id)}
-                          style={{ padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#10B981", color: "#fff", border: "none", cursor: "pointer" }}>
-                          ✓ Confirm
-                        </button>
-                      )}
-                      {d.status === "confirmed" && ["sponsored","waiting_for_sponsor"].includes(d.case?.status) && onStartDelivery && (
-                        <button onClick={() => onStartDelivery({
-                          id: d.caseId,
-                          victim_name: d.case?.publicTitle || `Case #${(d.caseId||"").slice(-6)}`,
-                          location: d.case?.publicCity || "",
-                          donation_amount: d.amount,
-                          _amount: d.amount,
-                          _caseTitle: d.case?.publicTitle,
-                          _caseCity: d.case?.publicCity,
-                          _caseId: d.caseId,
-                        })}
-                          style={{ padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#0891B2", color: "#fff", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>
-                          🚚 Start Delivery
-                        </button>
-                      )}
-                      {d.status === "confirmed" && d.case?.status === "delivering" && (
-                        <span style={{ fontSize: 11, color: "#0891B2", fontWeight: 700 }}>🚚 En Route</span>
-                      )}
-                      {d.status === "confirmed" && d.case?.status === "proof_uploaded" && onComplete && (
-                        <button onClick={() => { const c = cases.find(x => x.id === d.caseId); if(c) onComplete(c); }}
-                          style={{ padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: COLORS.secondary, color: "#fff", border: "none", cursor: "pointer" }}>
-                          🏁 Mark Complete
-                        </button>
-                      )}
-                      {d.status === "confirmed" && d.case?.status === "completed" && (
-                        <span style={{ fontSize: 11, color: COLORS.secondary, fontWeight: 700 }}>🏁 Completed</span>
-                      )}
-                    </td>
-                  </tr>
+          {activeModule === "donations" && (
+            <div>
+              <div className="kf-stats-row">
+                <StatCard label="Total Received"  value={`$${totalDonated.toLocaleString()}`}  icon="💵" color={COLORS.secondary} />
+                <StatCard label="Confirmed"        value={`$${confirmedTotal.toLocaleString()}`} icon="✅" color="#10B981" />
+                <StatCard label="Pending Confirm"  value={`$${pendingTotal.toLocaleString()}`}   icon="⏳" color="#F59E0B" />
+                <StatCard label="# Donations"      value={donations.length}                      icon="📊" color={COLORS.primary} />
+              </div>
+              <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+                {["all","pending","confirmed"].map(f => (
+                  <button key={f} onClick={() => setDonFilter(f)}
+                    style={{ padding:"6px 16px", borderRadius:20, fontSize:13, fontWeight:700, border:`1.5px solid ${donFilter===f?COLORS.primary:COLORS.border}`, background:donFilter===f?COLORS.primary:"#fff", color:donFilter===f?"#fff":COLORS.muted, cursor:"pointer" }}>
+                    {f === "all" ? "All" : f.charAt(0).toUpperCase()+f.slice(1)}
+                    {f !== "all" && <span style={{ marginLeft:6, background:"rgba(255,255,255,0.25)", borderRadius:10, padding:"1px 6px" }}>{donations.filter(d=>d.status===f).length}</span>}
+                  </button>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+              <div className="kf-table-wrap">
+                <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                  <thead><tr style={{ background:"#F8FAFC" }}>
+                    {["Donor","Amount","Case","Method","Date","Status","Action"].map(h=>(
+                      <th key={h} style={{ padding:"12px 16px", textAlign:"left", fontSize:11, fontWeight:700, color:COLORS.muted, borderBottom:`1px solid ${COLORS.border}` }}>{h}</th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {filteredDonations.length===0 && <tr><td colSpan={7} style={{ padding:"32px 16px", textAlign:"center", color:COLORS.muted }}>No donations found</td></tr>}
+                    {filteredDonations.map((d,i) => (
+                      <tr key={d.id} style={{ borderBottom:i<filteredDonations.length-1?`1px solid ${COLORS.border}`:"none" }}
+                        onMouseEnter={e=>e.currentTarget.style.background="#F8FAFC"} onMouseLeave={e=>e.currentTarget.style.background=""}>
+                        <td style={{ padding:"12px 16px" }}>
+                          <div style={{ fontSize:13, fontWeight:700 }}>{d.isAnonymous?"Anonymous":(d.donor?.name||"—")}</div>
+                          {!d.isAnonymous && <div style={{ fontSize:11, color:COLORS.muted }}>{d.donor?.email||""}</div>}
+                        </td>
+                        <td style={{ padding:"12px 16px", fontSize:16, fontWeight:800, color:COLORS.secondary }}>${(d.amount||0).toLocaleString()}</td>
+                        <td style={{ padding:"12px 16px" }}>
+                          <div style={{ fontSize:12, fontWeight:700 }}>{d.case?.publicTitle||`Case #${(d.caseId||"").slice(-6)}`}</div>
+                          <div style={{ fontSize:11, color:COLORS.muted }}>{d.case?.publicCity||""}</div>
+                        </td>
+                        <td style={{ padding:"12px 16px", fontSize:12, color:COLORS.muted }}>{(d.method||"—").replace(/_/g," ")}</td>
+                        <td style={{ padding:"12px 16px", fontSize:12, color:COLORS.muted }}>{d.createdAt?new Date(d.createdAt).toLocaleDateString():"—"}</td>
+                        <td style={{ padding:"12px 16px" }}>
+                          <span style={{ background:d.status==="confirmed"?"#D1FAE5":d.status==="pending"?"#FEF3C7":"#FEE2E2", color:d.status==="confirmed"?"#065F46":d.status==="pending"?"#92400E":"#991B1B", borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:700 }}>
+                            {d.status==="confirmed"?"✅ Confirmed":d.status==="pending"?"⏳ Pending":d.status}
+                          </span>
+                        </td>
+                        <td style={{ padding:"12px 16px" }}>
+                          {d.status==="pending" && onConfirmDonation && <button onClick={()=>onConfirmDonation(d.id)} style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:"#10B981", color:"#fff", border:"none", cursor:"pointer" }}>✓ Confirm</button>}
+                          {d.status==="confirmed" && ["sponsored","waiting_for_sponsor"].includes(d.case?.status) && onStartDelivery && (
+                            <button onClick={()=>onStartDelivery({ id:d.caseId, victim_name:d.case?.publicTitle||`Case #${(d.caseId||"").slice(-6)}`, location:d.case?.publicCity||"", donation_amount:d.amount, _amount:d.amount, _caseTitle:d.case?.publicTitle, _caseCity:d.case?.publicCity, _caseId:d.caseId })}
+                              style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:"#0891B2", color:"#fff", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}>🚚 Start Delivery</button>
+                          )}
+                          {d.status==="confirmed" && d.case?.status==="delivering" && <span style={{ fontSize:11, color:"#0891B2", fontWeight:700 }}>🚚 En Route</span>}
+                          {d.status==="confirmed" && d.case?.status==="proof_uploaded" && onComplete && (
+                            <button onClick={()=>{ const c=cases.find(x=>x.id===d.caseId); if(c)onComplete(c); }} style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:COLORS.secondary, color:"#fff", border:"none", cursor:"pointer" }}>🏁 Mark Complete</button>
+                          )}
+                          {d.status==="confirmed" && d.case?.status==="completed" && <span style={{ fontSize:11, color:COLORS.secondary, fontWeight:700 }}>🏁 Completed</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
+          {activeModule === "programs"      && <ProgramsDashboard currentUser={currentUser} showToast={showToast||(() => {})} />}
+          {activeModule === "impact_stories" && <ImpactStoriesPanel showToast={showToast||(() => {})} />}
+          {activeModule === "partners"       && <PartnerApplicationsPanel showToast={showToast} />}
+          {activeModule === "volunteers"     && <VolunteerApplicationsPanel showToast={showToast} />}
+          {activeModule === "history"        && <HistoryPanel showToast={showToast} />}
+          {activeModule === "updates"        && <div style={{ padding:"8px 0" }}><SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} defaultTab="updates_mgr" /></div>}
+          {activeModule === "settings"       && isSuperAdmin && <SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} />}
         </div>
-      )}
-
-      {tab === "programs" && (
-        <ProgramsDashboard currentUser={currentUser} showToast={showToast || (() => {})} />
-      )}
-      {tab === "impact_stories" && (
-        <ImpactStoriesPanel showToast={showToast || (() => {})} />
-      )}
-      {tab === "community_stories" && (
-        <CommunityStoriesPanel showToast={showToast || (() => {})} />
-      )}
-      {tab === "bulk_import" && (
-        <BulkImportPanel showToast={showToast || (() => {})} currentUser={currentUser} />
-      )}
-      {tab === "settings" && isSuperAdmin && (
-        <SiteSettingsPanel showToast={showToast || (() => {})} currentUser={currentUser} />
       )}
     </div>
   );
@@ -5909,6 +6213,7 @@ export default function KafaaleQaadApp() {
               )}
             </div>
 
+            <a href="/" style={{ padding:"6px 10px", borderRadius:8, background:"rgba(255,255,255,0.12)", color:"#fff", textDecoration:"none", fontSize:12, fontWeight:700, display:"flex", alignItems:"center", gap:4 }}>🌐 {isMobile?"Site":"Visit Site"}</a>
             <Btn variant="muted" size="sm" onClick={handleLogout} style={{ padding: "6px 10px", fontSize: 12 }}>
               {isMobile ? "⏻" : t("exit")}
             </Btn>
