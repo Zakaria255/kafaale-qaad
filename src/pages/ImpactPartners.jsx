@@ -147,10 +147,18 @@ export default function ImpactPartners() {
     <div style={{ color:C.text }}>
 
       {/* ── Hero ── */}
-      <section style={{ position:"relative", overflow:"hidden", minHeight:360, display:"flex", alignItems:"center" }}>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"url('https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1400&q=80')", backgroundSize:"cover", backgroundPosition:"center 30%" }} />
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, rgba(0,38,81,0.85) 0%, rgba(0,75,150,0.75) 50%, rgba(75,125,25,0.6) 100%)" }} />
-        <div style={{ position:"relative", zIndex:1, padding:"80px 24px", width:"100%", textAlign:"center", color:"#fff" }}>
+      <style>{`
+        @keyframes kfPtnSlide1{ 0%{opacity:0;transform:scale(1)translateX(0)} 5%{opacity:1} 33%{opacity:1;transform:scale(1.1)translateX(-2%)} 40%{opacity:0} 100%{opacity:0} }
+        @keyframes kfPtnSlide2{ 0%,33%{opacity:0;transform:scale(1.04)translateX(2%)} 38%{opacity:1} 66%{opacity:1;transform:scale(1.12)translateX(0)} 72%{opacity:0} 100%{opacity:0} }
+        @keyframes kfPtnSlide3{ 0%,66%{opacity:0;transform:scale(1)translateY(-1%)} 71%{opacity:1} 100%{opacity:1;transform:scale(1.09)translateY(1%)} }
+        .kf-ptn-slide{ position:absolute;inset:0;background-size:cover;background-position:center;animation-duration:24s;animation-timing-function:ease-in-out;animation-iteration-count:infinite; }
+      `}</style>
+      <section style={{ position:"relative", overflow:"hidden", minHeight:360, display:"flex", alignItems:"center", background:"#001A40" }}>
+        <div className="kf-ptn-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1400&q=80')", animationName:"kfPtnSlide1" }} />
+        <div className="kf-ptn-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1400&q=80')", animationName:"kfPtnSlide2" }} />
+        <div className="kf-ptn-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1400&q=80')", animationName:"kfPtnSlide3" }} />
+        <div style={{ position:"absolute", inset:0, zIndex:5, background:"linear-gradient(135deg, rgba(0,38,81,0.85) 0%, rgba(0,75,150,0.75) 50%, rgba(75,125,25,0.6) 100%)" }} />
+        <div style={{ position:"relative", zIndex:10, padding:"80px 24px", width:"100%", textAlign:"center", color:"#fff" }}>
           <div style={{ maxWidth:760, margin:"0 auto" }}>
             <span style={{ display:"inline-block", background:"rgba(224,171,33,0.2)", border:"1px solid rgba(224,171,33,0.4)", color:C.accent, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>IMPACT PARTNERS</span>
             <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.1, letterSpacing:-1 }}>Partner with Kafaale Qaad</h1>

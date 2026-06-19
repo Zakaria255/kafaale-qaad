@@ -262,28 +262,46 @@ export default function About() {
         </section>
       )}
 
-      {/* ── Join the Mission — video background ── */}
-      <section style={{ position:"relative", overflow:"hidden", padding:"100px 24px", textAlign:"center", color:"#fff", minHeight:400, display:"flex", alignItems:"center" }}>
-        {/* Animated video-like gradient background */}
-        <div style={{
-          position:"absolute", inset:0,
-          background:`linear-gradient(135deg, ${C.navy} 0%, ${C.primary} 50%, ${C.secondary} 100%)`,
-        }} />
-        {/* Animated overlay shimmer */}
-        <div style={{
-          position:"absolute", inset:0,
-          backgroundImage:"radial-gradient(ellipse at 20% 50%, rgba(75,125,25,0.35) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(0,75,150,0.4) 0%, transparent 60%)",
-          animation:"kf-pulse 6s ease-in-out infinite",
-        }} />
-        {/* Dot pattern */}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)", backgroundSize:"40px 40px" }} />
+      {/* ── Join the Mission — cinematic video slideshow background ── */}
+      <style>{`
+        @keyframes kfAboutSlide1 {
+          0%   { opacity:0; transform:scale(1.0) translateX(0); }
+          5%   { opacity:1; }
+          33%  { opacity:1; transform:scale(1.12) translateX(-2%); }
+          40%  { opacity:0; transform:scale(1.15) translateX(-3%); }
+          100% { opacity:0; }
+        }
+        @keyframes kfAboutSlide2 {
+          0%,33% { opacity:0; transform:scale(1.05) translateX(2%); }
+          38%  { opacity:1; }
+          66%  { opacity:1; transform:scale(1.13) translateX(0); }
+          72%  { opacity:0; transform:scale(1.16) translateX(-1%); }
+          100% { opacity:0; }
+        }
+        @keyframes kfAboutSlide3 {
+          0%,66% { opacity:0; transform:scale(1.0) translateY(-1%); }
+          71%  { opacity:1; }
+          100% { opacity:1; transform:scale(1.1) translateY(1%); }
+        }
+        .kf-about-slide { position:absolute; inset:0; background-size:cover; background-position:center; animation-duration:24s; animation-timing-function:ease-in-out; animation-iteration-count:infinite; }
+      `}</style>
+      <section style={{ position:"relative", overflow:"hidden", padding:"100px 24px", textAlign:"center", color:"#fff", minHeight:480, display:"flex", alignItems:"center", background:"#001A40" }}>
+        {/* Cinematic slideshow */}
+        <div className="kf-about-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1400&q=80')", animationName:"kfAboutSlide1" }} />
+        <div className="kf-about-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1400&q=80')", animationName:"kfAboutSlide2" }} />
+        <div className="kf-about-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1400&q=80')", animationName:"kfAboutSlide3" }} />
 
-        <div style={{ position:"relative", zIndex:1, maxWidth:700, margin:"0 auto" }}>
-          <span className="kf-badge" style={{ background:"rgba(224,171,33,0.2)", border:"1px solid rgba(224,171,33,0.4)", color:C.accent, marginBottom:24 }}>JOIN US</span>
+        {/* Dark overlay */}
+        <div style={{ position:"absolute", inset:0, background:`linear-gradient(135deg, rgba(0,38,81,0.80) 0%, rgba(0,75,150,0.68) 50%, rgba(75,125,25,0.60) 100%)`, zIndex:5 }} />
+        {/* Subtle dot texture */}
+        <div style={{ position:"absolute", inset:0, zIndex:6, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize:"38px 38px" }} />
+
+        <div style={{ position:"relative", zIndex:10, maxWidth:700, margin:"0 auto" }}>
+          <span className="kf-badge" style={{ background:"rgba(224,171,33,0.22)", border:"1px solid rgba(224,171,33,0.45)", color:C.accent, marginBottom:24 }}>JOIN US</span>
           <h2 style={{ fontSize:"clamp(28px,4.5vw,52px)", fontWeight:900, margin:"0 0 20px", lineHeight:1.1, letterSpacing:-1 }}>{P.cta_title}</h2>
-          <p style={{ fontSize:18, opacity:0.85, marginBottom:40, lineHeight:1.75, maxWidth:520, margin:"0 auto 40px" }}>{P.cta_sub}</p>
+          <p style={{ fontSize:18, opacity:0.88, lineHeight:1.75, maxWidth:520, margin:"0 auto 44px" }}>{P.cta_sub}</p>
           <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
-            <Link to="/donate" className="kf-btn kf-btn-gold" style={{ padding:"16px 40px", borderRadius:14, fontWeight:800, fontSize:16, boxShadow:"0 8px 30px rgba(224,171,33,0.4)" }}>{P.cta_donor}</Link>
+            <Link to="/donate" className="kf-btn kf-btn-gold" style={{ padding:"16px 40px", borderRadius:14, fontWeight:800, fontSize:16, boxShadow:"0 8px 30px rgba(224,171,33,0.45)" }}>{P.cta_donor}</Link>
             <Link to="/contact" className="kf-btn kf-btn-ghost" style={{ padding:"16px 40px", borderRadius:14, fontWeight:700, fontSize:16 }}>{P.cta_contact}</Link>
           </div>
         </div>

@@ -88,33 +88,71 @@ export default function Home() {
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", color: C.text }}>
 
       {/* ══════════════════════════════ HERO ══════════════════════════════ */}
-      <section className="kf-hero-animated-bg" style={{
+      <style>{`
+        @keyframes kfZoom1 {
+          0%   { opacity:0; transform:scale(1.0) translateX(0); }
+          6%   { opacity:1; }
+          22%  { opacity:1; transform:scale(1.12) translateX(-2%); }
+          28%  { opacity:0; transform:scale(1.15) translateX(-3%); }
+          100% { opacity:0; }
+        }
+        @keyframes kfZoom2 {
+          0%,20% { opacity:0; transform:scale(1.05) translateX(2%); }
+          26%  { opacity:1; }
+          42%  { opacity:1; transform:scale(1.14) translateX(0%); }
+          48%  { opacity:0; transform:scale(1.18) translateX(-1%); }
+          100% { opacity:0; }
+        }
+        @keyframes kfZoom3 {
+          0%,40% { opacity:0; transform:scale(1.0) translateY(-2%); }
+          46%  { opacity:1; }
+          62%  { opacity:1; transform:scale(1.1) translateY(1%); }
+          68%  { opacity:0; transform:scale(1.13) translateY(2%); }
+          100% { opacity:0; }
+        }
+        @keyframes kfZoom4 {
+          0%,60% { opacity:0; transform:scale(1.08) translateX(-1%); }
+          66%  { opacity:1; }
+          82%  { opacity:1; transform:scale(1.16) translateX(2%); }
+          88%  { opacity:0; transform:scale(1.18) translateX(3%); }
+          100% { opacity:0; }
+        }
+        @keyframes kfZoom5 {
+          0%,80% { opacity:0; transform:scale(1.0) translateY(1%); }
+          86%  { opacity:1; }
+          100% { opacity:1; transform:scale(1.1) translateY(-1%); }
+        }
+        .kf-slide { position:absolute; inset:0; background-size:cover; background-position:center; animation-duration:30s; animation-timing-function:ease-in-out; animation-iteration-count:infinite; }
+      `}</style>
+      <section style={{
         position: "relative", overflow: "hidden",
         color: "#fff",
         minHeight: isMobile ? 560 : 680,
         display: "flex", alignItems: "center",
+        background: "#001A40",
       }}>
-        {/* ── Video background — drop /public/assets/hero-video.mp4 to activate ── */}
-        <video
-          autoPlay muted loop playsInline
-          onCanPlay={e => { e.target.style.opacity = "1"; }}
-          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", zIndex:1, opacity:0, transition:"opacity 0.8s" }}
-        >
-          <source src="/assets/hero-video.mp4" type="video/mp4" />
-        </video>
+        {/* ── Cinematic slideshow (video effect) ── */}
+        <div className="kf-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1400&q=80')", animationName:"kfZoom1" }} />
+        <div className="kf-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1400&q=80')", animationName:"kfZoom2" }} />
+        <div className="kf-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=1400&q=80')", animationName:"kfZoom3" }} />
+        <div className="kf-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1400&q=80')", animationName:"kfZoom4" }} />
+        <div className="kf-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=1400&q=80')", animationName:"kfZoom5" }} />
 
-        {/* ── Overlay darkens both the animated bg and any video ── */}
+        {/* ── Dark overlay with gradient ── */}
         <div style={{
-          position:"absolute", inset:0, zIndex:2,
-          background:`linear-gradient(145deg,
-            rgba(0,38,81,0.65) 0%,
-            rgba(0,75,150,0.55) 50%,
-            rgba(75,125,25,0.50) 100%)`,
+          position:"absolute", inset:0, zIndex:5,
+          background:`linear-gradient(145deg,rgba(0,38,81,0.70) 0%,rgba(0,75,150,0.58) 50%,rgba(75,125,25,0.48) 100%)`,
         }} />
 
         {/* ── Content ── */}
-        <div style={{ position:"relative", zIndex:3, width:"100%", padding: isMobile?"72px 20px 60px":"110px 32px 90px" }}>
+        <div style={{ position:"relative", zIndex:10, width:"100%", padding: isMobile?"72px 20px 60px":"110px 32px 90px" }}>
           <div style={{ maxWidth:820, margin:"0 auto", textAlign:"center" }}>
+
+            {/* Live indicator */}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginBottom:20 }}>
+              <span style={{ width:8, height:8, borderRadius:"50%", background:"#EF4444", display:"inline-block", boxShadow:"0 0 0 3px rgba(239,68,68,0.3)", animation:"kfPulse 1.5s ease-in-out infinite" }} />
+              <span style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,0.8)", letterSpacing:2, textTransform:"uppercase" }}>Live Field Operations</span>
+            </div>
 
             {/* Headline */}
             <h1 style={{ fontSize:"clamp(36px,6vw,68px)", fontWeight:900, margin:"0 0 24px", lineHeight:1.08, letterSpacing:-1.5 }}>
@@ -122,14 +160,14 @@ export default function Home() {
               <span style={{ color:C.gold }}>{P.hero_title2}</span>
             </h1>
 
-            <p style={{ fontSize:"clamp(16px,2.2vw,20px)", opacity:0.86, maxWidth:640, margin:"0 auto 44px", lineHeight:1.75 }}>
+            <p style={{ fontSize:"clamp(16px,2.2vw,20px)", opacity:0.88, maxWidth:640, margin:"0 auto 44px", lineHeight:1.75 }}>
               {P.hero_sub}
             </p>
 
             {/* CTA row */}
             <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
               <button className="kf-btn kf-btn-gold" onClick={() => navigate("/cases")}
-                style={{ padding:isMobile?"14px 28px":"17px 40px", borderRadius:14, fontSize:isMobile?14:16, fontWeight:800, border:"none" }}>
+                style={{ padding:isMobile?"14px 28px":"17px 40px", borderRadius:14, fontSize:isMobile?14:16, fontWeight:800, border:"none", boxShadow:`0 8px 28px rgba(224,171,33,0.45)` }}>
                 {P.btn_sponsor}
               </button>
               <button className="kf-btn kf-btn-ghost" onClick={() => navigate("/how-it-works")}
