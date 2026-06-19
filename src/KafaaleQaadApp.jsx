@@ -6307,7 +6307,7 @@ export default function KafaaleQaadApp() {
   }
 
   // ─── Access denied guard ────────────────────────────────────────────────
-  const VALID_ROLES = ["observer","verification_office","field_team","donor","super_admin","program_manager"];
+  const VALID_ROLES = ["observer","verification_office","field_team","donor","super_admin","admin","program_manager"];
   if (!VALID_ROLES.includes(internalRole)) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg }}>
