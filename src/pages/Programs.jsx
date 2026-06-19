@@ -69,7 +69,8 @@ const BeneficiaryCard = ({ b, onSponsor }) => {
           </div>
         )}
         <div style={{ marginTop: 10, color: "#fff" }}>
-          <div style={{ fontSize: 13, fontWeight: 800, opacity: 0.9 }}>{b.publicId}</div>
+          {b._localName && <div style={{ fontSize: 15, fontWeight: 900 }}>{b._localName}</div>}
+          <div style={{ fontSize: 13, fontWeight: 800, opacity: b._localName ? 0.7 : 0.9 }}>{b.publicId}</div>
           <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
             {b.publicAge ? `${b.publicAge} years old` : ""} {b.publicGender ? `· ${b.publicGender}` : ""}
           </div>
@@ -420,11 +421,17 @@ const ContributeModal = ({ project, onClose, onDone }) => {
   );
 };
 
+const CHILDREN_KEY = "kf_registered_children";
+function loadRegisteredChildren() {
+  try { return JSON.parse(localStorage.getItem(CHILDREN_KEY) || "[]"); } catch { return []; }
+}
+
 export default function Programs() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("programs");
   const [programsList, setProgramsList] = useState([]);
   const [beneficiaries, setBeneficiaries] = useState([]);
+  const [registeredChildren, setRegisteredChildren] = useState(loadRegisteredChildren);
   const [projectsList, setProjectsList] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -441,6 +448,12 @@ export default function Programs() {
   }, []);
 
   useEffect(() => {
+    const sync = () => setRegisteredChildren(loadRegisteredChildren());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+
+  useEffect(() => {
     Promise.all([
       programsApi.list().catch(() => []),
       programsApi.stats().catch(() => ({})),
@@ -454,7 +467,23 @@ export default function Programs() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const filteredBeneficiaries = filterType ? beneficiaries.filter(b => b.programType === filterType) : beneficiaries;
+  // Merge API beneficiaries with locally registered children
+  const allBeneficiaries = [
+    ...registeredChildren.map(ch => ({
+      id: ch.id, publicId: ch.publicId,
+      publicAge: ch.age, publicGender: ch.gender,
+      programType: ch.programType || "child_sponsorship",
+      publicCity: ch.publicCity, publicRegion: ch.publicRegion,
+      publicNeedsDesc: ch.publicNeedsDesc, publicStory: ch.publicStory,
+      publicPhotoUrl: ch.publicPhotoUrl, monthlyNeed: parseFloat(ch.monthlyNeed) || 30,
+      status: ch.status || "seeking_sponsor",
+      enrolledAt: ch.enrolledAt || new Date().toISOString(),
+      _localName: `${ch.firstName} ${ch.lastName}`.trim(),
+    })),
+    ...beneficiaries,
+  ];
+
+  const filteredBeneficiaries = filterType ? allBeneficiaries.filter(b => b.programType === filterType) : allBeneficiaries;
   const filteredProjects = filterCat ? projectsList.filter(p => p.category === filterCat) : projectsList;
 
   const PROGRAM_TYPE_FILTERS = [

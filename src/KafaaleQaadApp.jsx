@@ -2550,10 +2550,41 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
   const filteredDons   = donFilter === "all" ? donations : donations.filter(d => d.status === donFilter);
   const alertCount     = newReports.length + proofReady.length + pendingDons.length;
 
+  // Child registration state
+  const CHILDREN_KEY = "kf_registered_children";
+  const loadChildren = () => { try { return JSON.parse(localStorage.getItem(CHILDREN_KEY)||"[]"); } catch { return []; } };
+  const [children, setChildren] = useState(loadChildren);
+  const BLANK_CHILD = { id:"", publicId:"", firstName:"", lastName:"", age:"", gender:"male", programType:"child_sponsorship", publicCity:"", publicRegion:"", publicCountry:"Somalia", publicNeedsDesc:"", publicStory:"", publicPhotoUrl:"", monthlyNeed:"30", status:"seeking_sponsor" };
+  const [childForm, setChildForm] = useState({ ...BLANK_CHILD });
+  const [editChild, setEditChild] = useState(null);
+  const [childMsg, setChildMsg] = useState("");
+
+  const openNewChild = () => { setChildForm({ ...BLANK_CHILD, id:"child-"+Date.now(), publicId:"KQ-CHD-"+Math.floor(Math.random()*9000+1000) }); setEditChild("new"); };
+  const openEditChild = (ch) => { setChildForm({ ...ch }); setEditChild(ch.id); };
+  const saveChild = () => {
+    if (!childForm.firstName || !childForm.publicCity) return setChildMsg("Name and city are required.");
+    const child = { ...childForm, enrolledAt: childForm.enrolledAt || new Date().toISOString() };
+    const updated = editChild === "new" ? [child, ...children] : children.map(c => c.id===editChild ? child : c);
+    setChildren(updated);
+    localStorage.setItem(CHILDREN_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event("storage"));
+    setEditChild(null);
+    setChildMsg("✅ Child record saved.");
+    setTimeout(() => setChildMsg(""), 3000);
+  };
+  const delChild = (id) => {
+    if (!window.confirm("Delete this child record?")) return;
+    const updated = children.filter(c=>c.id!==id);
+    setChildren(updated);
+    localStorage.setItem(CHILDREN_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event("storage"));
+  };
+
   const TABS = [
     { id: "workflow",  label: `🔄 Workflow${alertCount > 0 ? ` (${alertCount})` : ""}` },
     { id: "all",       label: `📋 All Cases (${cases.length})` },
     { id: "donations", label: `💰 Donations${pendingDons.length > 0 ? ` (${pendingDons.length})` : ""}` },
+    { id: "children",  label: `👶 Register Children (${children.length})` },
   ];
 
   const WorkflowCard = ({ c }) => (
@@ -2770,6 +2801,131 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* ── REGISTER CHILDREN ── */}
+      {tab === "children" && (
+        <div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, flexWrap:"wrap", gap:10 }}>
+            <div>
+              <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>👶 Child & Family Registration</h3>
+              <p style={{ margin:"4px 0 0", color:COLORS.muted, fontSize:13 }}>Register verified children and families for the sponsorship program.</p>
+            </div>
+            <button onClick={openNewChild} style={{ padding:"10px 20px", background:COLORS.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14 }}>
+              + Register New Child
+            </button>
+          </div>
+
+          {childMsg && <div style={{ background:childMsg.startsWith("✅") ? "#ECFDF5" : "#FEF2F2", color:childMsg.startsWith("✅") ? "#065F46" : COLORS.danger, borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13, fontWeight:600 }}>{childMsg}</div>}
+
+          {/* Registration form */}
+          {editChild && (
+            <div style={{ background:"#fff", borderRadius:16, padding:24, border:`1.5px solid ${COLORS.primary}30`, marginBottom:24, boxShadow:"0 4px 20px rgba(0,0,0,0.07)" }}>
+              <h4 style={{ margin:"0 0 20px", fontSize:16, fontWeight:800 }}>{editChild==="new" ? "New Child Registration" : "Edit Child Record"}</h4>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:14 }}>
+                {[ ["firstName","First Name*",true,"text"], ["lastName","Last Name",false,"text"], ["age","Age",false,"number"], ["publicCity","City*",true,"text"], ["publicRegion","Region",false,"text"], ["publicCountry","Country",false,"text"], ["publicPhotoUrl","Photo URL",false,"url"], ["monthlyNeed","Monthly Need ($)",false,"number"] ].map(([key,label,req,type]) => (
+                  <div key={key}>
+                    <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5 }}>{label}</label>
+                    <input value={childForm[key]||""} onChange={e => setChildForm(f=>({...f,[key]:e.target.value}))} type={type}
+                      style={{ width:"100%", padding:"10px 14px", border:`1.5px solid ${COLORS.border}`, borderRadius:10, fontSize:14, boxSizing:"border-box" }} />
+                  </div>
+                ))}
+                <div>
+                  <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5 }}>Gender</label>
+                  <select value={childForm.gender||"male"} onChange={e => setChildForm(f=>({...f,gender:e.target.value}))}
+                    style={{ width:"100%", padding:"10px 14px", border:`1.5px solid ${COLORS.border}`, borderRadius:10, fontSize:14, background:"#fff", boxSizing:"border-box" }}>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5 }}>Program Type</label>
+                  <select value={childForm.programType||"child_sponsorship"} onChange={e => setChildForm(f=>({...f,programType:e.target.value}))}
+                    style={{ width:"100%", padding:"10px 14px", border:`1.5px solid ${COLORS.border}`, borderRadius:10, fontSize:14, background:"#fff", boxSizing:"border-box" }}>
+                    <option value="child_sponsorship">👶 Child Sponsorship</option>
+                    <option value="education">🎓 Education Support</option>
+                    <option value="medical">🩺 Medical Support</option>
+                    <option value="family_care">🏠 Family Care</option>
+                    <option value="nutrition">🍎 Nutrition Program</option>
+                    <option value="emergency_relief">🚨 Emergency Relief</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5 }}>Status</label>
+                  <select value={childForm.status||"seeking_sponsor"} onChange={e => setChildForm(f=>({...f,status:e.target.value}))}
+                    style={{ width:"100%", padding:"10px 14px", border:`1.5px solid ${COLORS.border}`, borderRadius:10, fontSize:14, background:"#fff", boxSizing:"border-box" }}>
+                    <option value="seeking_sponsor">Seeking Sponsor</option>
+                    <option value="sponsored">Sponsored</option>
+                    <option value="pending_verification">Pending Verification</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginTop:14 }}>
+                <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5 }}>Needs Description</label>
+                <input value={childForm.publicNeedsDesc||""} onChange={e => setChildForm(f=>({...f,publicNeedsDesc:e.target.value}))}
+                  style={{ width:"100%", padding:"10px 14px", border:`1.5px solid ${COLORS.border}`, borderRadius:10, fontSize:14, boxSizing:"border-box" }} placeholder="What this child needs most" />
+              </div>
+              <div style={{ marginTop:14 }}>
+                <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5 }}>Story (public)</label>
+                <textarea value={childForm.publicStory||""} onChange={e => setChildForm(f=>({...f,publicStory:e.target.value}))} rows={3}
+                  style={{ width:"100%", padding:"10px 14px", border:`1.5px solid ${COLORS.border}`, borderRadius:10, fontSize:14, boxSizing:"border-box", fontFamily:"inherit", resize:"vertical" }} placeholder="Background story shown to donors" />
+              </div>
+              {/* Photo preview */}
+              {childForm.publicPhotoUrl && (
+                <div style={{ marginTop:14 }}>
+                  <img src={childForm.publicPhotoUrl} alt="Preview" style={{ width:80, height:80, borderRadius:"50%", objectFit:"cover", border:`2px solid ${COLORS.border}` }} onError={e=>e.target.style.display="none"} />
+                </div>
+              )}
+              <div style={{ display:"flex", gap:10, marginTop:20 }}>
+                <button onClick={saveChild} style={{ flex:2, padding:"12px", background:COLORS.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14 }}>
+                  {editChild==="new" ? "✅ Save & Register" : "💾 Update Record"}
+                </button>
+                <button onClick={() => setEditChild(null)} style={{ flex:1, padding:"12px", background:COLORS.bg, border:`1px solid ${COLORS.border}`, borderRadius:10, cursor:"pointer", fontWeight:700, fontSize:14 }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {/* Children list */}
+          {children.length === 0 && editChild === null ? (
+            <div style={{ textAlign:"center", padding:"60px 20px", background:"#fff", borderRadius:16, color:COLORS.muted }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>👶</div>
+              <div style={{ fontSize:16, fontWeight:700 }}>No children registered yet</div>
+              <div style={{ fontSize:13, marginTop:6 }}>Click "Register New Child" to start.</div>
+            </div>
+          ) : (
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:16 }}>
+              {children.map(ch => (
+                <div key={ch.id} style={{ background:"#fff", borderRadius:16, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,0,0,0.07)", border:`1px solid ${COLORS.border}` }}>
+                  <div style={{ background:`linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})`, padding:"20px 18px", display:"flex", gap:14, alignItems:"center" }}>
+                    {ch.publicPhotoUrl ? (
+                      <img src={ch.publicPhotoUrl} alt="" style={{ width:56, height:56, borderRadius:"50%", objectFit:"cover", border:"2px solid rgba(255,255,255,0.5)" }} onError={e=>e.target.style.display="none"} />
+                    ) : (
+                      <div style={{ width:56, height:56, borderRadius:"50%", background:"rgba(255,255,255,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:26 }}>👤</div>
+                    )}
+                    <div style={{ color:"#fff", flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:800, fontSize:15 }}>{ch.firstName} {ch.lastName}</div>
+                      <div style={{ fontSize:11, opacity:0.8, marginTop:2 }}>{ch.publicId} · {ch.age ? `${ch.age}y` : ""} {ch.gender}</div>
+                      <div style={{ fontSize:11, opacity:0.7, marginTop:2 }}>📍 {ch.publicCity}{ch.publicRegion ? `, ${ch.publicRegion}` : ""}</div>
+                    </div>
+                    <span style={{ background: ch.status==="sponsored" ? "rgba(16,185,129,0.25)" : ch.status==="seeking_sponsor" ? "rgba(245,158,11,0.25)" : "rgba(255,255,255,0.15)", color:"#fff", borderRadius:20, padding:"3px 8px", fontSize:10, fontWeight:700, whiteSpace:"nowrap" }}>
+                      {ch.status==="sponsored" ? "✅ Sponsored" : ch.status==="seeking_sponsor" ? "⏳ Seeking" : "Pending"}
+                    </span>
+                  </div>
+                  <div style={{ padding:"14px 18px" }}>
+                    <div style={{ fontSize:12, color:COLORS.muted, marginBottom:6 }}>{ch.programType?.replace(/_/g," ")}</div>
+                    {ch.publicNeedsDesc && <div style={{ fontSize:13, fontWeight:600, color:COLORS.text, marginBottom:6 }}>{ch.publicNeedsDesc}</div>}
+                    {ch.publicStory && <div style={{ fontSize:12, color:COLORS.muted, lineHeight:1.5, marginBottom:8, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>{ch.publicStory}</div>}
+                    <div style={{ fontSize:18, fontWeight:900, color:COLORS.primary }}>${ch.monthlyNeed}/mo</div>
+                  </div>
+                  <div style={{ padding:"10px 18px", borderTop:`1px solid ${COLORS.border}`, display:"flex", gap:8 }}>
+                    <button onClick={() => openEditChild(ch)} style={{ flex:1, padding:"8px", background:COLORS.bg, border:`1px solid ${COLORS.border}`, borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }}>✏️ Edit</button>
+                    <button onClick={() => delChild(ch.id)} style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:COLORS.danger }}>🗑</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
