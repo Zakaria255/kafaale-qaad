@@ -36,6 +36,8 @@ import projectsRoutes from './routes/projects';
 import searchRoutes from './routes/search';
 import messagesRoutes from './routes/messages';
 import vaultRoutes from './routes/vault';
+import settingsRoutes from './routes/settings';
+import { getSettings } from './routes/settings';
 import cron from 'node-cron';
 import { sysLog } from './services/logger';
 import { socketService } from './services/socketService';
@@ -62,7 +64,7 @@ async function sendPaymentReminders() {
 
     if (due.length === 0) return;
 
-    // Group by sponsor so one donor with multiple children gets one notification
+    const tmpl = await getSettings(['reminder.title', 'reminder.body']);
     const byDonor = new Map<string, typeof due>();
     for (const sp of due) {
       const list = byDonor.get(sp.sponsorId) || [];
@@ -77,8 +79,10 @@ async function sendPaymentReminders() {
         data: {
           userId:  sponsorId,
           type:    'payment_reminder',
-          title:   '📋 Payment Due in 5 Days',
-          message: `Your monthly sponsorship payment of $${total.toFixed(2)} for ${names} is due in 5 days. Please log in to view your invoice and submit payment.`,
+          title:   tmpl['reminder.title'],
+          message: tmpl['reminder.body']
+            .replace('{total}', `${total.toFixed(2)}`)
+            .replace('{children}', names),
         },
       });
     }
@@ -205,6 +209,7 @@ app.use('/api/programs',      programsRoutes);
 app.use('/api/projects',      projectsRoutes);
 app.use('/api/search',        searchRoutes);
 app.use('/api/vault',         vaultRoutes);
+app.use('/api/settings',     settingsRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
@@ -256,6 +261,7 @@ if (!process.env.VERCEL) {
             sponsor:     { select: { id: true, name: true } },
           },
         });
+        const renewTmpl = await getSettings(['renewal.title', 'renewal.body']);
         for (const sp of expiring) {
           const childName = sp.beneficiary.privateFullName || sp.beneficiary.publicId;
           const endFmt = new Date(sp.endDate!).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -263,21 +269,11 @@ if (!process.env.VERCEL) {
             data: {
               userId:  sp.sponsorId,
               type:    'contract_renewal_reminder',
-              title:   '🔄 Sponsorship Contract Expiring Soon',
-              message: [
-                `Dear ${sp.sponsor.name || 'Sponsor'},`,
-                ``,
-                `Your sponsorship contract for ${childName} is expiring on ${endFmt} — in 30 days.`,
-                ``,
-                `📌 You have two options:`,
-                `1. ✅ Renew Contract — continue supporting ${childName} for another year or more`,
-                `2. 🔓 Release — allow another donor to take over sponsorship`,
-                ``,
-                `Please log in to your dashboard under "My Program Support" and choose. If we don't hear from you, the contract will expire and ${childName} will return to the seeking-sponsor pool.`,
-                ``,
-                `Thank you for everything you've done for this child. 💙`,
-                `— Kafaale Qaad Hope Society`,
-              ].join('\n'),
+              title:   renewTmpl['renewal.title'],
+              message: renewTmpl['renewal.body']
+                .replace(/{donorName}/g, sp.sponsor.name || 'Sponsor')
+                .replace(/{childName}/g, childName)
+                .replace(/{endDate}/g, endFmt),
             },
           });
         }

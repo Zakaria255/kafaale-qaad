@@ -3,6 +3,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { getSettings } from './settings';
 
 const router = Router();
 
@@ -580,30 +581,23 @@ router.post('/sponsorships/:id/mark-paid', authenticate, async (req: AuthRequest
     const childName = sp.beneficiary.privateFullName || sp.beneficiary.publicId;
     const donorName = sp.sponsor.name || 'Dear Donor';
 
-    // Beautiful receipt notification
+    // Receipt notification — use admin-editable template
+    const rcptTmpl = await getSettings(['receipt.title', 'receipt.body']);
     await prisma.notification.create({
       data: {
         userId:  sp.sponsorId,
         type:    'payment_receipt',
-        title:   `💙 Payment Confirmed — ${monthName} ${year}`,
-        message: [
-          `Dear ${donorName},`,
-          ``,
-          `Thank you from the bottom of our hearts. Your sponsorship payment for ${monthName} ${year} has been received and recorded.`,
-          ``,
-          `📋 Receipt No: ${receiptNo}`,
-          `👶 Beneficiary: ${childName} (${sp.beneficiary.publicId})`,
-          `💵 Amount: $${sp.monthlyAmount.toFixed(2)} ${sp.currency}`,
-          `📅 Period: ${monthName} ${year}`,
-          `✅ Status: Confirmed`,
-          ``,
-          `Your generosity is making a real difference in this child's life every single day. Because of you, ${childName} has access to education, health care, and a safer future.`,
-          ``,
-          `"The best of people are those who bring most benefit to others." — Your kindness embodies this.`,
-          ``,
-          `With deep gratitude,`,
-          `Kafaale Qaad Hope Society 🌱`,
-        ].join('\n'),
+        title:   rcptTmpl['receipt.title'],
+        message: rcptTmpl['receipt.body']
+          .replace(/{donorName}/g, donorName)
+          .replace(/{amount}/g,    sp.monthlyAmount.toFixed(2))
+          .replace(/{currency}/g,  sp.currency)
+          .replace(/{childId}/g,   sp.beneficiary.publicId)
+          .replace(/{childName}/g, childName)
+          .replace(/{region}/g,    (sp.beneficiary as any).publicRegion || 'Somalia')
+          .replace(/{receiptNo}/g, receiptNo)
+          .replace(/{month}/g,     monthName)
+          .replace(/{year}/g,      String(year)),
       },
     });
 
@@ -666,12 +660,17 @@ router.post('/send-reminders', authenticate, async (req: AuthRequest, res: Respo
         ? new Date(sp.nextPaymentDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
         : 'soon';
 
+      const invTmpl = await getSettings(['invoiceReminder.title', 'invoiceReminder.body']);
       await prisma.notification.create({
         data: {
           userId:  sp.sponsorId,
           type:    'payment_reminder',
-          title:   '📋 Payment Invoice — Action Required',
-          message: `Your monthly sponsorship payment of $${sp.monthlyAmount} for ${sp.beneficiary.privateFullName || sp.beneficiary.publicId} is due on ${dueDate}. Please log in to view and print your invoice letter, then transfer the amount via your registered payment method.`,
+          title:   invTmpl['invoiceReminder.title'],
+          message: invTmpl['invoiceReminder.body']
+            .replace(/{donorName}/g, sp.sponsor.name || 'Sponsor')
+            .replace(/{amount}/g,    String(sp.monthlyAmount))
+            .replace(/{childId}/g,   sp.beneficiary.privateFullName || sp.beneficiary.publicId)
+            .replace(/{dueDate}/g,   dueDate),
         },
       });
 
@@ -695,6 +694,7 @@ router.post('/send-reminders', authenticate, async (req: AuthRequest, res: Respo
       byDonor.set(s.sponsorId, list);
     }
 
+    const bulkTmpl = await getSettings(['reminder.title', 'reminder.body']);
     let sent = 0;
     for (const [sponsorId, sps] of byDonor) {
       const names = sps.map(s => s.beneficiary.privateFullName || s.beneficiary.publicId).join(', ');
@@ -703,8 +703,10 @@ router.post('/send-reminders', authenticate, async (req: AuthRequest, res: Respo
         data: {
           userId:  sponsorId,
           type:    'payment_reminder',
-          title:   '📋 Payment Due',
-          message: `Your sponsorship payment of $${total.toFixed(2)} for ${names} is due within ${daysAhead} days. Log in to view your invoice and submit payment.`,
+          title:   bulkTmpl['reminder.title'],
+          message: bulkTmpl['reminder.body']
+            .replace(/{total}/g,    total.toFixed(2))
+            .replace(/{children}/g, names),
         },
       });
       sent++;

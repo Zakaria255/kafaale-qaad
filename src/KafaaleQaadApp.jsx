@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi } from "./api/client.js";
+import { cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import "./responsive.css";
 
@@ -7548,8 +7548,12 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
   const [filterStatus, setFilterStatus] = useState("");
   const [pendingPayments, setPendingPayments] = useState([]);
   const [loadingPay, setLoadingPay] = useState(false);
+  const [docSettings, setDocSettings] = useState(null);
+  const [docSaving, setDocSaving] = useState(false);
+  const [docEdited, setDocEdited] = useState({});
 
   const isAdmin = ["super_admin","admin","verification_office","program_manager"].includes(currentUser?.role || "");
+  const isSuperAdmin = currentUser?.role === "super_admin" || currentUser?.role === "admin";
 
   const load = () => {
     setLoading(true);
@@ -7566,6 +7570,11 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
 
   useEffect(() => { load(); }, []);
   useEffect(() => { if (tab === "payments") loadPendingPayments(); }, [tab]);
+  useEffect(() => {
+    if (tab === "documents" && !docSettings) {
+      settingsApi.all().then(d => { setDocSettings(d.settings || {}); setDocEdited(d.settings || {}); }).catch(() => {});
+    }
+  }, [tab]);
 
   const loadPendingPayments = () => {
     if (!adminPaymentsApi) return;
@@ -7614,6 +7623,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
     { id: "beneficiaries", label: `👶 Beneficiaries (${beneficiaries.length})` },
     { id: "projects",      label: `🏗️ Community Projects (${projects.length})` },
     { id: "payments",      label: `💳 Sponsor Payments${pendingPayments.length > 0 ? ` (${pendingPayments.length} pending)` : ""}` },
+    { id: "documents",     label: "📄 Documents" },
   ];
 
   if (loading) return (
@@ -7954,6 +7964,145 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── DOCUMENTS TAB ── */}
+      {tab === "documents" && (() => {
+        if (!isSuperAdmin) return <div style={{ textAlign:"center", padding:40, color:COLORS.muted }}>Only admins can edit document templates.</div>;
+        if (!docSettings) return <div style={{ textAlign:"center", padding:40, color:COLORS.muted }}>Loading templates…</div>;
+
+        const C = COLORS;
+        const save = async () => {
+          setDocSaving(true);
+          try {
+            await settingsApi.update(docEdited);
+            setDocSettings({ ...docEdited });
+            // Sync invoice fields to localStorage so donor-side invoice modal stays consistent
+            const invoiceKeys = ["orgName","orgSub","orgCountry","description","bankName","bankIBAN","bankBIC","mobileNumber","mobileName","footerMsg"];
+            const lsInvoice = invoiceKeys.reduce((acc, k) => ({ ...acc, [k]: docEdited[`invoice.${k}`] ?? acc[k] }), {});
+            localStorage.setItem("kf_invoice_settings", JSON.stringify(lsInvoice));
+            showToast("✅ Templates saved successfully");
+          } catch (e) { showToast(e.message || "Save failed", "error"); }
+          finally { setDocSaving(false); }
+        };
+        const reset = async (key) => {
+          try {
+            const r = await settingsApi.reset(key);
+            const updated = { ...docEdited, [key]: r.defaultValue };
+            setDocEdited(updated);
+            setDocSettings(updated);
+            showToast("↺ Reset to default");
+          } catch (e) { showToast("Reset failed", "error"); }
+        };
+        const changed = JSON.stringify(docEdited) !== JSON.stringify(docSettings);
+
+        const DocSection = ({ title, desc, fields }) => (
+          <div style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:20, marginBottom:16 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+              <div>
+                <div style={{ fontWeight:800, fontSize:15 }}>{title}</div>
+                <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>{desc}</div>
+              </div>
+            </div>
+            {fields.map(({ key, label, multiline, vars }) => (
+              <div key={key} style={{ marginBottom:14 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                  <div style={{ fontSize:12, fontWeight:700, color:C.muted }}>{label}</div>
+                  <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                    {vars && <div style={{ fontSize:10, color:C.muted }}>vars: {vars.join(", ")}</div>}
+                    <button onClick={() => reset(key)} style={{ fontSize:10, color:C.muted, background:"none", border:"none", cursor:"pointer", padding:"0 4px" }}>↺ reset</button>
+                  </div>
+                </div>
+                {multiline ? (
+                  <textarea value={docEdited[key] ?? ""} rows={5}
+                    onChange={e => setDocEdited(p => ({ ...p, [key]: e.target.value }))}
+                    style={{ width:"100%", padding:"8px 10px", borderRadius:8, border:`1.5px solid ${docEdited[key] !== docSettings[key] ? C.primary : C.border}`, fontSize:12, fontFamily:"monospace", resize:"vertical", boxSizing:"border-box", lineHeight:1.6 }} />
+                ) : (
+                  <input value={docEdited[key] ?? ""} onChange={e => setDocEdited(p => ({ ...p, [key]: e.target.value }))}
+                    style={{ width:"100%", padding:"8px 10px", borderRadius:8, border:`1.5px solid ${docEdited[key] !== docSettings[key] ? C.primary : C.border}`, fontSize:13, boxSizing:"border-box" }} />
+                )}
+              </div>
+            ))}
+          </div>
+        );
+
+        return (
+          <div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, flexWrap:"wrap", gap:10 }}>
+              <div>
+                <div style={{ fontWeight:900, fontSize:18 }}>📄 Document Templates</div>
+                <div style={{ fontSize:13, color:COLORS.muted, marginTop:2 }}>Edit all letters, invoices, receipts and notification messages sent to donors</div>
+              </div>
+              <Btn variant="primary" onClick={save} disabled={!changed || docSaving}>
+                {docSaving ? "Saving…" : changed ? "💾 Save All Changes" : "✅ All Saved"}
+              </Btn>
+            </div>
+
+            <DocSection
+              title="🧾 Invoice Letter"
+              desc="Shown to donors when they click 'Invoice Letter' and used in the printed PDF"
+              fields={[
+                { key:"invoice.orgName",     label:"Organization Name" },
+                { key:"invoice.orgSub",      label:"Subtitle" },
+                { key:"invoice.orgCountry",  label:"City · Website" },
+                { key:"invoice.description", label:"Line-Item Description" },
+                { key:"invoice.bankName",    label:"Bank Account Name" },
+                { key:"invoice.bankIBAN",    label:"IBAN" },
+                { key:"invoice.bankBIC",     label:"BIC / SWIFT" },
+                { key:"invoice.mobileNumber",label:"Mobile Money Number" },
+                { key:"invoice.mobileName",  label:"Mobile Money Name" },
+                { key:"invoice.footerMsg",   label:"Footer Message", multiline:true },
+              ]}
+            />
+
+            <DocSection
+              title="✅ Payment Receipt"
+              desc="Sent to the donor as a notification when an admin clicks 'Mark Paid'"
+              fields={[
+                { key:"receipt.title", label:"Notification Title" },
+                { key:"receipt.body",  label:"Message Body", multiline:true,
+                  vars:["{donorName}","{amount}","{currency}","{childId}","{childName}","{region}","{receiptNo}","{month}","{year}"] },
+              ]}
+            />
+
+            <DocSection
+              title="📋 Payment Reminder (auto, 5 days before due)"
+              desc="Sent automatically by the daily cron job when a payment is 5 days away"
+              fields={[
+                { key:"reminder.title", label:"Notification Title" },
+                { key:"reminder.body",  label:"Message Body", multiline:true, vars:["{total}","{children}"] },
+              ]}
+            />
+
+            <DocSection
+              title="📬 Invoice Reminder (manual trigger)"
+              desc="Sent when an admin clicks 'Send Invoice Reminders' from the Payments tab"
+              fields={[
+                { key:"invoiceReminder.title", label:"Notification Title" },
+                { key:"invoiceReminder.body",  label:"Message Body", multiline:true,
+                  vars:["{donorName}","{amount}","{childId}","{dueDate}"] },
+              ]}
+            />
+
+            <DocSection
+              title="🔄 Contract Renewal Reminder (auto, 30 days before end)"
+              desc="Sent automatically by the daily cron job when a sponsorship contract is 30 days from expiry"
+              fields={[
+                { key:"renewal.title", label:"Notification Title" },
+                { key:"renewal.body",  label:"Message Body", multiline:true,
+                  vars:["{donorName}","{childName}","{endDate}"] },
+              ]}
+            />
+
+            {changed && (
+              <div style={{ position:"sticky", bottom:16, textAlign:"center" }}>
+                <Btn variant="primary" onClick={save} disabled={docSaving} style={{ padding:"12px 40px", fontSize:15, boxShadow:"0 4px 20px rgba(0,75,150,0.3)" }}>
+                  {docSaving ? "Saving…" : "💾 Save All Changes"}
+                </Btn>
               </div>
             )}
           </div>

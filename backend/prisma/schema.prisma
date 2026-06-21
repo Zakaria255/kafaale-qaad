@@ -599,3 +599,9 @@ model VaultDocument {
   @@index([ownerId])
   @@index([ownerId, type])
 }
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

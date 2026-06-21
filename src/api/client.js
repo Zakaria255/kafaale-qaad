@@ -150,6 +150,13 @@ export const programs = {
   releaseToSeeking:   (beneficiaryId)         => req(`/programs/beneficiaries/${beneficiaryId}/release`, { method: 'PATCH' }),
 };
 
+// ── Settings / Document templates endpoints ───────────────────────
+export const settings = {
+  all:    ()       => req('/settings'),
+  update: (data)   => req('/settings', { method: 'PATCH', body: JSON.stringify(data) }),
+  reset:  (key)    => req(`/settings/${encodeURIComponent(key)}`, { method: 'DELETE' }),
+};
+
 // ── Community Projects endpoints ──────────────────────────────────
 export const projects = {
   list:        (params = {})  => req('/projects?' + new URLSearchParams(params)),
