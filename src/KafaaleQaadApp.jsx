@@ -6370,7 +6370,13 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
             <div style={{ position:"relative", zIndex:1 }}>
               <div style={{ fontSize:13, opacity:0.7, fontWeight:600, marginBottom:4 }}>{greeting},</div>
               <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:900 }}>{currentUser?.fullname || "Administrator"}</h2>
-              <div style={{ fontSize:12, opacity:0.65 }}>{isSuperAdmin ? "🛡️ Super Administrator · Full System Access" : "🟠 Administrator · Limited Access"}</div>
+              <div style={{ fontSize:12, opacity:0.65 }}>
+                {isSuperAdmin ? "🛡️ Super Administrator · Full System Access"
+                  : currentUser?.role === "verification_office" ? "🔍 Verification Office · Case Review Access"
+                  : currentUser?.role === "program_manager"     ? "🌱 Program Manager · Programs Access"
+                  : currentUser?.role === "project_manager"     ? "🏗️ Project Manager · Projects Access"
+                  : "🟠 Administrator · Full Access"}
+              </div>
             </div>
           </div>
 
