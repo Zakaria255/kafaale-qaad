@@ -548,7 +548,7 @@ router.post('/sponsorships/:id/mark-paid', authenticate, async (req: AuthRequest
     const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const monthName = MONTHS[month - 1];
 
-    // Create confirmed payment record
+    // Create confirmed payment record (receiptNo stored in notification, not in DB)
     const receiptNo = `KQ-RCP-${Date.now().toString(36).toUpperCase().slice(-6)}-${year}${String(month).padStart(2,'0')}`;
     const payment = await prisma.sponsorshipPayment.create({
       data: {
@@ -558,8 +558,8 @@ router.post('/sponsorships/:id/mark-paid', authenticate, async (req: AuthRequest
         month,
         year,
         status:        'confirmed',
-        receiptNo,
-      } as any,
+        confirmedAt:   new Date(),
+      },
     });
 
     // Advance nextPaymentDate and increment totals
