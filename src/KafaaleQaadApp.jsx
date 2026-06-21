@@ -6490,16 +6490,18 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                 {/* Step 2 — Under Investigation */}
                 {(() => {
                   const underInvestigation = cases.filter(c => ["Under Review","Investigating"].includes(c.status));
-                  return underInvestigation.length > 0 ? (
-                    <WfSection title="🔍 Step 2 — Under Investigation" badge={0} badgeColor={COLORS.secondary}>
-                      {underInvestigation.map(c => (
+                  return (
+                    <WfSection title="🔍 Step 2 — Under Investigation" badge={underInvestigation.length} badgeColor={COLORS.secondary}>
+                      {underInvestigation.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No cases under investigation</div>
+                      ) : underInvestigation.map(c => (
                         <WfRow key={c.id} c={c} buttons={<>
                           <Btn size="sm" variant="ghost" onClick={() => onReject(c)}>❌ Reject</Btn>
                           <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>🔄 Reassign</Btn>
                         </>} />
                       ))}
                     </WfSection>
-                  ) : null;
+                  );
                 })()}
 
                 {/* Step 3 — Investigation Report Ready */}
