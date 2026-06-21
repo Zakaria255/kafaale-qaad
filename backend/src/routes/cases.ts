@@ -1,10 +1,18 @@
 import { Router, Response, Request } from 'express';
 import { z } from 'zod';
 import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
 import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { uploadCases, processUploads, getMediaType } from '../middleware/upload';
 import { sysLog } from '../services/logger';
+
+// Rate-limit only file-upload submissions (not public reads)
+const caseSubmitLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: { error: 'Too many case submissions. Please try again later.' },
+});
 
 const router = Router();
 
@@ -64,7 +72,7 @@ router.get('/my', authenticate, async (req: AuthRequest, res: Response) => {
     const cases = await prisma.case.findMany({
       where: { reporterId: req.user!.id },
       orderBy: { createdAt: 'desc' },
-      select: { id: true, caseRef: true, category: true, caseType: true, emergencyLevel: true, status: true, publicTitle: true, privateDescription: true, privateDistrict: true, publicCity: true, targetGoal: true, totalRaised: true, createdAt: true, rejectionReason: true } as any,
+      select: { id: true, caseRef: true, category: true, caseType: true, emergencyLevel: true, status: true, publicTitle: true, privateDescription: true, privateDistrict: true, publicCity: true, targetGoal: true, totalRaised: true, createdAt: true, rejectionReason: true, reporterId: true } as any,
     });
     res.json({ cases });
   } catch { res.status(500).json({ error: 'Failed to retrieve your cases' }); }
@@ -114,11 +122,17 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to retrieve case' }); }
 });
 
+const STAFF_ROLES_NO_REPORT = ['admin','super_admin','field_agent','verification_office','office_staff','program_manager','project_manager'];
+
 // POST /api/cases — Submit new case (multipart/form-data supported)
 router.post('/',
   authenticate,
+  caseSubmitLimiter,
   uploadCases.fields([{ name: 'media', maxCount: 8 }, { name: 'documents', maxCount: 5 }]),
   async (req: AuthRequest, res: Response) => {
+    if (STAFF_ROLES_NO_REPORT.includes(req.user!.role)) {
+      return res.status(403).json({ error: 'Staff accounts cannot submit cases as reporters. Use a reporter or donor account.' });
+    }
     // Upload files first
     await new Promise<void>((resolve, reject) => {
       processUploads('cases', ['media','documents'], req, res, (err) => err ? reject(err) : resolve());
@@ -133,6 +147,9 @@ router.post('/',
       const data = CreateCaseSchema.parse(req.body);
       const year = new Date().getFullYear();
 
+      // Strip fields not in the Prisma Case schema before inserting
+      const { needsChecklist, communityVillageName, communityChildCount, ...caseData } = data;
+
       // Generate a collision-resistant caseRef using a crypto random suffix.
       // This replaces the COUNT()-based approach which had TOCTOU race conditions.
       let kase: Awaited<ReturnType<typeof prisma.case.create>>;
@@ -143,11 +160,10 @@ router.post('/',
         try {
           kase = await prisma.case.create({
             data: {
-              reporterId:     req.user!.id,
-              ...data,
-              needsChecklist: data.needsChecklist || [],
-              caseType:       data.caseType || 'emergency',
-              status:         'pending_review',
+              reporter:  { connect: { id: req.user!.id } },
+              ...caseData,
+              caseType:  data.caseType || 'emergency',
+              status:    'pending_review',
               caseRef,
             },
           });
@@ -181,7 +197,7 @@ router.post('/',
       }
 
       // Notify office staff + admins
-      const notifyRoles = ['admin','super_admin','office_staff'];
+      const notifyRoles = ['admin','super_admin','office_staff','verification_office'];
       const notifyUsers = await prisma.user.findMany({ where: { role: { in: notifyRoles }, isActive: true }, select: { id: true } });
       await prisma.notification.createMany({
         data: notifyUsers.map(u => ({

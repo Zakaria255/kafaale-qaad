@@ -31,20 +31,30 @@ model User {
   city              String?
   organization      String?
   isActive          Boolean   @default(true)
+  isApproved        Boolean   @default(true)
+  expoPushToken     String?
   lastLoginAt       DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  reportedCases       Case[]              @relation("CaseReporter")
-  assignedCases       Case[]              @relation("CaseAssignedAgent")
-  fieldInvestigations FieldInvestigation[]
-  donations           Donation[]
-  auditLogs           AdminAuditLog[]
-  notifications       Notification[]
+  reportedCases        Case[]                @relation("CaseReporter")
+  assignedCases        Case[]                @relation("CaseAssignedAgent")
+  fieldInvestigations  FieldInvestigation[]
+  donations            Donation[]
+  auditLogs            AdminAuditLog[]
+  notifications        Notification[]
+  sponsorships         Sponsorship[]         @relation("UserSponsorships")
+  monthlyUpdates       MonthlyUpdate[]       @relation("UserMonthlyUpdates")
+  projectContributions ProjectContribution[] @relation("UserProjectContributions")
+  sentMessages         Message[]             @relation("MessageSender")
+  messageThreadsAsA    MessageThread[]       @relation("ThreadParticipantA")
+  messageThreadsAsB    MessageThread[]       @relation("ThreadParticipantB")
+  vaultDocuments       VaultDocument[]
 
   @@index([role])
   @@index([email])
   @@index([isActive])
+  @@index([isApproved])
 }
 
 model Case {
@@ -270,4 +280,322 @@ model Notification {
 model IdempotencyKey {
   key       String   @id
   createdAt DateTime @default(now())
+}
+
+// ─── Humanitarian Programs Engine ────────────────────────────────────────────
+
+model Program {
+  id          String  @id @default(cuid())
+  name        String
+  type        String
+  description String
+  icon        String  @default("🌱")
+  color       String  @default("#004B96")
+  isActive    Boolean @default(true)
+
+  totalBeneficiaries Int   @default(0)
+  activeSponsorships Int   @default(0)
+  monthlyBudget      Float @default(0)
+  totalRaised        Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  beneficiaries Beneficiary[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model Beneficiary {
+  id       String @id @default(cuid())
+  publicId String @unique
+
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
+  privateFullName      String?
+  privateGuardianName  String?
+  privateGuardianPhone String?
+  privateSchoolName    String?
+  privateAddress       String?
+  privateMedicalNotes  String?
+  privateNotes         String?
+
+  publicAge       Int?
+  publicGender    String?
+  publicRegion    String?
+  publicCity      String?
+  publicCountry   String  @default("Somalia")
+  publicNeedsDesc String?
+  publicStory     String?
+  publicPhotoUrl  String?
+
+  programType String
+  monthlyNeed Float  @default(0)
+
+  status      String    @default("pending_verification")
+  verifiedAt  DateTime?
+  verifiedById String?
+  enrolledBy  String?
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sponsorships   Sponsorship[]
+  monthlyUpdates MonthlyUpdate[]
+
+  @@index([status])
+  @@index([programId])
+  @@index([programType])
+}
+
+model Sponsorship {
+  id            String      @id @default(cuid())
+  beneficiaryId String
+  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id])
+  sponsorId     String
+  sponsor       User        @relation("UserSponsorships", fields: [sponsorId], references: [id])
+
+  type          String @default("full")
+  monthlyAmount Float
+  currency      String @default("USD")
+  status        String @default("active")
+  paymentMethod String @default("bank_transfer")
+
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  nextPaymentDate DateTime?
+
+  totalPaid       Float @default(0)
+  monthsCompleted Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments SponsorshipPayment[]
+
+  @@index([beneficiaryId])
+  @@index([sponsorId])
+  @@index([status])
+}
+
+model SponsorshipPayment {
+  id            String      @id @default(cuid())
+  sponsorshipId String
+  sponsorship   Sponsorship @relation(fields: [sponsorshipId], references: [id])
+
+  amount   Float
+  currency String @default("USD")
+  month    Int
+  year     Int
+  status   String @default("pending")
+
+  paidAt      DateTime?
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([sponsorshipId])
+}
+
+model MonthlyUpdate {
+  id            String      @id @default(cuid())
+  beneficiaryId String
+  beneficiary   Beneficiary @relation(fields: [beneficiaryId], references: [id])
+  submittedById String
+  submittedBy   User        @relation("UserMonthlyUpdates", fields: [submittedById], references: [id])
+
+  month Int
+  year  Int
+
+  schoolAttendance Int?
+  healthStatus     String?
+  progressNotes    String
+  needsAssessment  String?
+
+  deliveriesMade String?  // JSON array as String
+  photoUrls      String?  // JSON array as String
+
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([beneficiaryId, month, year])
+  @@index([beneficiaryId])
+  @@index([isPublished])
+}
+
+// ─── Community Projects ───────────────────────────────────────────────────────
+
+model CommunityProject {
+  id       String @id @default(cuid())
+  publicId String @unique
+
+  title       String
+  description String
+  category    String
+  location    String
+  region      String
+  country     String @default("Somalia")
+
+  populationSize Int?
+  problemDesc    String
+  solutionDesc   String
+
+  fundingGoal Float
+  totalRaised Float @default(0)
+
+  status           String  @default("seeking_funding")
+  phases           String? // JSON array as String
+  photoUrls        String? // JSON array as String
+  completionReport String?
+
+  createdById String?
+  verifiedAt  DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contributions ProjectContribution[]
+
+  @@index([status])
+  @@index([category])
+}
+
+model ProjectContribution {
+  id        String           @id @default(cuid())
+  projectId String
+  project   CommunityProject @relation(fields: [projectId], references: [id])
+  donorId   String
+  donor     User             @relation("UserProjectContributions", fields: [donorId], references: [id])
+
+  amount   Float
+  currency String @default("USD")
+  type     String @default("partial")
+  status   String @default("pending")
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([donorId])
+}
+
+// ─── Impact Partners ─────────────────────────────────────────────────────────
+
+model Partner {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  avatar  String @default("🤝")
+  logoUrl String?
+
+  type        String  @default("individual")
+  tier        String  @default("community")
+  isVerified  Boolean @default(false)
+  isAnonymous Boolean @default(false)
+  isActive    Boolean @default(true)
+
+  country     String?
+  countryFlag String?
+  city        String?
+  region      String?
+
+  description String?
+  website     String?
+  focus       String? // JSON array as String
+  color       String  @default("#004B96")
+
+  casesSupported   Int   @default(0)
+  totalDonated     Float @default(0)
+  familiesImpacted Int   @default(0)
+
+  impactStory  String?
+  impactBefore String?
+  impactAfter  String?
+  caseRef      String?
+
+  featuredOrder Int?
+  addedByAdmin  String?
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tier])
+  @@index([isVerified, isActive])
+  @@index([type])
+  @@index([featuredOrder])
+}
+
+// ─── OTP / Password Reset ────────────────────────────────────────────────────
+
+model OtpRecord {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+// ─── Messaging ────────────────────────────────────────────────────────────────
+
+model MessageThread {
+  id           String @id @default(cuid())
+  participantA String
+  participantB String
+  userA        User   @relation("ThreadParticipantA", fields: [participantA], references: [id])
+  userB        User   @relation("ThreadParticipantB", fields: [participantB], references: [id])
+  caseId       String?
+  lastMessage  String   @default("")
+  lastAt       DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  messages Message[]
+
+  @@unique([participantA, participantB])
+  @@index([participantA])
+  @@index([participantB])
+}
+
+model Message {
+  id       String        @id @default(cuid())
+  threadId String
+  thread   MessageThread @relation(fields: [threadId], references: [id])
+  senderId String
+  sender   User          @relation("MessageSender", fields: [senderId], references: [id])
+  text     String
+  isRead   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([threadId])
+  @@index([senderId])
+}
+
+// ─── Document Vault ───────────────────────────────────────────────────────────
+
+model VaultDocument {
+  id        String @id @default(cuid())
+  ownerId   String
+  owner     User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title     String
+  filename  String
+  url       String
+  type      String @default("other")
+  mimeType  String?
+  sizeBytes Int?
+  caseRef   String?
+  createdAt DateTime @default(now())
+
+  @@index([ownerId])
+  @@index([ownerId, type])
 }

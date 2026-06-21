@@ -71,21 +71,29 @@ function CaseCard({ c, P, vis = {} }) {
           {c.publicStory || "Case details are being prepared for public viewing."}
         </p>
 
-        {/* Funding — % only; show goal $ only when fully funded */}
+        {/* Funding — percentage + goal amount always visible */}
         {vis.showFundingBar !== false && (
           <div style={{ marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
               <span style={{ fontSize: 22, fontWeight: 900, color: full ? C.secondary : C.primary, lineHeight: 1 }}>
-                {pct}%
+                {pct}% <span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>funded</span>
               </span>
-              <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>
-                {full ? `Goal: $${(c.targetGoal || 0).toLocaleString()} ✓` : "funded"}
-              </span>
+              {c.targetGoal > 0 && (
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>
+                  ${(c.targetGoal).toLocaleString()} {full ? "✓" : "needed"}
+                </span>
+              )}
             </div>
             <div style={{ background: C.bg, borderRadius: 10, height: 7, overflow: "hidden" }}>
               <div style={{ width: `${pct}%`, height: "100%", background: barColor, borderRadius: 10, transition: "width 0.6s ease" }} />
             </div>
-            {full && <div style={{ fontSize: 11, color: C.secondary, fontWeight: 700, marginTop: 5 }}>🎉 Fully Funded</div>}
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, fontSize: 11, color: C.muted }}>
+              <span>${(c.totalRaised || 0).toLocaleString()} raised</span>
+              {full && <span style={{ color: C.secondary, fontWeight: 700 }}>🎉 Fully Funded</span>}
+              {!full && c.targetGoal > 0 && (
+                <span>${Math.max(0, c.targetGoal - (c.totalRaised || 0)).toLocaleString()} remaining</span>
+              )}
+            </div>
           </div>
         )}
 

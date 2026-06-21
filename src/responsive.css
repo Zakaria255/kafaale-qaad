@@ -72,7 +72,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   box-shadow: 0 20px 60px rgba(0,0,0,0.18);
 }
 
@@ -413,4 +413,28 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   animation: kf-hero-zoom 16s ease infinite;
   pointer-events: none;
   z-index: 0;
+}
+
+/* ── Privacy Protection ─────────────────────────────────────────────────── */
+/* Disable text selection system-wide */
+body, .kf-modal-inner, .kf-table-wrap, [class*="kf-"] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+/* Allow text selection only inside input/textarea fields */
+input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* Block drag of images */
+img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
+/* Images that need to be clickable get pointer-events back */
+img[data-interactive] { pointer-events: auto; }
+/* Hide content from print */
+@media print {
+  body * { visibility: hidden !important; }
+  #kf-full-report, #kf-full-report * { visibility: visible !important; }
+  #kf-full-report { position: fixed; top: 0; left: 0; width: 100%; }
 }

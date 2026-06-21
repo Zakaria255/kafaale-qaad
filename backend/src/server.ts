@@ -36,9 +36,58 @@ import projectsRoutes from './routes/projects';
 import searchRoutes from './routes/search';
 import messagesRoutes from './routes/messages';
 import vaultRoutes from './routes/vault';
+import cron from 'node-cron';
 import { sysLog } from './services/logger';
 import { socketService } from './services/socketService';
 import { prisma } from './prisma/client';
+
+// ── Invoice reminder job — runs daily at 8 AM, notifies sponsors 5 days before payment due ──
+async function sendPaymentReminders() {
+  try {
+    const now = new Date();
+    const in5Days = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const in6Days = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+
+    // Find sponsorships where nextPaymentDate is between 5 and 6 days from now
+    const due = await prisma.sponsorship.findMany({
+      where: {
+        status: 'active',
+        nextPaymentDate: { gte: in5Days, lt: in6Days },
+      },
+      include: {
+        beneficiary: { select: { publicId: true, privateFullName: true } },
+        sponsor:     { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    if (due.length === 0) return;
+
+    // Group by sponsor so one donor with multiple children gets one notification
+    const byDonor = new Map<string, typeof due>();
+    for (const sp of due) {
+      const list = byDonor.get(sp.sponsorId) || [];
+      list.push(sp);
+      byDonor.set(sp.sponsorId, list);
+    }
+
+    for (const [sponsorId, sps] of byDonor) {
+      const names = sps.map(s => s.beneficiary.privateFullName || s.beneficiary.publicId).join(', ');
+      const total = sps.reduce((sum, s) => sum + s.monthlyAmount, 0);
+      await prisma.notification.create({
+        data: {
+          userId:  sponsorId,
+          type:    'payment_reminder',
+          title:   '📋 Payment Due in 5 Days',
+          message: `Your monthly sponsorship payment of $${total.toFixed(2)} for ${names} is due in 5 days. Please log in to view your invoice and submit payment.`,
+        },
+      });
+    }
+
+    sysLog.info(`📬 Payment reminders sent to ${byDonor.size} donor(s) for ${due.length} sponsorship(s)`);
+  } catch (e: any) {
+    sysLog.warn('Payment reminder job failed', { error: e.message });
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -143,7 +192,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth',          authLimiter, authRoutes);
-app.use('/api/cases',         uploadLimiter, casesRoutes);
+app.use('/api/cases',         casesRoutes);   // globalLimiter covers GETs; upload routes inside use their own check
 app.use('/api/admin',         adminRoutes);
 app.use('/api/field',         uploadLimiter, fieldRoutes);
 app.use('/api/donate',        donationLimiter, donationRoutes);
@@ -189,6 +238,55 @@ if (!process.env.VERCEL) {
 
     // Initialize WebSocket gateway (must be after server.listen)
     socketService.init(server);
+
+    // Daily invoice reminders — 8 AM every day, notifies sponsors 5 days before payment due
+    cron.schedule('0 8 * * *', sendPaymentReminders);
+    sysLog.info('⏰ Invoice reminder cron scheduled (daily 8 AM)');
+
+    // Contract renewal reminders — 9 AM every day, notifies sponsors 30 days before contract end
+    cron.schedule('0 9 * * *', async () => {
+      try {
+        const now = new Date();
+        const in30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const in31 = new Date(now.getTime() + 31 * 24 * 60 * 60 * 1000);
+        const expiring = await prisma.sponsorship.findMany({
+          where: { status: 'active', endDate: { gte: in30, lt: in31 } },
+          include: {
+            beneficiary: { select: { publicId: true, privateFullName: true } },
+            sponsor:     { select: { id: true, name: true } },
+          },
+        });
+        for (const sp of expiring) {
+          const childName = sp.beneficiary.privateFullName || sp.beneficiary.publicId;
+          const endFmt = new Date(sp.endDate!).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+          await prisma.notification.create({
+            data: {
+              userId:  sp.sponsorId,
+              type:    'contract_renewal_reminder',
+              title:   '🔄 Sponsorship Contract Expiring Soon',
+              message: [
+                `Dear ${sp.sponsor.name || 'Sponsor'},`,
+                ``,
+                `Your sponsorship contract for ${childName} is expiring on ${endFmt} — in 30 days.`,
+                ``,
+                `📌 You have two options:`,
+                `1. ✅ Renew Contract — continue supporting ${childName} for another year or more`,
+                `2. 🔓 Release — allow another donor to take over sponsorship`,
+                ``,
+                `Please log in to your dashboard under "My Program Support" and choose. If we don't hear from you, the contract will expire and ${childName} will return to the seeking-sponsor pool.`,
+                ``,
+                `Thank you for everything you've done for this child. 💙`,
+                `— Kafaale Qaad Hope Society`,
+              ].join('\n'),
+            },
+          });
+        }
+        if (expiring.length > 0) sysLog.info(`🔔 Contract renewal reminders sent for ${expiring.length} sponsorship(s)`);
+      } catch (e: any) {
+        sysLog.warn('Contract renewal reminder job failed', { error: e.message });
+      }
+    });
+    sysLog.info('⏰ Contract renewal cron scheduled (daily 9 AM)');
 
     // Hourly OTP cleanup — remove expired/used OTP records to prevent unbounded growth
     setInterval(async () => {

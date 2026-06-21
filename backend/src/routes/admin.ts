@@ -7,7 +7,7 @@ import { fraudDetectionService } from '../services/fraudDetectionService';
 
 const router = Router();
 router.use(authenticate, requireRole([
-  'admin','super_admin','office_staff','program_manager','project_manager',
+  'admin','super_admin','verification_office','office_staff','program_manager','project_manager',
 ]));
 
 // GET /api/admin/cases — All cases with full details
@@ -23,8 +23,8 @@ router.get('/cases', async (req: AuthRequest, res: Response) => {
         include: {
           reporter: { select: { id: true, name: true, email: true } },
           assignedAgent: { select: { id: true, name: true, email: true } },
-          fieldInvestigation: { select: { verificationStatus: true, estimatedAmountNeeded: true, fraudRiskLevel: true } },
-          aiPublicData: { select: { generatedTitle: true, confidenceScore: true } },
+          fieldInvestigation: { select: { verificationStatus: true, estimatedAmountNeeded: true, fraudRiskLevel: true, fraudRiskScore: true, fraudRiskNotes: true, victimVerified: true, situationAccurate: true, deliveryFeasible: true, urgencyConfirmed: true, situationNotes: true, officialNotes: true, deliveryMethod: true, deliveryNotes: true } },
+          aiPublicData: { select: { generatedTitle: true, generatedStory: true, generatedCity: true, generatedUrgency: true, confidenceScore: true } },
           deliveryProof: true,
           _count: { select: { donations: true, mediaFiles: true } },
         },
@@ -91,18 +91,22 @@ router.patch('/cases/:id/status', async (req: AuthRequest, res: Response) => {
 // PATCH /api/admin/cases/:id/assign — Assign field agent
 router.patch('/cases/:id/assign', async (req: AuthRequest, res: Response) => {
   try {
-    const { agentId } = req.body;
+    const { agentId, deadline, priority } = req.body;
     const agent = await prisma.user.findUnique({ where: { id: agentId } });
     if (!agent || agent.role !== 'field_agent') return res.status(400).json({ error: 'Invalid field agent' });
-    
+
     const kase = await prisma.case.update({
       where: { id: req.params.id },
       data: { assignedAgentId: agentId, status: 'team_assigned', teamAssignedAt: new Date() },
     });
+    const deadlineNote = deadline ? ` Deadline: ${deadline}.` : '';
+    const priorityNote = priority ? ` Priority: ${priority}.` : '';
     await prisma.notification.create({
-      data: { userId: agentId, caseId: kase.id, type: 'case_assigned', title: '🗂️ New Case Assigned', message: `A ${kase.emergencyLevel} priority ${kase.category} case has been assigned to you for field investigation.` },
+      data: { userId: agentId, caseId: kase.id, type: 'case_assigned', title: '🗂️ New Case Assigned',
+        message: `A ${kase.emergencyLevel} priority ${kase.category} case has been assigned to you for field investigation.${deadlineNote}${priorityNote}` },
     });
-    await prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: kase.id, action: 'assigned_team', notes: `Assigned to agent ${agent.name}` } });
+    await prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: kase.id, action: 'assigned_team',
+      notes: `Assigned to agent ${agent.name}${deadlineNote}${priorityNote}` } });
     res.json({ message: 'Agent assigned', caseId: kase.id });
   } catch { res.status(500).json({ error: 'Failed to assign agent' }); }
 });
@@ -177,7 +181,7 @@ router.get('/stats', async (_req: AuthRequest, res: Response) => {
 
 // GET /api/admin/users — All users (admin/super_admin only)
 router.get('/users', async (req: AuthRequest, res: Response) => {
-  if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  if (!['admin','super_admin','verification_office'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const { status } = req.query as Record<string, string>;
     const where: any = {};
@@ -235,7 +239,7 @@ router.patch('/users/:id/reject', async (req: AuthRequest, res: Response) => {
 
 // GET /api/admin/donations — All donations with full details (admin/super_admin only)
 router.get('/donations', async (req: AuthRequest, res: Response) => {
-  if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  if (!['admin','super_admin','verification_office'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const [donationList, totals] = await Promise.all([
       prisma.donation.findMany({
@@ -264,22 +268,37 @@ router.patch('/donations/:id/confirm', async (req: AuthRequest, res: Response) =
   try {
     const existing = await prisma.donation.findUnique({
       where: { id: req.params.id },
-      include: { case: { select: { id: true, status: true, totalRaised: true } } },
+      include: { case: { select: { id: true, status: true, totalRaised: true, targetGoal: true } } },
     }) as any;
     if (!existing) return res.status(404).json({ error: 'Donation not found' });
     if (existing.status === 'confirmed') return res.status(400).json({ error: 'Donation already confirmed' });
     if (existing.status === 'refunded')  return res.status(400).json({ error: 'Donation was refunded — cannot confirm' });
 
-    const wasWaiting = existing.case?.status === 'waiting_for_sponsor';
+    const kaseStatus     = existing.case?.status;
+    const newTotalRaised = (existing.case?.totalRaised || 0) + existing.amount;
+    const targetGoal     = existing.case?.targetGoal || 0;
+    // Only move to sponsored when goal is fully reached (or no goal set)
+    const isFullyFunded  = targetGoal > 0 ? newTotalRaised >= targetGoal : true;
+    const wasWaiting     = kaseStatus === 'waiting_for_sponsor';
 
-    // Atomic: update donation + increment totalRaised + optionally update case status
     await prisma.$transaction([
       prisma.donation.update({ where: { id: req.params.id }, data: { status: 'confirmed', confirmedAt: new Date() } }),
-      prisma.case.update({ where: { id: existing.caseId }, data: { totalRaised: { increment: existing.amount }, ...(wasWaiting && { status: 'sponsored', sponsoredAt: new Date() }) } }),
-      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: existing.caseId, action: 'donation_confirmed', notes: `Confirmed $${existing.amount} donation from donor ${existing.donorId}` } }),
+      prisma.case.update({
+        where: { id: existing.caseId },
+        data: {
+          totalRaised: { increment: existing.amount },
+          // Only advance status when the goal is fully reached
+          ...(wasWaiting && isFullyFunded  && { status: 'sponsored', sponsoredAt: new Date() }),
+          // Partial payment — keep waiting_for_sponsor so more donors can contribute
+        },
+      }),
+      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: existing.caseId, action: 'donation_confirmed', notes: `Confirmed $${existing.amount} from donor ${existing.donorId}. Total now $${newTotalRaised}/${targetGoal}` } }),
     ]);
-    await prisma.notification.create({ data: { userId: existing.donorId, caseId: existing.caseId, type: 'donation_confirmed', title: '✅ Donation Confirmed', message: `Your donation of $${existing.amount} has been confirmed. The field team will deliver aid shortly.` } });
-    res.json({ message: 'Donation confirmed', donationId: existing.id });
+    const msg = isFullyFunded
+      ? `Your donation of $${existing.amount} has been confirmed. Goal reached! The field team will deliver aid shortly.`
+      : `Your donation of $${existing.amount} has been confirmed. $${newTotalRaised} of $${targetGoal} raised so far — thank you!`;
+    await prisma.notification.create({ data: { userId: existing.donorId, caseId: existing.caseId, type: 'donation_confirmed', title: '✅ Donation Confirmed', message: msg } });
+    res.json({ message: 'Donation confirmed', donationId: existing.id, totalRaised: newTotalRaised, isFullyFunded });
   } catch { res.status(500).json({ error: 'Failed to confirm donation' }); }
 });
 
@@ -377,7 +396,7 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
     }
     const { id } = req.params;
     const { role } = req.body;
-    const validRoles = ['reporter','sponsor','field_agent','office_staff','program_manager','project_manager','partner','admin','super_admin'];
+    const validRoles = ['reporter','donor','field_agent','verification_office','program_manager','project_manager','admin','super_admin'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
     }

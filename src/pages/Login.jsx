@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LanguageContext.jsx';
@@ -10,6 +11,102 @@ const C = {
   bg: "#F4F7FC", border: "#D8E4F0", muted: "#5A6E8A",
   text: "#0D1F3C", error: "#C0392B", danger: "#C0392B",
 };
+
+// Custom portal dropdown — works inside any overflow/fixed context
+function PortalSelect({ value, onChange, groups }) {
+  const [open, setOpen] = useState(false);
+  const [pos,  setPos]  = useState({ top: 0, left: 0, width: 0 });
+  const btnRef = useRef(null);
+
+  const allOpts = groups.flatMap(g => g.options);
+  const selected = allOpts.find(o => o.value === value);
+
+  const openMenu = () => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const top = spaceBelow < 280 ? r.top - Math.min(280, allOpts.length * 44 + groups.length * 28) : r.bottom + 4;
+    setPos({ top, left: r.left, width: r.width });
+    setOpen(true);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => { window.removeEventListener('scroll', close, true); window.removeEventListener('resize', close); };
+  }, [open]);
+
+  return (
+    <>
+      <button ref={btnRef} type="button" onClick={openMenu}
+        style={{
+          width: '100%', padding: '12px 16px', border: `1.5px solid ${open ? C.primary : C.border}`,
+          borderRadius: 10, fontSize: 15, background: '#fff', color: C.text,
+          outline: 'none', boxSizing: 'border-box', cursor: 'pointer', fontFamily: 'inherit',
+          textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          boxShadow: open ? `0 0 0 3px ${C.primary}22` : 'none',
+        }}>
+        <span>{selected?.label ?? '— Choose role —'}</span>
+        <span style={{ color: C.muted, fontSize: 12, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▾</span>
+      </button>
+      {open && createPortal(
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onMouseDown={() => setOpen(false)} />
+          <div style={{
+            position: 'fixed', top: pos.top, left: pos.left, width: pos.width,
+            zIndex: 9999, background: '#fff', borderRadius: 12,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.20)', border: `1px solid ${C.border}`,
+            maxHeight: 320, overflowY: 'auto',
+          }}>
+            {groups.map((g, gi) => (
+              <div key={gi}>
+                <div style={{ padding: '6px 14px', fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: 1, background: '#F9FAFB', borderBottom: `1px solid ${C.border}` }}>
+                  {g.label}
+                </div>
+                {g.options.map((opt, oi) => (
+                  <div key={opt.value}
+                    onMouseDown={() => { onChange(opt.value); setOpen(false); }}
+                    style={{
+                      padding: '11px 14px', cursor: 'pointer', fontSize: 14,
+                      background: opt.value === value ? C.primary + '10' : 'transparent',
+                      color: opt.value === value ? C.primary : C.text,
+                      fontWeight: opt.value === value ? 700 : 400,
+                      borderBottom: oi < g.options.length - 1 ? `1px solid ${C.border}` : 'none',
+                    }}>
+                    {opt.label}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </>,
+        document.body
+      )}
+    </>
+  );
+}
+
+const ROLE_GROUPS = [
+  {
+    label: 'Immediate Access',
+    options: [
+      { value: 'reporter', label: '📝 Community Reporter — submit cases' },
+      { value: 'donor',    label: '❤️ Donor / Sponsor — fund verified cases' },
+    ],
+  },
+  {
+    label: 'Requires Admin Approval',
+    options: [
+      { value: 'field_agent',         label: '🗺️ Field Agent — verify on the ground' },
+      { value: 'verification_office', label: '🏛️ Verification Office — case review team' },
+      { value: 'program_manager',     label: '🌱 Program Manager — child programs' },
+      { value: 'project_manager',     label: '🏗️ Project Manager — community projects' },
+      { value: 'partner',             label: '🤝 Partner Organisation' },
+    ],
+  },
+];
 
 export default function Login() {
   const { login, register, loading } = useAuth();
@@ -53,7 +150,7 @@ export default function Login() {
       minHeight:'100vh',
       background:`linear-gradient(145deg, ${C.navy} 0%, ${C.primary} 55%, ${C.green} 100%)`,
       display:'flex', alignItems:'center', justifyContent:'center',
-      padding:'20px', position:'relative', overflow:'hidden',
+      padding:'20px', position:'relative', overflow:'clip',
     }}>
       {/* Background orbs */}
       <div style={{ position:'absolute', top:-120, right:-120, width:400, height:400, borderRadius:'50%', background:'rgba(255,255,255,0.04)', pointerEvents:'none' }} />
@@ -62,12 +159,13 @@ export default function Login() {
       <div style={{
         background:'#fff', borderRadius:24, width:'100%', maxWidth:440,
         boxShadow:'0 32px 80px rgba(0,0,0,0.22), 0 8px 24px rgba(0,0,0,0.12)',
-        overflow:'hidden', position:'relative', zIndex:1,
+        position:'relative', zIndex:1,
       }}>
         {/* Navy top bar */}
         <div style={{
           background:`linear-gradient(135deg, ${C.navy}, ${C.primary})`,
           padding:'28px 32px 24px',
+          borderRadius:'24px 24px 0 0',
         }}>
           {/* Lang picker */}
           <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:20, position:'relative' }}>
@@ -144,20 +242,12 @@ export default function Login() {
             {tab === 'register' && (
               <>
                 <div>
-                  <select value={form.role} onChange={e => set('role', e.target.value)}
-                    style={{ width:'100%', padding:'12px 16px', border:`1.5px solid ${C.border}`, borderRadius:10, fontSize:15, background:'#fff', color:C.text, outline:'none', boxSizing:'border-box' }}>
-                    <optgroup label="Immediate Access">
-                      <option value="reporter">📝 Community Reporter — submit cases</option>
-                      <option value="donor">❤️ Donor / Sponsor — fund verified cases</option>
-                    </optgroup>
-                    <optgroup label="Requires Admin Approval">
-                      <option value="field_agent">🗺️ Field Agent — verify on the ground</option>
-                      <option value="office_staff">🏛️ Office Staff — verification team</option>
-                      <option value="program_manager">🌱 Program Manager — child programs</option>
-                      <option value="partner">🤝 Partner Organisation</option>
-                    </optgroup>
-                  </select>
-                  {['field_agent','office_staff','program_manager','partner'].includes(form.role) && (
+                  <PortalSelect
+                    value={form.role}
+                    onChange={v => set('role', v)}
+                    groups={ROLE_GROUPS}
+                  />
+                  {['field_agent','verification_office','program_manager','project_manager','partner'].includes(form.role) && (
                     <div style={{ marginTop:6, padding:'8px 12px', background:'#FEF3C7', borderRadius:8, fontSize:12, color:'#92400E', display:'flex', gap:6 }}>
                       ⏳ This role requires admin approval. You will receive access within 24 hours.
                     </div>

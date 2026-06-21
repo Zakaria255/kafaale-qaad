@@ -32,7 +32,12 @@ async function main() {
     update: {},
     create: { name: 'Hodan Farah', email: 'reporter@kafaale.org', password: pw, role: 'reporter', phone: '+252612000005', country: 'Somalia', city: 'Mogadishu' },
   });
-  console.log('✅ 5 users created');
+  await prisma.user.upsert({
+    where: { email: 'verifier@kafaale.org' },
+    update: {},
+    create: { name: 'Fadumo Warsame', email: 'verifier@kafaale.org', password: pw, role: 'verification_office', phone: '+252612000007', country: 'Somalia', city: 'Mogadishu' },
+  });
+  console.log('✅ 7 users created (incl. verifier)');
 
   // Case A — published, waiting for sponsor
   const caseA = await prisma.case.create({
@@ -47,7 +52,7 @@ async function main() {
       privateDescription: 'Mother of 5 with stage-3 kidney disease. Family cannot afford dialysis. Husband lost job after flood. Children malnourished.',
       publicTitle: 'Urgent Medical Support for a Family in Mogadishu',
       publicStory: 'A mother of five children in Mogadishu is facing a critical medical emergency. She requires life-saving dialysis treatment three times per week but her family cannot cover the costs. Her husband recently lost his livelihood due to floods. Your support will fund essential medical treatments.',
-      publicCity: 'Mogadishu', publicCountry: 'Somalia', publicMediaUrls: [],
+      publicCity: 'Mogadishu', publicCountry: 'Somalia', publicMediaUrls: '[]',
       targetGoal: 5400, totalRaised: 1200,
       aiSanitizedAt: new Date(), adminPublishedAt: new Date(),
       teamAssignedAt: new Date(Date.now() - 5*86400000),
@@ -77,9 +82,9 @@ async function main() {
       generatedTitle: 'Urgent Medical Support for a Family in Mogadishu',
       generatedStory: 'A mother of five children in Mogadishu is facing a critical medical emergency requiring life-saving dialysis treatment. Your support will fund essential medical treatments.',
       generatedCategory: 'medical', generatedCity: 'Mogadishu, Somalia', generatedUrgency: 'critical',
-      safeMediaUrls: [], piiDetected: true,
-      piiRemoved: ['victim full name', 'victim phone', 'exact home address', 'GPS coords'],
-      mediaFlagged: [], confidenceScore: 94, model: 'claude-sonnet-4-6',
+      safeMediaUrls: '[]', piiDetected: true,
+      piiRemoved: JSON.stringify(['victim full name', 'victim phone', 'exact home address', 'GPS coords']),
+      mediaFlagged: '[]', confidenceScore: 94, model: 'claude-sonnet-4-6',
     },
   });
 
@@ -131,7 +136,7 @@ async function main() {
       privateDescription: 'Orphan child, severe malnutrition, needs immediate nutrition support and shelter.',
       publicTitle: 'Nutrition Support for Orphan Child in Baidoa',
       publicStory: 'An 8-year-old orphan in Baidoa required urgent nutrition and medical support. Thanks to your donations, this child has been fully supported.',
-      publicCity: 'Baidoa', publicCountry: 'Somalia', publicMediaUrls: [],
+      publicCity: 'Baidoa', publicCountry: 'Somalia', publicMediaUrls: '[]',
       targetGoal: 1200, totalRaised: 1200,
       aiSanitizedAt: new Date(Date.now() - 20*86400000),
       adminPublishedAt: new Date(Date.now() - 18*86400000),
@@ -165,6 +170,14 @@ async function main() {
     create: { name: 'Sahra Programs', email: 'programs@kafaale.org', password: pw, role: 'program_manager', phone: '+252612000006', country: 'Somalia', city: 'Mogadishu' },
   });
   console.log('✅ Program Manager user created');
+
+  // ── Project Manager user ──────────────────────────────────────────────────
+  await prisma.user.upsert({
+    where: { email: 'projects@kafaale.org' },
+    update: {},
+    create: { name: 'Omar Projects', email: 'projects@kafaale.org', password: pw, role: 'project_manager', phone: '+252612000007', country: 'Somalia', city: 'Kismayo' },
+  });
+  console.log('✅ Project Manager user created');
 
   // ── Humanitarian Programs ─────────────────────────────────────────────────
   const progChild = await prisma.program.upsert({
@@ -413,7 +426,7 @@ async function main() {
       create: {
         beneficiaryId: ben1.id, submittedById: programManager.id,
         ...m, isPublished: true, publishedAt: new Date(),
-        photoUrls: [], needsAssessment: 'No urgent needs at this time.',
+        photoUrls: '[]', deliveriesMade: JSON.stringify(m.deliveriesMade), needsAssessment: 'No urgent needs at this time.',
       },
     });
   }
@@ -433,14 +446,14 @@ async function main() {
       solutionDesc: 'A solar-powered borehole well with a hand pump and storage tank. Low maintenance, sustainable, and provides clean water to all households within walking distance.',
       fundingGoal: 12000, totalRaised: 8700,
       status: 'seeking_funding', createdById: programManager.id,
-      phases: [
+      phases: JSON.stringify([
         { name: 'Site Preparation', status: 'pending' },
         { name: 'Drilling', status: 'pending' },
         { name: 'Pump Installation', status: 'pending' },
         { name: 'Water Testing', status: 'pending' },
         { name: 'Project Completion', status: 'pending' },
-      ],
-      photoUrls: [],
+      ]),
+      photoUrls: '[]',
     },
   });
 
@@ -457,13 +470,13 @@ async function main() {
       solutionDesc: 'Full renovation of 4 classrooms with new roofing, walls, windows, and 120 desks and chairs. Will restore a safe learning environment for all 320 students.',
       fundingGoal: 18000, totalRaised: 4200,
       status: 'seeking_funding', createdById: programManager.id,
-      phases: [
+      phases: JSON.stringify([
         { name: 'Materials Procurement', status: 'pending' },
         { name: 'Construction', status: 'pending' },
         { name: 'Furniture Delivery', status: 'pending' },
         { name: 'Handover & Opening', status: 'pending' },
-      ],
-      photoUrls: [],
+      ]),
+      photoUrls: '[]',
     },
   });
 
@@ -481,14 +494,14 @@ async function main() {
       fundingGoal: 25000, totalRaised: 25000,
       status: 'funded', createdById: programManager.id,
       verifiedAt: new Date(Date.now() - 15*86400000),
-      phases: [
+      phases: JSON.stringify([
         { name: 'Equipment Procurement', status: 'in_progress' },
         { name: 'Solar Installation', status: 'pending' },
         { name: 'Medicine Delivery', status: 'pending' },
         { name: 'Staff Training', status: 'pending' },
         { name: 'Clinic Opening', status: 'pending' },
-      ],
-      photoUrls: [],
+      ]),
+      photoUrls: '[]',
     },
   });
 
@@ -509,13 +522,13 @@ async function main() {
       startedAt: new Date(Date.now() - 45*86400000),
       completedAt: new Date(Date.now() - 10*86400000),
       completionReport: 'All 120 families received seed packages and tools. 2-day training completed with 95% attendance. First harvest expected in 8 weeks. Families report significant improvement in food security.',
-      phases: [
+      phases: JSON.stringify([
         { name: 'Seed Procurement', status: 'completed', completedAt: new Date(Date.now() - 40*86400000) },
         { name: 'Tool Distribution', status: 'completed', completedAt: new Date(Date.now() - 35*86400000) },
         { name: 'Farmer Training', status: 'completed', completedAt: new Date(Date.now() - 30*86400000) },
         { name: 'First Harvest', status: 'completed', completedAt: new Date(Date.now() - 10*86400000) },
-      ],
-      photoUrls: [],
+      ]),
+      photoUrls: '[]',
     },
   });
   console.log('✅ 4 Community Projects created');
@@ -565,10 +578,11 @@ async function main() {
   ];
 
   for (const p of partnerData) {
+    const record = { ...p, focus: (p as any).focus ? JSON.stringify((p as any).focus) : undefined };
     await prisma.partner.upsert({
       where:  { slug: p.slug },
-      update: p,
-      create: p,
+      update: record,
+      create: record,
     });
   }
   console.log(`✅ ${partnerData.length} Impact Partners seeded`);

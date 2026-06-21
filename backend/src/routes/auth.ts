@@ -11,8 +11,10 @@ import { sysLog } from '../services/logger';
 const router = Router();
 
 export const ALL_ROLES = [
-  'reporter','sponsor','field_agent','office_staff',
-  'program_manager','project_manager','partner','admin','super_admin',
+  'reporter','donor','field_agent','verification_office',
+  'program_manager','project_manager','admin','super_admin',
+  // backward-compat aliases kept for any legacy data
+  'sponsor','office_staff','field_team','partner','observer',
 ] as const;
 export type AppRole = typeof ALL_ROLES[number];
 

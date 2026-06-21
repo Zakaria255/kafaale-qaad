@@ -76,18 +76,17 @@ async function investigateHandler(req: AuthRequest, res: Response) {
     if (!kase) return res.status(404).json({ error: 'Case not found' });
     if (kase.assignedAgentId !== req.user!.id) return res.status(403).json({ error: 'Not assigned to this case' });
 
+    // Strip fields not in FieldInvestigation model before passing to Prisma
+    const { caseId, programRecommendation, ...investigationFields } = data;
+
     const investigation = await prisma.fieldInvestigation.upsert({
-      where: { caseId: data.caseId },
-      update: { ...data, updatedAt: new Date() },
-      create: { ...data, agentId: req.user!.id },
+      where:  { caseId },
+      update: { ...investigationFields, updatedAt: new Date() },
+      create: { caseId, agentId: req.user!.id, ...investigationFields },
     });
     await prisma.case.update({
-      where: { id: data.caseId },
-      data: {
-        status: 'investigation_completed',
-        investigationCompletedAt: new Date(),
-        ...(data.programRecommendation && { programRecommendation: data.programRecommendation }),
-      },
+      where: { id: caseId },
+      data: { status: 'investigation_completed', investigationCompletedAt: new Date() },
     });
     // Auto-trigger fraud scoring (non-blocking)
     fraudDetectionService.scoreCaseRisk(data.caseId).catch(() => {});
@@ -132,7 +131,7 @@ async function investigateHandler(req: AuthRequest, res: Response) {
             await prisma.case.update({ where: { id: fullCase.id }, data: { status: 'ai_sanitized', aiSanitizedAt: new Date() } });
           }
           // Notify office + admins regardless
-          const notifyRoles = ['admin','super_admin','office_staff'];
+          const notifyRoles = ['admin','super_admin','office_staff','verification_office'];
           const staff = await prisma.user.findMany({ where: { role: { in: notifyRoles }, isActive: true }, select: { id: true } });
           await prisma.notification.createMany({
             data: staff.map(s => ({ userId: s.id, caseId: fullCase.id, type: 'investigation_completed' as const, title: result.confidenceScore >= 70 ? '🤖 AI Sanitized — Ready for Review' : '📋 Investigation Complete — Manual AI Needed', message: result.confidenceScore >= 70 ? `AI processed case (confidence: ${result.confidenceScore}%). Please review before publishing.` : `AI confidence too low (${result.confidenceScore}%). Manual sanitization required.` })),
@@ -145,7 +144,7 @@ async function investigateHandler(req: AuthRequest, res: Response) {
       });
     } else {
       // No AI key — just notify office/admins
-      const notifyRoles = ['admin','super_admin','office_staff'];
+      const notifyRoles = ['admin','super_admin','office_staff','verification_office'];
       const staff = await prisma.user.findMany({ where: { role: { in: notifyRoles }, isActive: true }, select: { id: true } });
       await prisma.notification.createMany({
         data: staff.map(s => ({ userId: s.id, caseId: kase.id, type: 'investigation_completed' as const, title: '📋 Investigation Complete', message: `Field investigation submitted. Manual AI sanitization required before publishing.` })),
@@ -171,7 +170,7 @@ const DeliverySchema = z.object({
 
 // POST /api/field/delivery — Field agent submits delivery proof
 router.post('/delivery',
-  uploadDelivery.fields([{ name: 'photos', maxCount: 8 }]),
+  uploadDelivery.fields([{ name: 'photos', maxCount: 8 }, { name: 'videos', maxCount: 4 }]),
   async (req: AuthRequest, res: Response) => {
     try {
       await new Promise<void>((resolve, reject) => {
@@ -195,7 +194,9 @@ async function deliveryHandler(req: AuthRequest, res: Response) {
     }
 
     // Create or update delivery proof record
-    const photoUrls: string[] = (req as any).uploadedByField?.photos || [];
+    const photoUrls: string[]  = (req as any).uploadedByField?.photos || [];
+    const videoUrls: string[]  = (req as any).uploadedByField?.videos || [];
+    const allMediaUrls = JSON.stringify([...photoUrls, ...videoUrls]);
     const proof = await prisma.deliveryProof.upsert({
       where:  { caseId: data.caseId },
       update: {
@@ -205,7 +206,7 @@ async function deliveryHandler(req: AuthRequest, res: Response) {
         amountDelivered: data.amountDelivered,
         recipientName:   data.recipientName,
         deliveryNotes:   data.deliveryNotes,
-        photoUrls:       photoUrls,
+        photoUrls:       allMediaUrls,
         updatedAt:       new Date(),
       },
       create: {
@@ -216,7 +217,7 @@ async function deliveryHandler(req: AuthRequest, res: Response) {
         amountDelivered: data.amountDelivered,
         recipientName:   data.recipientName,
         deliveryNotes:   data.deliveryNotes,
-        photoUrls:       photoUrls,
+        photoUrls:       allMediaUrls,
       },
     });
 

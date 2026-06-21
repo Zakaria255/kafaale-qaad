@@ -38,8 +38,9 @@ const PROJECT_ICONS = {
 
 const StatusBadge = ({ status }) => {
   const map = {
-    seeking_sponsor:  { bg: "#FEF3C7", color: "#92400E",  label: "Seeking Sponsor" },
-    sponsored:        { bg: "#D1FAE5", color: "#065F46",  label: "✅ Sponsored" },
+    seeking_sponsor:  { bg: "#FEF3C7", color: "#92400E",  label: "🤝 Seeking Sponsor" },
+    sponsored:        { bg: "#D1FAE5", color: "#065F46",  label: "❤️ Under Sponsor" },
+    under_sponsor:    { bg: "#D1FAE5", color: "#065F46",  label: "❤️ Under Sponsor" },
     verified:         { bg: "#DBEAFE", color: "#1E40AF",  label: "Verified" },
     pending_verification: { bg: "#F3F4F6", color: "#5A6E8A", label: "Pending" },
     seeking_funding:  { bg: "#FEF3C7", color: "#92400E",  label: "Seeking Funding" },
@@ -127,9 +128,9 @@ const BeneficiaryCard = ({ b, onSponsor }) => {
             style={{ width: "100%", padding: "11px", background: `linear-gradient(135deg, ${C.primary}, ${C.secondary})`, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 800 }}>
             ❤️ Sponsor This {b.programType === "child_sponsorship" ? "Child" : b.programType === "family_care" ? "Family" : "Program"}
           </button>
-        ) : b.status === "sponsored" ? (
-          <div style={{ textAlign: "center", fontSize: 13, color: C.secondary, fontWeight: 700, padding: "8px 0" }}>
-            ✅ This beneficiary is currently sponsored
+        ) : (b.status === "under_sponsor" || b.status === "sponsored") ? (
+          <div style={{ textAlign: "center", fontSize: 13, color: "#065F46", fontWeight: 700, padding: "8px 0", background: "#ECFDF5", borderRadius: 8 }}>
+            ❤️ This beneficiary is under sponsorship
           </div>
         ) : (
           <div style={{ textAlign: "center", fontSize: 13, color: C.muted, padding: "8px 0" }}>
@@ -217,6 +218,7 @@ const SponsorBeneficiaryModal = ({ beneficiary, onClose, onDone }) => {
   const [type, setType] = useState("full");
   const [amount, setAmount] = useState(String(beneficiary.monthlyNeed || 25));
   const [method, setMethod] = useState("bank_transfer");
+  const [commitmentMonths, setCommitmentMonths] = useState("12");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -238,7 +240,8 @@ const SponsorBeneficiaryModal = ({ beneficiary, onClose, onDone }) => {
     if (!amt || amt < 5) return setError("Minimum $5/month");
     setLoading(true);
     try {
-      await programsApi.createSponsorship({ beneficiaryId: beneficiary.id, type, monthlyAmount: amt, paymentMethod: method });
+      const months = Math.max(1, parseInt(commitmentMonths) || 1);
+      await programsApi.createSponsorship({ beneficiaryId: beneficiary.id, type, monthlyAmount: amt, paymentMethod: method, commitmentMonths: months });
       setDone(true);
       onDone && onDone();
     } catch (e) {
@@ -322,6 +325,30 @@ const SponsorBeneficiaryModal = ({ beneficiary, onClose, onDone }) => {
             <option value="bank_transfer">🏦 Bank Transfer</option>
             <option value="card">💳 Debit / Credit Card</option>
           </select>
+        </div>
+
+        {/* Commitment length */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 13, fontWeight: 700, display: "block", marginBottom: 6 }}>Commitment Length (months)</label>
+          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+            {[6, 12, 24].map(m => (
+              <button key={m} onClick={() => setCommitmentMonths(String(m))}
+                style={{ flex: 1, padding: "9px 4px", borderRadius: 10, border: `2px solid ${commitmentMonths === String(m) ? C.primary : C.border}`, background: commitmentMonths === String(m) ? C.primary + "10" : "#fff", cursor: "pointer", fontSize: 12, fontWeight: 700, color: commitmentMonths === String(m) ? C.primary : C.text }}>
+                {m} months
+              </button>
+            ))}
+          </div>
+          <input type="number" value={commitmentMonths} onChange={e => setCommitmentMonths(e.target.value)} min="1" max="120"
+            style={{ width: "100%", padding: "9px 14px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 13, boxSizing: "border-box" }} />
+          {parseInt(commitmentMonths) >= 12 ? (
+            <div style={{ marginTop: 8, background: "#ECFDF5", border: "1px solid #6EE7B7", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: "#065F46" }}>
+              ✅ <strong>12+ months:</strong> This child will be listed as <strong>Under Sponsor</strong> — their profile moves from "Seeking Sponsor" once confirmed.
+            </div>
+          ) : (
+            <div style={{ marginTop: 8, background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: "#92400E" }}>
+              ⏳ <strong>Under 12 months:</strong> Child stays in "Seeking Sponsor" until a full 12-month contract is reached.
+            </div>
+          )}
         </div>
 
         {/* Info */}
@@ -457,7 +484,7 @@ export default function Programs() {
     Promise.all([
       programsApi.list().catch(() => []),
       programsApi.stats().catch(() => ({})),
-      programsApi.beneficiaries({ status: "seeking_sponsor", limit: "20" }).catch(() => ({ beneficiaries: [] })),
+      programsApi.beneficiaries({ limit: "100" }).catch(() => ({ beneficiaries: [] })),
       projectsApi.list({ limit: "20" }).catch(() => ({ projects: [] })),
     ]).then(([progs, st, bens, projs]) => {
       setProgramsList(Array.isArray(progs) ? progs : []);
@@ -659,7 +686,7 @@ export default function Programs() {
         {activeTab === "sponsor" && (
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>👶 Beneficiaries Seeking Sponsors</h2>
+              <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>👶 Beneficiaries</h2>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {PROGRAM_TYPE_FILTERS.map(f => (
                   <button key={f.value} onClick={() => setFilterType(f.value)}
@@ -670,17 +697,55 @@ export default function Programs() {
               </div>
             </div>
 
-            {filteredBeneficiaries.length === 0 ? (
+            {/* ── Seeking Sponsor section ── */}
+            {(() => {
+              const seeking = filteredBeneficiaries.filter(b => b.status === "seeking_sponsor");
+              return (
+                <div style={{ marginBottom: 48 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                    <span style={{ fontSize: 18, fontWeight: 800 }}>🤝 Seeking a Sponsor</span>
+                    <span style={{ background: "#FEF3C7", color: "#92400E", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 700 }}>{seeking.length} available</span>
+                  </div>
+                  {seeking.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "48px 24px", color: C.muted, background: "#FFFBEB", borderRadius: 16 }}>
+                      <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
+                      <div style={{ fontSize: 16, fontWeight: 700 }}>All beneficiaries are currently sponsored!</div>
+                      <div style={{ fontSize: 13, marginTop: 6 }}>Check back to support new arrivals.</div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
+                      {seeking.map(b => <BeneficiaryCard key={b.id} b={b} onSponsor={setSponsorTarget} />)}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* ── Under Sponsor section ── */}
+            {(() => {
+              const underSponsor = filteredBeneficiaries.filter(b => b.status === "under_sponsor" || b.status === "sponsored");
+              if (underSponsor.length === 0) return null;
+              return (
+                <div style={{ marginBottom: 48 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                    <span style={{ fontSize: 18, fontWeight: 800 }}>❤️ Under Sponsorship</span>
+                    <span style={{ background: "#D1FAE5", color: "#065F46", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 700 }}>{underSponsor.length} supported</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: C.muted, marginBottom: 16, lineHeight: 1.6 }}>
+                    These beneficiaries are currently under active sponsorship. Your support can help more children join this group.
+                  </p>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
+                    {underSponsor.map(b => <BeneficiaryCard key={b.id} b={b} onSponsor={setSponsorTarget} />)}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {filteredBeneficiaries.length === 0 && (
               <div style={{ textAlign: "center", padding: "60px 24px", color: C.muted }}>
                 <div style={{ fontSize: 48, marginBottom: 12 }}>👶</div>
                 <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No beneficiaries available yet</div>
                 <div style={{ fontSize: 14 }}>Our team is enrolling new beneficiaries. Check back soon!</div>
-              </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
-                {filteredBeneficiaries.map(b => (
-                  <BeneficiaryCard key={b.id} b={b} onSponsor={setSponsorTarget} />
-                ))}
               </div>
             )}
 
@@ -742,7 +807,7 @@ export default function Programs() {
           onClose={() => setSponsorTarget(null)}
           onDone={() => {
             setSponsorTarget(null);
-            programsApi.beneficiaries({ status: "seeking_sponsor", limit: "20" }).then(r => setBeneficiaries(r.beneficiaries || []));
+            programsApi.beneficiaries({ limit: "100" }).then(r => setBeneficiaries(r.beneficiaries || []));
           }}
         />
       )}

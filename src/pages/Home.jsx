@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
 import { useResponsive } from "../hooks/useResponsive.js";
+import { cases as casesApi } from "../api/client.js";
 
 const C = {
   navy: "#002651", primary: "#004B96", secondary: "#4B7D19",
@@ -14,10 +15,11 @@ const C = {
 const URGENCY_COLOR = { Low: "#10B981", Medium: "#F59E0B", High: "#C0392B", Critical: "#7C3AED" };
 const URGENCY_BG    = { Low: "#D1FAE5", Medium: "#FEF3C7", High: "#FEE2E2", Critical: "#EDE9FE" };
 
-const FEATURED_CASES = [
-  { id: "sample-1", location: "Mogadishu Region", urgency: "High",     funded: 68, goal: 850,   desc: "Elderly community member with chronic illness needs medication and food support. Case verified.",         img: "https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=600&q=75" },
-  { id: "sample-2", location: "Mogadishu Region", urgency: "Critical", funded: 45, goal: 1200,  desc: "Family displaced by flooding needs immediate shelter and essential supplies. Situation confirmed.",        img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&q=75" },
-  { id: "sample-3", location: "Mogadishu Region", urgency: "Medium",   funded: 82, goal: 600,   desc: "Young person with no family support seeking education assistance and safe shelter.", img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=75" },
+// Fallback demo cases shown only when API has no published cases yet
+const DEMO_CASES = [
+  { id: null, location: "Mogadishu Region", urgency: "High",     funded: 68, goal: 850,   desc: "Elderly community member with chronic illness needs medication and food support. Case verified.",         img: "https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=600&q=75" },
+  { id: null, location: "Mogadishu Region", urgency: "Critical", funded: 45, goal: 1200,  desc: "Family displaced by flooding needs immediate shelter and essential supplies. Situation confirmed.",        img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&q=75" },
+  { id: null, location: "Mogadishu Region", urgency: "Medium",   funded: 82, goal: 600,   desc: "Young person with no family support seeking education assistance and safe shelter.", img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=75" },
 ];
 
 
@@ -26,6 +28,24 @@ export default function Home() {
   const { lang } = useLang();
   const P = PT.home[lang] || PT.home.en;
   const { isMobile, isTablet } = useResponsive();
+  const [featuredCases, setFeaturedCases] = useState(DEMO_CASES);
+
+  useEffect(() => {
+    casesApi.list({ limit: 6 }).then(d => {
+      const real = (d?.cases || []).filter(c => c.status === "waiting_for_sponsor" || c.status === "sponsored");
+      if (real.length > 0) {
+        setFeaturedCases(real.slice(0, 3).map(c => ({
+          id:       c.id,
+          location: c.publicCity || "Somalia",
+          urgency:  c.emergencyLevel ? c.emergencyLevel.charAt(0).toUpperCase() + c.emergencyLevel.slice(1) : "Medium",
+          funded:   c.targetGoal > 0 ? Math.round((c.totalRaised / c.targetGoal) * 100) : 0,
+          goal:     c.targetGoal || 0,
+          desc:     c.publicStory || c.publicTitle || "Verified case awaiting sponsorship.",
+          img:      null,
+        })));
+      }
+    }).catch(() => {});
+  }, []);
 
 
   /* ─── data arrays (translations inline) ─────────────────────────────── */
@@ -379,14 +399,20 @@ export default function Home() {
             </Link>
           </div>
           <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": isTablet?"1fr 1fr":"repeat(3,1fr)", gap: isMobile?16:24 }}>
-            {FEATURED_CASES.map(c => (
-              <div key={c.id} className="kf-card" style={{
+            {featuredCases.map((c, idx) => (
+              <div key={c.id || idx} className="kf-card" style={{
                 background:"#fff", borderRadius:20, overflow:"hidden",
                 boxShadow:"0 2px 16px rgba(0,38,81,0.07)", border:`1px solid ${C.border}`,
               }}>
                 {/* Cover image */}
                 <div style={{ position:"relative", height:180, overflow:"hidden", background:C.bg }}>
-                  <img src={c.img} alt="" loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+                  {c.img ? (
+                    <img src={c.img} alt="" loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+                  ) : (
+                    <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg,${URGENCY_COLOR[c.urgency]}22,${URGENCY_COLOR[c.urgency]}44)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:56 }}>
+                      {{ High:"🏥", Critical:"🚨", Medium:"📚", Low:"🏠" }[c.urgency] || "❤️"}
+                    </div>
+                  )}
                   <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.52) 100%)" }} />
                   <span style={{ position:"absolute", top:10, left:10, background:URGENCY_COLOR[c.urgency], color:"#fff", padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:800 }}>{c.urgency}</span>
                   <span style={{ position:"absolute", top:10, right:10, background:"rgba(6,95,70,0.75)", backdropFilter:"blur(4px)", color:"#D1FAE5", padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:700 }}>✓ Field Verified</span>
@@ -394,25 +420,35 @@ export default function Home() {
                 </div>
 
                 <div style={{ padding: isMobile?16:20 }}>
-                  <p style={{ fontSize:13, color:"#4A5568", lineHeight:1.65, margin:"0 0 14px" }}>{c.desc}</p>
+                  <p style={{ fontSize:13, color:"#4A5568", lineHeight:1.65, margin:"0 0 14px" }}>{(c.desc||"").slice(0,120)}{(c.desc||"").length>120?"…":""}</p>
 
-                  {/* % funded — goal $ only when 100% */}
+                  {/* % funded + goal amount */}
                   <div style={{ marginBottom:16 }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:6 }}>
-                      <span style={{ fontSize:22, fontWeight:900, color: c.funded >= 100 ? C.green : C.primary, lineHeight:1 }}>{c.funded}%</span>
-                      <span style={{ fontSize:11, color:C.muted, fontWeight:600 }}>
-                        {c.funded >= 100 ? `Goal: $${c.goal.toLocaleString()} ✓` : "funded"}
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:5 }}>
+                      <span style={{ fontSize:22, fontWeight:900, color: c.funded >= 100 ? C.green : C.primary, lineHeight:1 }}>
+                        {c.funded}% <span style={{ fontSize:12, fontWeight:600, color:C.muted }}>funded</span>
                       </span>
+                      {c.goal > 0 && (
+                        <span style={{ fontSize:12, fontWeight:700, color:C.text }}>
+                          ${c.goal.toLocaleString()} {c.funded >= 100 ? "✓" : "needed"}
+                        </span>
+                      )}
                     </div>
                     <div className="kf-prog-track">
-                      <div className="kf-prog-fill" style={{ width:`${c.funded}%`, background:`linear-gradient(90deg, ${URGENCY_COLOR[c.urgency]}90, ${URGENCY_COLOR[c.urgency]})` }} />
+                      <div className="kf-prog-fill" style={{ width:`${Math.min(c.funded,100)}%`, background:`linear-gradient(90deg, ${URGENCY_COLOR[c.urgency]}90, ${URGENCY_COLOR[c.urgency]})` }} />
                     </div>
-                    {c.funded >= 100 && <div style={{ fontSize:11, color:C.green, fontWeight:700, marginTop:4 }}>🎉 Fully Funded</div>}
+                    <div style={{ display:"flex", justifyContent:"space-between", marginTop:4, fontSize:11, color:C.muted }}>
+                      <span>${Math.round((c.funded/100)*(c.goal||0)).toLocaleString()} raised</span>
+                      {c.funded >= 100
+                        ? <span style={{ color:C.green, fontWeight:700 }}>🎉 Fully Funded</span>
+                        : c.goal > 0 && <span>${Math.max(0, c.goal - Math.round((c.funded/100)*c.goal)).toLocaleString()} remaining</span>
+                      }
+                    </div>
                   </div>
 
                   <div style={{ display:"flex", gap:10 }}>
-                    <Link to="/cases" className="kf-btn kf-btn-outline" style={{ flex:1, padding:"10px 0", borderRadius:10, fontSize:13, fontWeight:700, textAlign:"center", border:`1.5px solid ${C.primary}` }}>{P.case_view}</Link>
-                    <Link to="/donate" className="kf-btn kf-btn-gold" style={{ flex:1, padding:"10px 0", borderRadius:10, fontSize:13, fontWeight:800, textAlign:"center", border:"none" }}>{P.case_sponsor}</Link>
+                    <Link to={c.id ? `/cases/${c.id}` : "/cases"} className="kf-btn kf-btn-outline" style={{ flex:1, padding:"10px 0", borderRadius:10, fontSize:13, fontWeight:700, textAlign:"center", border:`1.5px solid ${C.primary}` }}>{P.case_view}</Link>
+                    <Link to={c.id ? `/donate?caseId=${c.id}` : "/donate"} className="kf-btn kf-btn-gold" style={{ flex:1, padding:"10px 0", borderRadius:10, fontSize:13, fontWeight:800, textAlign:"center", border:"none" }}>{P.case_sponsor}</Link>
                   </div>
                 </div>
               </div>

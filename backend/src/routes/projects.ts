@@ -6,7 +6,7 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-const isAdmin = (role: string) => ['admin','super_admin','program_manager','verification_office'].includes(role);
+const isAdmin = (role: string) => ['admin','super_admin','program_manager','project_manager','verification_office'].includes(role);
 
 // GET /api/projects — Public list
 router.get('/', async (req: Request, res: Response) => {

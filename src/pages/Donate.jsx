@@ -56,6 +56,7 @@ export default function Donate() {
   const [anonymous,     setAnonymous]     = useState(false);
   const [submitting,    setSubmitting]    = useState(false);
   const [error,         setError]         = useState("");
+  const [fetchError,    setFetchError]    = useState("");
   const [done,          setDone]          = useState(false);
   const [doneDetails,   setDoneDetails]   = useState(null);
 
@@ -93,6 +94,7 @@ export default function Donate() {
         }
       } catch (e) {
         setReadyCases([]);
+        setFetchError(e?.message || "Could not connect to server");
       } finally {
         setLoading(false);
       }
@@ -236,16 +238,32 @@ export default function Donate() {
 
             {!loading && readyCases.length === 0 && (
               <div style={{ background: "#fff", borderRadius: 16, padding: 40, textAlign: "center", border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🕐</div>
-                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No cases ready for sponsorship yet</div>
-                <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: "0 0 20px" }}>
-                  {pipelineCount > 0
-                    ? `We have ${pipelineCount} case${pipelineCount > 1 ? "s" : ""} currently being verified by our field team. They will appear here once the admin approves them.`
-                    : "Check back soon — new verified cases are published regularly."}
-                </p>
-                <Link to="/cases" style={{ display: "inline-block", padding: "10px 24px", background: C.primary, color: "#fff", borderRadius: 12, textDecoration: "none", fontSize: 14, fontWeight: 700 }}>
-                  Browse All Cases →
-                </Link>
+                {fetchError ? (
+                  <>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: C.danger }}>Could not load cases</div>
+                    <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: "0 0 16px" }}>
+                      Error: {fetchError}
+                    </p>
+                    <button onClick={() => { setFetchError(""); setLoading(true); casesApi.list({ limit: 50 }).then(d => { const all = d?.cases || []; setReadyCases(all.filter(c => c.status === "waiting_for_sponsor" || c.status === "sponsored")); setPipelineCount(Math.max(0, all.length - all.filter(c => c.status === "waiting_for_sponsor" || c.status === "sponsored").length)); }).catch(e => setFetchError(e?.message || "Failed")).finally(() => setLoading(false)); }}
+                      style={{ padding: "10px 24px", background: C.primary, color: "#fff", borderRadius: 12, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>
+                      🔄 Retry
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>🕐</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No cases ready for sponsorship yet</div>
+                    <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: "0 0 20px" }}>
+                      {pipelineCount > 0
+                        ? `We have ${pipelineCount} case${pipelineCount > 1 ? "s" : ""} currently being verified by our field team. They will appear here once the admin publishes them.`
+                        : "Cases submitted by reporters are reviewed and published by the admin team. Check back soon."}
+                    </p>
+                    <Link to="/cases" style={{ display: "inline-block", padding: "10px 24px", background: C.primary, color: "#fff", borderRadius: 12, textDecoration: "none", fontSize: 14, fontWeight: 700 }}>
+                      Browse All Cases →
+                    </Link>
+                  </>
+                )}
               </div>
             )}
 
@@ -291,17 +309,24 @@ export default function Donate() {
                         </p>
                       )}
 
-                      {/* Progress bar */}
+                      {/* Progress bar — % funded + amount needed always shown */}
                       {goal > 0 && (
                         <div>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: C.muted, marginBottom: 4, flexWrap: "wrap", gap: 2 }}>
-                            <span>Raised: <strong style={{ color: C.secondary }}>${raised.toLocaleString()}</strong></span>
-                            <span>Goal: <strong>${goal.toLocaleString()}</strong></span>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                            <span style={{ fontSize: 15, fontWeight: 900, color: pct >= 100 ? C.secondary : C.primary }}>
+                              {pct}% <span style={{ fontSize: 11, fontWeight: 600, color: C.muted }}>funded</span>
+                            </span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>
+                              ${goal.toLocaleString()} {pct >= 100 ? "✓" : "needed"}
+                            </span>
                           </div>
                           <div style={{ background: "#F3F4F6", borderRadius: 20, height: 6, overflow: "hidden" }}>
                             <div style={{ background: pct >= 100 ? C.secondary : C.accent, height: "100%", width: `${pct}%`, borderRadius: 20, transition: "width .4s" }} />
                           </div>
-                          <div style={{ fontSize: 10, color: C.muted, marginTop: 3 }}>{pct}% funded</div>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.muted, marginTop: 3 }}>
+                            <span>${raised.toLocaleString()} raised</span>
+                            {pct < 100 ? <span>${remain.toLocaleString()} remaining</span> : <span style={{ color: C.secondary, fontWeight: 700 }}>🎉 Fully Funded</span>}
+                          </div>
                         </div>
                       )}
 

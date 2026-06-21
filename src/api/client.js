@@ -135,6 +135,19 @@ export const programs = {
   publishUpdate:      (updateId)              => req(`/programs/updates/${updateId}/publish`, { method: 'PATCH' }),
   mySponsorships:     ()                      => req('/programs/sponsorships/my'),
   createSponsorship:  (data)                  => req('/programs/sponsorships', { method: 'POST', body: JSON.stringify(data) }),
+  submitPayment:      (sponsorshipId, data)   => req(`/programs/sponsorships/${sponsorshipId}/pay`, { method: 'POST', body: JSON.stringify(data) }),
+  getPayments:        (sponsorshipId)         => req(`/programs/sponsorships/${sponsorshipId}/payments`),
+  confirmPayment:     (paymentId)             => req(`/programs/payments/${paymentId}/confirm`, { method: 'PATCH' }),
+  getInvoice:         (sponsorshipId)         => req(`/programs/sponsorships/${sponsorshipId}/invoice`),
+  getMonthlyReport:   (sponsorshipId, y, m)   => req(`/programs/sponsorships/${sponsorshipId}/report/${y}/${m}`),
+  adminPayments:      ()                      => req('/programs/admin/payments'),
+  bulkEnroll:         (data)                  => req('/programs/beneficiaries/bulk', { method: 'POST', body: JSON.stringify(data) }),
+  assignDonor:        (data)                  => req('/programs/beneficiaries/assign-donor', { method: 'POST', body: JSON.stringify(data) }),
+  endSponsorship:     (sponsorshipId, reason) => req(`/programs/sponsorships/${sponsorshipId}/end`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
+  sendReminders:      (data = {})             => req('/programs/send-reminders', { method: 'POST', body: JSON.stringify(data) }),
+  markPaid:           (sponsorshipId, data)   => req(`/programs/sponsorships/${sponsorshipId}/mark-paid`, { method: 'POST', body: JSON.stringify(data) }),
+  renewContract:      (sponsorshipId, data)   => req(`/programs/sponsorships/${sponsorshipId}/renew`, { method: 'PATCH', body: JSON.stringify(data) }),
+  releaseToSeeking:   (beneficiaryId)         => req(`/programs/beneficiaries/${beneficiaryId}/release`, { method: 'PATCH' }),
 };
 
 // ── Community Projects endpoints ──────────────────────────────────

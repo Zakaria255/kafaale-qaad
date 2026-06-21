@@ -27,7 +27,7 @@ export default function Logo({ size = "md", variant = "full", linked = true, dar
       textDecoration: "none",
       ...style,
     }}>
-      {/* White-background icon wrapper */}
+      {/* Icon wrapper — always white background so icon is visible on any surface */}
       <div style={{
         width: s.img, height: s.img, flexShrink: 0,
         background: "#ffffff",
@@ -35,7 +35,8 @@ export default function Logo({ size = "md", variant = "full", linked = true, dar
         padding: Math.round(s.img * 0.07),
         boxSizing: "border-box",
         display: "flex", alignItems: "center", justifyContent: "center",
-        boxShadow: dark ? "0 2px 12px rgba(0,0,0,0.25)" : "0 2px 8px rgba(0,38,81,0.12)",
+        boxShadow: dark ? "0 2px 14px rgba(0,0,0,0.30)" : "0 2px 10px rgba(0,38,81,0.15)",
+        border: dark ? "2px solid rgba(224,171,33,0.5)" : "2px solid rgba(0,38,81,0.12)",
       }}>
         <img
           src="/assets/brand/kafaala-qaad-hope-icon.png"

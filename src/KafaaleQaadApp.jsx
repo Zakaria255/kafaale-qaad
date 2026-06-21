@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
@@ -117,14 +118,204 @@ const Input = ({ label, ...props }) => (
   </div>
 );
 
-const Select = ({ label, children, ...props }) => (
-  <div style={{ marginBottom: 16 }}>
-    {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.text, marginBottom: 6 }}>{label}</label>}
-    <select {...props} style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${COLORS.border}`, borderRadius: 10, fontSize: 14, outline: "none", background: "#fff", boxSizing: "border-box", fontFamily: "inherit" }}>
-      {children}
-    </select>
-  </div>
-);
+// ── Custom calendar date picker ───────────────────────────────────────────────
+const MONTH_NAMES_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DatePicker = ({ label, value, onChange, min, max, style }) => {
+  const C = COLORS;
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  // Parse value (YYYY-MM-DD) → { y, m, d }
+  const parse = (v) => { if (!v) return null; const [y,m,d] = v.split("-").map(Number); return { y, m, d }; };
+  const fmt   = (y,m,d) => `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  const today = new Date(); const todayStr = fmt(today.getFullYear(), today.getMonth()+1, today.getDate());
+
+  const sel = parse(value);
+  const [view, setView] = useState(() => sel ? { y: sel.y, m: sel.m } : { y: today.getFullYear(), m: today.getMonth()+1 });
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  // Calendar grid: days of month
+  const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
+  const firstWeekday = (y, m) => new Date(y, m-1, 1).getDay(); // 0=Sun
+
+  const prevMonth = () => setView(v => v.m === 1 ? { y: v.y-1, m: 12 } : { y: v.y, m: v.m-1 });
+  const nextMonth = () => setView(v => v.m === 12 ? { y: v.y+1, m: 1  } : { y: v.y, m: v.m+1 });
+
+  const selectDay = (d) => {
+    const str = fmt(view.y, view.m, d);
+    if (min && str < min) return;
+    if (max && str > max) return;
+    onChange({ target: { value: str } });
+    setOpen(false);
+  };
+
+  const display = value ? (() => {
+    const p = parse(value);
+    return `${p.d} ${MONTH_NAMES_SHORT[p.m-1]} ${p.y}`;
+  })() : "Select date…";
+
+  const total = daysInMonth(view.y, view.m);
+  const start = firstWeekday(view.y, view.m);
+  const cells = [];
+  for (let i = 0; i < start; i++) cells.push(null);
+  for (let d = 1; d <= total; d++) cells.push(d);
+
+  return (
+    <div style={{ marginBottom: 16, position: "relative", ...style }} ref={ref}>
+      {label && <label style={{ display:"block", fontSize:13, fontWeight:600, color:C.text, marginBottom:6 }}>{label}</label>}
+      <button type="button" onClick={() => setOpen(o => !o)}
+        style={{ width:"100%", padding:"10px 14px", border:`1.5px solid ${open ? C.primary : C.border}`, borderRadius:10, fontSize:14, background:"#fff", cursor:"pointer", textAlign:"left", display:"flex", justifyContent:"space-between", alignItems:"center", color: value ? C.text : C.muted, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }}>
+        <span>{display}</span>
+        <span style={{ fontSize:16 }}>📅</span>
+      </button>
+      {open && (
+        <div style={{ position:"absolute", zIndex:9999, top:"calc(100% + 4px)", left:0, background:"#fff", border:`1.5px solid ${C.border}`, borderRadius:14, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", padding:16, minWidth:280 }}>
+          {/* Month navigation */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+            <button type="button" onClick={prevMonth} style={{ background:"none", border:"none", cursor:"pointer", fontSize:18, color:C.primary, padding:"4px 8px", borderRadius:8 }}>‹</button>
+            <span style={{ fontWeight:800, fontSize:14 }}>{MONTH_NAMES_SHORT[view.m-1]} {view.y}</span>
+            <button type="button" onClick={nextMonth} style={{ background:"none", border:"none", cursor:"pointer", fontSize:18, color:C.primary, padding:"4px 8px", borderRadius:8 }}>›</button>
+          </div>
+          {/* Weekday headers */}
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2, marginBottom:4 }}>
+            {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
+              <div key={d} style={{ textAlign:"center", fontSize:10, fontWeight:700, color:C.muted, padding:"2px 0" }}>{d}</div>
+            ))}
+          </div>
+          {/* Day cells */}
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2 }}>
+            {cells.map((d, i) => {
+              if (!d) return <div key={`e${i}`} />;
+              const dayStr = fmt(view.y, view.m, d);
+              const isSelected = value === dayStr;
+              const isToday    = dayStr === todayStr;
+              const disabled   = (min && dayStr < min) || (max && dayStr > max);
+              return (
+                <button key={d} type="button" onClick={() => !disabled && selectDay(d)}
+                  style={{ textAlign:"center", padding:"6px 0", borderRadius:8, border:"none", cursor: disabled ? "not-allowed" : "pointer", fontSize:13, fontWeight: isSelected || isToday ? 800 : 500, background: isSelected ? C.primary : isToday ? `${C.primary}18` : "transparent", color: isSelected ? "#fff" : disabled ? "#CBD5E1" : C.text, opacity: disabled ? 0.4 : 1 }}>
+                  {d}
+                </button>
+              );
+            })}
+          </div>
+          {/* Today shortcut */}
+          <div style={{ borderTop:`1px solid ${C.border}`, marginTop:10, paddingTop:10, textAlign:"center" }}>
+            <button type="button" onClick={() => { onChange({ target: { value: todayStr } }); setOpen(false); }}
+              style={{ background:"none", border:"none", cursor:"pointer", color:C.primary, fontSize:12, fontWeight:700 }}>
+              Today ({todayStr})
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Select = ({ label, value, onChange, children, disabled, style: _s, ...rest }) => {
+  const [open, setOpen] = useState(false);
+  const [pos,  setPos]  = useState({ top: 0, left: 0, width: 0, flipUp: false });
+  const btnRef = useRef(null);
+
+  // Flatten <option> / <optgroup> children into a flat list
+  const flatOptions = [];
+  const parseChildren = (nodes) => {
+    import_Children_forEach(nodes, (child) => {
+      if (!child) return;
+      if (child.type === "optgroup") parseChildren(child.props.children);
+      else if (child.type === "option") flatOptions.push({ value: child.props.value, label: child.props.children });
+    });
+  };
+  parseChildren(children);
+
+  const selected = flatOptions.find(o => String(o.value) === String(value));
+
+  const openDrop = useCallback(() => {
+    if (disabled) return;
+    const rect = btnRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const flipUp = spaceBelow < 200 && rect.top > 200;
+    setPos({ top: flipUp ? rect.top - 4 : rect.bottom + 4, left: rect.left, width: rect.width, flipUp });
+    setOpen(true);
+  }, [disabled]);
+
+  // Close on resize (reposition) and Escape key
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    window.addEventListener("resize", close);
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("resize", close); window.removeEventListener("keydown", onKey); };
+  }, [open]);
+
+  return (
+    <div style={{ marginBottom: 16, ...rest.wrapStyle }}>
+      {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.text, marginBottom: 6 }}>{label}</label>}
+      <button ref={btnRef} type="button" onClick={openDrop} disabled={disabled}
+        style={{
+          width: "100%", padding: "10px 14px", border: `1.5px solid ${open ? COLORS.primary : COLORS.border}`,
+          borderRadius: 10, fontSize: 14, background: disabled ? "#F9FAFB" : "#fff",
+          boxSizing: "border-box", fontFamily: "inherit", cursor: disabled ? "not-allowed" : "pointer",
+          textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center",
+          color: disabled ? COLORS.muted : COLORS.text, outline: "none",
+          boxShadow: open ? `0 0 0 3px ${COLORS.primary}22` : "none",
+          transition: "border-color 0.15s, box-shadow 0.15s",
+        }}>
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selected?.label ?? "— Select —"}</span>
+        <span style={{ color: COLORS.muted, fontSize: 11, marginLeft: 8, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+      </button>
+      {open && createPortal(
+        <>
+          {/* invisible backdrop to catch outside clicks */}
+          <div style={{ position: "fixed", inset: 0, zIndex: 8998 }} onClick={() => setOpen(false)} />
+          <div style={{
+            position: "fixed",
+            top: pos.flipUp ? "auto" : pos.top,
+            bottom: pos.flipUp ? window.innerHeight - pos.top : "auto",
+            left: pos.left, width: pos.width,
+            zIndex: 8999, background: "#fff", borderRadius: 12,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)",
+            border: `1px solid ${COLORS.border}`,
+            maxHeight: 240, overflowY: "auto",
+          }}>
+            {flatOptions.map((opt, i) => {
+              const isSelected = String(opt.value) === String(value);
+              return (
+                <div key={opt.value ?? i}
+                  onClick={(e) => { e.stopPropagation(); onChange?.({ target: { value: opt.value } }); setOpen(false); }}
+                  style={{
+                    padding: "10px 14px", cursor: "pointer", fontSize: 14,
+                    background: isSelected ? COLORS.primary + "12" : "transparent",
+                    color: isSelected ? COLORS.primary : COLORS.text,
+                    fontWeight: isSelected ? 700 : 400,
+                    borderBottom: i < flatOptions.length - 1 ? `1px solid ${COLORS.border}` : "none",
+                    userSelect: "none",
+                  }}>
+                  {opt.label}
+                </div>
+              );
+            })}
+          </div>
+        </>,
+        document.body
+      )}
+    </div>
+  );
+};
+// React.Children.forEach trampoline (avoids the "import_Children_forEach not defined" error)
+const import_Children_forEach = (children, fn) => {
+  const arr = Array.isArray(children) ? children : (children ? [children] : []);
+  const walk = (nodes) => { nodes.forEach(c => { if (!c) return; if (Array.isArray(c)) walk(c); else fn(c); }); };
+  walk(arr);
+};
 
 const Textarea = ({ label, ...props }) => (
   <div style={{ marginBottom: 16 }}>
@@ -390,18 +581,132 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
       {/* ── DETAILS TAB ── */}
       {activeTab === "details" && (
         <div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 20 }}>
-            {[["Victim Name", c.victim_name], ["Age", c.age], ["Gender", c.gender], ["Location", c.location], ["Reporter", c.reporter_id], ["Team", c.team_id || "Not Assigned"], ["Created", c.created_at], ["Donation", c.donation_amount ? `$${c.donation_amount}` : "None"]].map(([k, v]) => (
-              <div key={k} style={{ background: "#F8FAFC", borderRadius: 10, padding: "10px 14px" }}>
-                <div style={{ fontSize: 11, color: COLORS.muted, fontWeight: 600, marginBottom: 2 }}>{k}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.text }}>{v}</div>
+          {/* ══ REPORT 1 — Original Reporter Submission ══ */}
+          <div style={{ border: "2px solid #BFDBFE", borderRadius: 14, overflow: "hidden", marginBottom: 16 }}>
+            <div style={{ background: "linear-gradient(135deg,#1E40AF,#3B82F6)", padding: "10px 18px", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#fff" }}>1</span>
+              <span style={{ fontWeight: 800, fontSize: 14, color: "#fff" }}>Reporter Submission</span>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", marginLeft: "auto" }}>{c.created_at}</span>
+            </div>
+            <div style={{ padding: 16, background: "#F0F7FF" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, marginBottom: 12 }}>
+                {[
+                  ["Victim Name",  c.victim_name || c._raw?.privateVictimName],
+                  ["Age",          c.age || c._raw?.privateVictimAge],
+                  ["Gender",       c.gender || c._raw?.privateVictimGender],
+                  ["Location",     c.location || c._raw?.privateDistrict],
+                  ["Category",     c._raw?.category?.replace(/_/g," ")],
+                  ["Urgency",      c.urgency_level],
+                  ["Family Size",  c._raw?.privateFamilySize],
+                  ["Reporter",     c._raw?.reporter?.name || c.reporter_id],
+                ].filter(([,v]) => v).map(([k, v]) => (
+                  <div key={k} style={{ background: "#fff", borderRadius: 8, padding: "8px 12px", border: "1px solid #DBEAFE" }}>
+                    <div style={{ fontSize: 10, color: "#1E40AF", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{k}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, marginTop: 1 }}>{String(v)}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+              <div style={{ background: "#fff", borderRadius: 8, padding: "12px 14px", border: "1px solid #DBEAFE" }}>
+                <div style={{ fontSize: 10, color: "#1E40AF", fontWeight: 700, textTransform: "uppercase", marginBottom: 4 }}>Description</div>
+                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, color: COLORS.text }}>{c.description}</p>
+              </div>
+            </div>
           </div>
-          <div style={{ background: "#F8FAFC", borderRadius: 10, padding: 16, marginBottom: 16 }}>
-            <div style={{ fontSize: 12, color: COLORS.muted, fontWeight: 600, marginBottom: 6 }}>DESCRIPTION</div>
-            <p style={{ margin: 0, fontSize: 14, color: COLORS.text, lineHeight: 1.6 }}>{c.description}</p>
-          </div>
+
+          {/* ══ REPORT 2 — Field Team Investigation ══ */}
+          {!isInvestigating && (() => {
+            const fi = c._raw?.fieldInvestigation;
+            const agent = c._raw?.assignedAgent;
+            const assigned = c._raw?.teamAssignedAt;
+            if (!fi && !agent && !assigned) return null;
+            return (
+              <div style={{ border: `2px solid ${fi ? "#A7F3D0" : COLORS.border}`, borderRadius: 14, overflow: "hidden", marginBottom: 16 }}>
+                <div style={{ background: fi ? "linear-gradient(135deg,#065F46,#10B981)" : "linear-gradient(135deg,#374151,#6B7280)", padding: "10px 18px", display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#fff" }}>2</span>
+                  <span style={{ fontWeight: 800, fontSize: 14, color: "#fff" }}>Field Team Report</span>
+                  {fi && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.2)", borderRadius: 10, padding: "2px 8px", color: "#fff", marginLeft: 4 }}>✅ Submitted</span>}
+                  {!fi && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.2)", borderRadius: 10, padding: "2px 8px", color: "#fff", marginLeft: 4 }}>🔍 In Progress</span>}
+                </div>
+                <div style={{ padding: 16, background: fi ? "#F0FDF4" : "#F9FAFB" }}>
+                  {(agent || assigned) && (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, marginBottom: fi ? 12 : 0 }}>
+                      {agent && <div style={{ background: "#fff", borderRadius: 8, padding: "8px 12px", border: "1px solid #D1FAE5" }}>
+                        <div style={{ fontSize: 10, color: "#065F46", fontWeight: 700, textTransform: "uppercase" }}>Team / Agent</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginTop: 1 }}>🗺️ {agent.name}</div>
+                      </div>}
+                      {assigned && <div style={{ background: "#fff", borderRadius: 8, padding: "8px 12px", border: "1px solid #D1FAE5" }}>
+                        <div style={{ fontSize: 10, color: "#065F46", fontWeight: 700, textTransform: "uppercase" }}>Assigned</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginTop: 1 }}>{new Date(assigned).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})}</div>
+                      </div>}
+                    </div>
+                  )}
+                  {fi && (() => {
+                    const riskColor = { low: "#065F46", medium: "#92400E", high: "#991B1B" }[fi.fraudRiskLevel] || COLORS.muted;
+                    const riskBg    = { low: "#ECFDF5", medium: "#FFFBEB", high: "#FEF2F2" }[fi.fraudRiskLevel] || "#F8FAFC";
+                    return (
+                      <>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8, marginBottom: 10 }}>
+                          {[
+                            ["Victim Verified",    fi.victimVerified    ? "✅ Yes" : "❌ No"],
+                            ["Situation Accurate", fi.situationAccurate ? "✅ Yes" : "❌ No"],
+                            ["Delivery Feasible",  fi.deliveryFeasible  ? "✅ Yes" : "❌ No"],
+                            ["Urgency",            fi.urgencyConfirmed?.toUpperCase()],
+                            ["Estimated Need",     fi.estimatedAmountNeeded ? `$${fi.estimatedAmountNeeded.toLocaleString()}` : "—"],
+                            ["Verification",       fi.verificationStatus?.replace(/_/g," ")],
+                          ].filter(([,v]) => v).map(([k, v]) => (
+                            <div key={k} style={{ background: "#fff", borderRadius: 8, padding: "8px 12px", border: "1px solid #D1FAE5" }}>
+                              <div style={{ fontSize: 10, color: "#065F46", fontWeight: 700, textTransform: "uppercase" }}>{k}</div>
+                              <div style={{ fontSize: 13, fontWeight: 700, marginTop: 1 }}>{v}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {fi.situationNotes && (
+                          <div style={{ background: "#fff", borderRadius: 8, padding: "10px 12px", marginBottom: 8, border: "1px solid #D1FAE5" }}>
+                            <div style={{ fontSize: 10, color: "#065F46", fontWeight: 700, textTransform: "uppercase", marginBottom: 3 }}>Field Notes</div>
+                            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6 }}>{fi.situationNotes}</p>
+                          </div>
+                        )}
+                        {fi.officialNotes && (
+                          <div style={{ background: "#fff", borderRadius: 8, padding: "10px 12px", marginBottom: 8, border: "1px solid #D1FAE5" }}>
+                            <div style={{ fontSize: 10, color: "#065F46", fontWeight: 700, textTransform: "uppercase", marginBottom: 3 }}>Official Report</div>
+                            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6 }}>{fi.officialNotes}</p>
+                          </div>
+                        )}
+                        {fi.fraudRiskLevel && (
+                          <div style={{ background: riskBg, borderRadius: 8, padding: "8px 12px", border: `1px solid ${riskColor}30` }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: riskColor }}>🛡️ Fraud Risk: {fi.fraudRiskLevel?.toUpperCase()} ({fi.fraudRiskScore ?? 0}/100)</span>
+                            {fi.fraudRiskNotes && <span style={{ fontSize: 12, color: riskColor, marginLeft: 8 }}>{fi.fraudRiskNotes}</span>}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                  {!fi && <div style={{ fontSize: 13, color: COLORS.muted, textAlign: "center", padding: "12px 0" }}>⏳ Field agent has not submitted their report yet</div>}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ══ REPORT 3 — Requested Info (if admin requested more info) ══ */}
+          {(() => {
+            const notes = c._raw?.privateNotes || "";
+            const match = notes.match(/\[INFO REQUESTED\]\s*([\s\S]+)/);
+            if (!match) return null;
+            return (
+              <div style={{ border: "2px solid #FCD34D", borderRadius: 14, overflow: "hidden", marginBottom: 16 }}>
+                <div style={{ background: "linear-gradient(135deg,#92400E,#D97706)", padding: "10px 18px", display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#fff" }}>3</span>
+                  <span style={{ fontWeight: 800, fontSize: 14, color: "#fff" }}>Admin — Requested Information</span>
+                </div>
+                <div style={{ padding: 16, background: "#FFFBEB" }}>
+                  <div style={{ background: "#fff", borderRadius: 8, padding: "12px 14px", border: "1px solid #FCD34D" }}>
+                    <div style={{ fontSize: 10, color: "#92400E", fontWeight: 700, textTransform: "uppercase", marginBottom: 4 }}>Information Requested From Reporter</div>
+                    <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: COLORS.text }}>{match[1].trim()}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* ── FIELD INVESTIGATION SECTION ── */}
           {isInvestigating && (
@@ -486,8 +791,53 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
             </div>
           )}
 
-          {/* Existing findings display */}
-          {c.findings && !isInvestigating && (
+          {/* ── FIELD INVESTIGATION REPORT (structured) ── */}
+          {!isInvestigating && c._raw?.fieldInvestigation && (() => {
+            const fi = c._raw.fieldInvestigation;
+            const riskColor = { low: "#065F46", medium: "#92400E", high: "#991B1B" }[fi.fraudRiskLevel] || COLORS.muted;
+            const riskBg    = { low: "#ECFDF5", medium: "#FFFBEB", high: "#FEF2F2" }[fi.fraudRiskLevel] || "#F8FAFC";
+            return (
+              <div style={{ background: "#EFF6FF", border: "2px solid #BFDBFE", borderRadius: 14, padding: 20, marginBottom: 16 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#1E40AF", marginBottom: 14 }}>📋 Field Investigation Report</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 14 }}>
+                  {[
+                    ["Victim Verified",    fi.victimVerified    ? "✅ Yes" : "❌ No"],
+                    ["Situation Accurate", fi.situationAccurate ? "✅ Yes" : "❌ No"],
+                    ["Delivery Feasible",  fi.deliveryFeasible  ? "✅ Yes" : "❌ No"],
+                    ["Urgency Confirmed",  fi.urgencyConfirmed?.toUpperCase()],
+                    ["Estimated Need",     fi.estimatedAmountNeeded ? `$${fi.estimatedAmountNeeded.toLocaleString()}` : "—"],
+                    ["Verification",       fi.verificationStatus?.replace(/_/g," ")],
+                  ].map(([k, v]) => v && (
+                    <div key={k} style={{ background: "#fff", borderRadius: 8, padding: "10px 14px", border: "1px solid #DBEAFE" }}>
+                      <div style={{ fontSize: 10, color: COLORS.muted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{k}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, marginTop: 2 }}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                {fi.situationNotes && (
+                  <div style={{ background: "#fff", borderRadius: 8, padding: "12px 14px", marginBottom: 10, border: "1px solid #DBEAFE" }}>
+                    <div style={{ fontSize: 11, color: COLORS.muted, fontWeight: 700, textTransform: "uppercase", marginBottom: 4 }}>Situation Notes</div>
+                    <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6 }}>{fi.situationNotes}</p>
+                  </div>
+                )}
+                {fi.officialNotes && (
+                  <div style={{ background: "#fff", borderRadius: 8, padding: "12px 14px", marginBottom: 10, border: "1px solid #DBEAFE" }}>
+                    <div style={{ fontSize: 11, color: COLORS.muted, fontWeight: 700, textTransform: "uppercase", marginBottom: 4 }}>Agent's Official Notes</div>
+                    <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6 }}>{fi.officialNotes}</p>
+                  </div>
+                )}
+                {fi.fraudRiskLevel && (
+                  <div style={{ background: riskBg, borderRadius: 8, padding: "10px 14px", border: `1px solid ${riskColor}30`, display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: riskColor }}>🛡️ Fraud Risk: {fi.fraudRiskLevel?.toUpperCase()} ({fi.fraudRiskScore ?? 0}/100)</div>
+                    {fi.fraudRiskNotes && <div style={{ fontSize: 12, color: riskColor, flex: 1 }}>{fi.fraudRiskNotes}</div>}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Existing findings fallback (text-only) */}
+          {c.findings && !isInvestigating && !c._raw?.fieldInvestigation && (
             <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: 10, padding: 16, marginBottom: 16 }}>
               <div style={{ fontSize: 12, color: COLORS.secondary, fontWeight: 700, marginBottom: 6 }}>✅ FIELD FINDINGS</div>
               <p style={{ margin: 0, fontSize: 14, color: COLORS.text }}>{c.findings}</p>
@@ -514,10 +864,17 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 10 }}>EXISTING FILES</div>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    {c.media_files.map(f => (
-                      <div key={f} style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "16px 20px", fontSize: 13, color: COLORS.primary, fontWeight: 600, textAlign: "center", minWidth: 100 }}>
-                        <div style={{ fontSize: 28, marginBottom: 6 }}>{f.endsWith(".pdf") ? "📄" : f.match(/\.(mp4|mov|avi)$/) ? "🎥" : "🖼️"}</div>
-                        {f}
+                    {c.media_files.map((f, i) => (
+                      <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1.5px solid #BFDBFE', background: '#EFF6FF', width: 100, flexShrink: 0 }}>
+                        {f.type === 'video' || f.url?.match(/\.(mp4|mov|webm|avi)$/i)
+                          ? <video src={f.url} controls style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} />
+                          : f.type === 'document' || f.url?.match(/\.(pdf|doc|docx)$/i)
+                            ? <a href={f.url} target="_blank" rel="noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 100, textDecoration: 'none', color: COLORS.primary }}>
+                                <span style={{ fontSize: 32 }}>📄</span>
+                                <span style={{ fontSize: 10, textAlign: 'center', padding: '0 4px', wordBreak: 'break-all' }}>View Doc</span>
+                              </a>
+                            : <a href={f.url} target="_blank" rel="noreferrer"><img src={f.url} alt="media" style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} /></a>
+                        }
                       </div>
                     ))}
                   </div>
@@ -552,12 +909,17 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.secondary, marginBottom: 10 }}>✅ DELIVERY PROOF</div>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                {c.proof_files.map(f => (
-                  <div key={f} style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: 12, padding: "16px 20px", fontSize: 13, color: COLORS.secondary, fontWeight: 600, textAlign: "center", minWidth: 100 }}>
-                    <div style={{ fontSize: 28, marginBottom: 6 }}>
-                      {f.match(/\.(mp4|mov|avi)$/i) ? "🎥" : f.match(/\.(pdf|doc)$/i) ? "🧾" : "📸"}
-                    </div>
-                    {f}
+                {c.proof_files.map((f, i) => (
+                  <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1.5px solid #A7F3D0', background: '#ECFDF5', width: 100, flexShrink: 0 }}>
+                    {f.type === 'video' || f.url?.match(/\.(mp4|mov|webm|avi)$/i)
+                      ? <video src={f.url} controls style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} />
+                      : f.type === 'document' || f.url?.match(/\.(pdf|doc|docx)$/i)
+                        ? <a href={f.url} target="_blank" rel="noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 100, textDecoration: 'none', color: COLORS.secondary }}>
+                            <span style={{ fontSize: 32 }}>📄</span>
+                            <span style={{ fontSize: 10, textAlign: 'center', padding: '0 4px', wordBreak: 'break-all' }}>View Doc</span>
+                          </a>
+                        : <a href={f.url} target="_blank" rel="noreferrer"><img src={f.url} alt="proof" style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} /></a>
+                    }
                   </div>
                 ))}
               </div>
@@ -1074,35 +1436,160 @@ const AddUserModal = ({ onClose, onAdd }) => {
 
 // ─── EXPORT MODAL ────────────────────────────────────────────────────────────
 const ExportModal = ({ cases, onClose }) => {
-  const exportCSV = () => {
-    const headers = ["Case ID","Victim Name","Age","Gender","Location","Urgency","Status","Created","Donation"];
-    const rows = cases.map(c => [c.ref,c.victim_name,c.age,c.gender,c.location,c.urgency_level,c.status,c.created_at,c.donation_amount]);
-    const csv = [headers,...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `kafaale_cases_${Date.now()}.csv` });
-    a.click();
+  const currentYear = new Date().getFullYear();
+  const [rangeType,  setRangeType]  = useState("year");        // "year" | "quarter" | "months" | "custom"
+  const [selYear,    setSelYear]    = useState(String(currentYear));
+  const [selQuarter, setSelQuarter] = useState("Q1");
+  const [selMonths,  setSelMonths]  = useState("3");
+  const [customFrom, setCustomFrom] = useState(`${currentYear}-01-01`);
+  const [customTo,   setCustomTo]   = useState(`${currentYear}-12-31`);
+  const [fmt,        setFmt]        = useState("csv");
+
+  const getRange = () => {
+    const y = parseInt(selYear);
+    if (rangeType === "year")    return { from: new Date(`${y}-01-01`), to: new Date(`${y}-12-31`) };
+    if (rangeType === "quarter") {
+      const qMap = { Q1: [0,2], Q2: [3,5], Q3: [6,8], Q4: [9,11] };
+      const [sm, em] = qMap[selQuarter];
+      const from = new Date(y, sm, 1);
+      const to   = new Date(y, em + 1, 0);
+      return { from, to };
+    }
+    if (rangeType === "months") {
+      const to   = new Date();
+      const from = new Date(); from.setMonth(from.getMonth() - parseInt(selMonths));
+      return { from, to };
+    }
+    return { from: new Date(customFrom), to: new Date(customTo + "T23:59:59") };
   };
-  const exportJSON = () => {
-    const blob = new Blob([JSON.stringify(cases, null, 2)], { type: "application/json" });
-    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `kafaale_cases_${Date.now()}.json` });
-    a.click();
+
+  const getFiltered = () => {
+    const { from, to } = getRange();
+    return cases.filter(c => {
+      const d = new Date(c._raw?.createdAt || c.created_at || 0);
+      return d >= from && d <= to;
+    });
   };
+
+  const doExport = () => {
+    const filtered = getFiltered();
+    if (fmt === "csv") {
+      const headers = ["Case Ref","Victim Name","Age","Gender","Location","Category","Urgency","Status","Created","Donation ($)","Assigned Agent","Verified"];
+      const rows = filtered.map(c => [
+        c.ref, c.victim_name, c.age, c.gender, c.location,
+        c._raw?.category || "", c.urgency_level, c.status,
+        c._raw?.createdAt?.slice(0,10) || c.created_at,
+        c.donation_amount || 0,
+        c._raw?.assignedAgent?.name || "",
+        c._raw?.fieldInvestigation?.verificationStatus || "",
+      ]);
+      const csv = [headers,...rows].map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `kafaale_export_${filtered.length}cases_${Date.now()}.csv` });
+      a.click();
+    } else {
+      const blob = new Blob([JSON.stringify(filtered.map(c => c._raw || c), null, 2)], { type: "application/json" });
+      const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `kafaale_export_${filtered.length}cases_${Date.now()}.json` });
+      a.click();
+    }
+    onClose();
+  };
+
+  const filtered = getFiltered();
+  const RANGE_OPTIONS = [
+    { value: "year",    label: "📅 Full Year" },
+    { value: "quarter", label: "📆 Quarter" },
+    { value: "months",  label: "🗓️ Last N Months" },
+    { value: "custom",  label: "✏️ Custom Range" },
+  ];
+  const YEARS = Array.from({ length: 5 }, (_, i) => String(currentYear - 1 + i));
+
   return (
-    <Modal title="📥 Export Data" onClose={onClose}>
-      <p style={{ margin: "0 0 20px", color: COLORS.muted, fontSize: 14 }}>Export {cases.length} cases in your preferred format:</p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 20 }}>
-        <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 14, padding: 24, textAlign: "center", cursor: "pointer" }} onClick={exportCSV}>
-          <div style={{ fontSize: 40, marginBottom: 8 }}>📊</div>
-          <div style={{ fontWeight: 700, color: COLORS.primary }}>CSV Export</div>
-          <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>For Excel / Spreadsheets</div>
-        </div>
-        <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: 14, padding: 24, textAlign: "center", cursor: "pointer" }} onClick={exportJSON}>
-          <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>
-          <div style={{ fontWeight: 700, color: COLORS.secondary }}>JSON Export</div>
-          <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>For System Integration</div>
+    <Modal title="📥 Export Data" onClose={onClose} wide>
+      <div style={{ background: "#EFF6FF", borderRadius: 10, padding: "10px 14px", marginBottom: 20, fontSize: 13, color: COLORS.primary }}>
+        🔐 Export is restricted to Super Admin only. All exported files contain private case data.
+      </div>
+
+      {/* Range type selector */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, textTransform: "uppercase", marginBottom: 8 }}>Select Date Range Type</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {RANGE_OPTIONS.map(o => (
+            <button key={o.value} onClick={() => setRangeType(o.value)}
+              style={{ padding: "8px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, border: `2px solid ${rangeType === o.value ? COLORS.primary : COLORS.border}`, background: rangeType === o.value ? COLORS.primary : "#fff", color: rangeType === o.value ? "#fff" : COLORS.muted, cursor: "pointer" }}>
+              {o.label}
+            </button>
+          ))}
         </div>
       </div>
-      <Btn variant="muted" onClick={onClose} style={{ width: "100%" }}>Close</Btn>
+
+      {/* Range controls */}
+      <div style={{ background: "#F8FAFC", borderRadius: 12, padding: 16, marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+        {(rangeType === "year" || rangeType === "quarter") && (
+          <div style={{ flex: 1, minWidth: 120 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 6 }}>Year</div>
+            <select value={selYear} onChange={e => setSelYear(e.target.value)}
+              style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 14, background: "#fff" }}>
+              {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+        )}
+        {rangeType === "quarter" && (
+          <div style={{ flex: 1, minWidth: 120 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 6 }}>Quarter</div>
+            <select value={selQuarter} onChange={e => setSelQuarter(e.target.value)}
+              style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 14, background: "#fff" }}>
+              {["Q1 (Jan–Mar)","Q2 (Apr–Jun)","Q3 (Jul–Sep)","Q4 (Oct–Dec)"].map((q, i) => <option key={i} value={`Q${i+1}`}>{q}</option>)}
+            </select>
+          </div>
+        )}
+        {rangeType === "months" && (
+          <div style={{ flex: 1, minWidth: 160 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 6 }}>Period</div>
+            <select value={selMonths} onChange={e => setSelMonths(e.target.value)}
+              style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 14, background: "#fff" }}>
+              <option value="1">Last 1 month</option>
+              <option value="2">Last 2 months</option>
+              <option value="3">Last 3 months</option>
+              <option value="6">Last 6 months</option>
+              <option value="12">Last 12 months</option>
+            </select>
+          </div>
+        )}
+        {rangeType === "custom" && (
+          <>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 6 }}>From</div>
+              <DatePicker value={customFrom} onChange={e => setCustomFrom(e.target.value)} style={{ marginBottom: 0 }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 6 }}>To</div>
+              <DatePicker value={customTo} onChange={e => setCustomTo(e.target.value)} style={{ marginBottom: 0 }} />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Format + preview */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted }}>FORMAT:</div>
+        {[["csv","📊 CSV (Excel)"],["json","📋 JSON"]].map(([v, l]) => (
+          <button key={v} onClick={() => setFmt(v)}
+            style={{ padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, border: `2px solid ${fmt === v ? COLORS.secondary : COLORS.border}`, background: fmt === v ? COLORS.secondary : "#fff", color: fmt === v ? "#fff" : COLORS.muted, cursor: "pointer" }}>
+            {l}
+          </button>
+        ))}
+        <div style={{ marginLeft: "auto", fontSize: 14, fontWeight: 700, color: filtered.length > 0 ? COLORS.secondary : COLORS.danger }}>
+          {filtered.length} cases match
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 10 }}>
+        <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
+        <Btn variant="primary" onClick={doExport} disabled={filtered.length === 0} style={{ flex: 2 }}>
+          {filtered.length === 0 ? "No data in range" : `📥 Export ${filtered.length} cases`}
+        </Btn>
+      </div>
     </Modal>
   );
 };
@@ -1154,13 +1641,15 @@ const NotificationsDropdown = ({ notifs, onClose, onMarkAll, onOpenCase }) => {
 // ─── ASSIGN AGENT MODAL ────────────────────────────────────────────────────
 const AssignAgentModal = ({ caseItem, agents, onClose, onDone, showToast }) => {
   const [selectedAgent, setSelectedAgent] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [deadline,      setDeadline]      = useState("");
+  const [priority,      setPriority]      = useState(caseItem.urgency_level || "High");
+  const [loading,       setLoading]       = useState(false);
 
   const handle = async () => {
     if (!selectedAgent) return;
     setLoading(true);
     try {
-      await adminApi.assign(caseItem.id, selectedAgent);
+      await adminApi.assign(caseItem.id, selectedAgent, deadline || undefined, priority || undefined);
       showToast(`🗺️ Agent assigned to ${caseItem.ref || caseItem.id} ✓`);
       onDone(caseItem.id, "Under Review");
       onClose();
@@ -1188,6 +1677,19 @@ const AssignAgentModal = ({ caseItem, agents, onClose, onDone, showToast }) => {
           ⚠️ No field agents found. Register a field_agent account first.
         </div>
       )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div>
+          <DatePicker label="Deadline" value={deadline} onChange={e => setDeadline(e.target.value)}
+            min={new Date().toISOString().slice(0,10)} style={{ marginBottom: 0 }} />
+        </div>
+        <Select label="Priority" value={priority} onChange={e => setPriority(e.target.value)}>
+          <option value="Critical">🚨 Critical</option>
+          <option value="High">🔴 High</option>
+          <option value="Medium">🟡 Medium</option>
+          <option value="Low">🟢 Low</option>
+        </Select>
+      </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
@@ -1422,25 +1924,36 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   const ai  = raw.aiPublicData  || {};
   const savedImgs = (() => { try { return JSON.parse(localStorage.getItem("kf_case_cover_imgs") || "{}"); } catch { return {}; } })();
   const [form, setForm] = useState({
-    publicTitle:    ai.generatedTitle || caseItem.victim_name || "",
-    publicStory:    ai.generatedStory || caseItem.description || "",
-    publicCity:     ai.generatedCity  || caseItem.location    || "",
-    targetGoal:     raw.targetGoal    || "",
-    coverImageUrl:  savedImgs[caseItem.id] || "",
+    publicTitle: ai.generatedTitle || caseItem.victim_name || "",
+    publicStory: ai.generatedStory || caseItem.description || "",
+    publicCity:  ai.generatedCity  || caseItem.location    || "",
+    targetGoal:  raw.targetGoal > 0 ? String(raw.targetGoal) : (raw.fieldInvestigation?.estimatedAmountNeeded > 0 ? String(raw.fieldInvestigation.estimatedAmountNeeded) : ""),
   });
+  const [coverDataUrl,  setCoverDataUrl]  = useState(savedImgs[caseItem.id] || null);
+  const [coverFileName, setCoverFileName] = useState("");
   const [loading, setLoading] = useState(false);
+  const imgInputRef = useRef(null);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleImagePick = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast("Image must be under 5 MB", "error"); return; }
+    setCoverFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (ev) => setCoverDataUrl(ev.target.result);
+    reader.readAsDataURL(file);
+  };
 
   const handle = async () => {
     if (!form.publicTitle || !form.publicStory || !form.targetGoal) return;
     setLoading(true);
     try {
-      await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal) });
-      // Save cover image locally so case cards can display it immediately
-      if (form.coverImageUrl) {
+      await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal), coverImageUrl: coverDataUrl || "" });
+      if (coverDataUrl) {
         try {
           const imgs = JSON.parse(localStorage.getItem("kf_case_cover_imgs") || "{}");
-          imgs[caseItem.id] = form.coverImageUrl;
+          imgs[caseItem.id] = coverDataUrl;
           localStorage.setItem("kf_case_cover_imgs", JSON.stringify(imgs));
         } catch {}
       }
@@ -1454,7 +1967,7 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   return (
     <Modal title={`📢 Publish to Donor Portal — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "12px 16px", marginBottom: 20, border: "1px solid #BBF7D0", fontSize: 13, color: "#065F46" }}>
-        ✅ Victim's private data (name, phone, GPS) will <strong>never</strong> be shown publicly. Only the public story below will appear to donors.
+        ✅ Victim's private data (name, phone, GPS) will <strong>never</strong> be shown publicly.
       </div>
 
       {ai.generatedTitle && (
@@ -1468,17 +1981,41 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
       <Textarea label="Public Story *" value={form.publicStory} onChange={e => set("publicStory", e.target.value)}
         placeholder="Describe the situation without revealing private identity details…" style={{ minHeight: 120 }} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-        <Input label="Public City / Region *" value={form.publicCity} onChange={e => set("publicCity", e.target.value)}
+        <Input label="Public City / Region" value={form.publicCity} onChange={e => set("publicCity", e.target.value)}
           placeholder="e.g. Mogadishu, Hodan" />
         <Input label="Funding Goal (USD) *" type="number" value={form.targetGoal} onChange={e => set("targetGoal", e.target.value)}
           placeholder="e.g. 1500" />
       </div>
-      <Input label="Cover Image URL (optional)" value={form.coverImageUrl} onChange={e => set("coverImageUrl", e.target.value)}
-        placeholder="https://images.unsplash.com/… or upload to storage and paste URL" />
-      {form.coverImageUrl && (
-        <img src={form.coverImageUrl} alt="preview" onError={e => e.currentTarget.style.display="none"}
-          style={{ width: "100%", height: 160, objectFit: "cover", borderRadius: 10, marginTop: -8, border: "1px solid #E5E7EB" }} />
-      )}
+
+      {/* ── Direct image upload ── */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Cover Photo</div>
+        <input ref={imgInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImagePick} />
+        {coverDataUrl ? (
+          <div style={{ position: "relative" }}>
+            <img src={coverDataUrl} alt="cover preview"
+              style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 12, border: "2px solid #E5E7EB", display: "block" }} />
+            <div style={{ position: "absolute", inset: 0, borderRadius: 12, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, opacity: 0, transition: "opacity 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.opacity = 1}
+              onMouseLeave={e => e.currentTarget.style.opacity = 0}>
+              <button onClick={() => imgInputRef.current?.click()}
+                style={{ background: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>🔄 Change</button>
+              <button onClick={() => { setCoverDataUrl(null); setCoverFileName(""); }}
+                style={{ background: "#EF4444", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✕ Remove</button>
+            </div>
+            <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>📎 {coverFileName}</div>
+          </div>
+        ) : (
+          <div onClick={() => imgInputRef.current?.click()}
+            style={{ border: `2px dashed ${COLORS.border}`, borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: "#FAFAFA", transition: "border-color 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = COLORS.primary}
+            onMouseLeave={e => e.currentTarget.style.borderColor = COLORS.border}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>📷</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>Click to upload cover photo</div>
+            <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>JPG, PNG, WEBP · Max 5 MB · From your device</div>
+          </div>
+        )}
+      </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
@@ -1676,39 +2213,47 @@ const FieldReportModal = ({ caseItem, onClose }) => {
 
 // ─── DELIVERY PROOF MODAL (Field Agent) ───────────────────────────────────
 const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
+  const rawAmount = caseItem.donation_amount || caseItem._raw?.totalRaised || caseItem.target_goal || 0;
   const [form, setForm] = useState({
     deliveryMethod:  "cash",
-    amountDelivered: caseItem.donation_amount || caseItem.target_goal || "",
-    recipientName:   caseItem.victim_name || "",
+    amountDelivered: rawAmount > 0 ? String(rawAmount) : "",
+    recipientName:   caseItem._raw?.fieldInvestigation?.recipientName || caseItem.victim_name || "",
     deliveryNotes:   "",
-    extraProof:      "",   // optional extra observations / proof description
     deliveryDate:    new Date().toISOString().slice(0, 10),
   });
+  const [photos,  setPhotos]  = useState([]);
+  const [videos,  setVideos]  = useState([]);
   const [loading, setLoading] = useState(false);
+  const photoRef = useRef(null);
+  const videoRef = useRef(null);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const canSubmit = form.deliveryNotes.trim().length >= 10 && form.amountDelivered > 0;
+  const addFiles = (setter, fileList) => {
+    const arr = Array.from(fileList || []).map(f => Object.assign(f, { preview: f.type.startsWith("image/") ? URL.createObjectURL(f) : null }));
+    setter(p => [...p, ...arr]);
+  };
+
+  const canSubmit = form.deliveryNotes.trim().length >= 10 && parseFloat(form.amountDelivered) > 0;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
     setLoading(true);
     try {
-      const combinedNotes = form.extraProof
-        ? `${form.deliveryNotes}\n\n--- Additional Proof ---\n${form.extraProof}`
-        : form.deliveryNotes;
+      const photoFiles = photos.map(f => f instanceof File ? f : null).filter(Boolean);
+      const videoFiles = videos.map(f => f instanceof File ? f : null).filter(Boolean);
       await fieldApi.delivery({
         caseId:          caseItem.id,
         deliveryMethod:  form.deliveryMethod,
         amountDelivered: parseFloat(form.amountDelivered),
         recipientName:   form.recipientName || undefined,
-        deliveryNotes:   combinedNotes,
+        deliveryNotes:   form.deliveryNotes,
         deliveryDate:    new Date(form.deliveryDate).toISOString(),
-      });
+      }, photoFiles, videoFiles);
       showToast("✅ Delivery proof submitted! Admin will verify and close the case.", "success");
       onDone();
       onClose();
     } catch (e) {
-      showToast("Failed: " + e.message, "error");
+      showToast("Failed: " + (e.message || "Unknown error"), "error");
     } finally {
       setLoading(false);
     }
@@ -1736,12 +2281,8 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
       </div>
 
       {/* Delivery date */}
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>📅 DELIVERY DATE</label>
-        <input type="date" value={form.deliveryDate} onChange={e => set("deliveryDate", e.target.value)}
-          max={new Date().toISOString().slice(0,10)}
-          style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 14, boxSizing: "border-box" }} />
-      </div>
+      <DatePicker label="📅 DELIVERY DATE" value={form.deliveryDate} onChange={e => set("deliveryDate", e.target.value)}
+        max={new Date().toISOString().slice(0,10)} />
 
       {/* Delivery method */}
       <div style={{ marginBottom: 16 }}>
@@ -1781,15 +2322,45 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
         )}
       </div>
 
-      {/* Extra proof (optional) */}
-      <div style={{ marginBottom: 20 }}>
-        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>
-          📎 EXTRA PROOF / OBSERVATIONS <span style={{ color: COLORS.secondary, fontWeight: 400 }}>(optional)</span>
-        </label>
-        <textarea rows={3} placeholder="Any extra observations, GPS location description, witness names, family feedback, physical condition after receiving aid…"
-          value={form.extraProof} onChange={e => set("extraProof", e.target.value)}
-          style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 13, resize: "vertical", boxSizing: "border-box", fontFamily: "inherit", color: COLORS.muted }} />
-        <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>This will be appended to your delivery report and shown to the donor.</div>
+      {/* Photo upload (optional) */}
+      <input ref={photoRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={e => addFiles(setPhotos, e.target.files)} />
+      <input ref={videoRef} type="file" accept="video/*" multiple style={{ display: "none" }} onChange={e => addFiles(setVideos, e.target.files)} />
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          📷 Photos & 🎥 Videos <span style={{ fontWeight: 400, color: COLORS.secondary }}>(optional but recommended)</span>
+        </div>
+        <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+          <button onClick={() => photoRef.current?.click()}
+            style={{ flex: 1, padding: "10px", borderRadius: 10, border: `2px dashed ${COLORS.border}`, background: "#FAFAFA", cursor: "pointer", fontSize: 13, fontWeight: 700, color: COLORS.primary }}>
+            📷 Add Photos
+          </button>
+          <button onClick={() => videoRef.current?.click()}
+            style={{ flex: 1, padding: "10px", borderRadius: 10, border: `2px dashed ${COLORS.border}`, background: "#FAFAFA", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#8B5CF6" }}>
+            🎥 Add Videos
+          </button>
+        </div>
+        {(photos.length > 0 || videos.length > 0) && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", padding: "10px", background: "#F0FDF4", borderRadius: 10, border: "1px solid #A7F3D0" }}>
+            {photos.map((f, i) => (
+              <div key={i} style={{ position: "relative" }}>
+                {f.preview
+                  ? <img src={f.preview} alt="" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, border: "2px solid #10B981" }} />
+                  : <div style={{ width: 64, height: 64, borderRadius: 8, background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>📷</div>
+                }
+                <button onClick={() => setPhotos(p => p.filter((_, idx) => idx !== i))}
+                  style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#EF4444", color: "#fff", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+              </div>
+            ))}
+            {videos.map((f, i) => (
+              <div key={i} style={{ position: "relative" }}>
+                <div style={{ width: 64, height: 64, borderRadius: 8, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, border: "2px solid #8B5CF6" }}>🎥</div>
+                <div style={{ fontSize: 9, color: COLORS.muted, textAlign: "center", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</div>
+                <button onClick={() => setVideos(p => p.filter((_, idx) => idx !== i))}
+                  style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#EF4444", color: "#fff", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Info banner */}
@@ -1980,32 +2551,50 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
   const handlePrint = () => {
     const el = document.getElementById("kf-full-report");
     if (!el) return;
-    const w = window.open("", "_blank");
-    w.document.write(`
-      <html><head><title>Kafaale Case Report — ${caseId}</title>
-      <style>
-        body { font-family: 'Segoe UI', sans-serif; color: #1a202c; padding: 32px; max-width: 900px; margin: 0 auto; }
-        h1 { font-size: 22px; color: #004B96; margin-bottom: 4px; }
-        .sub { font-size: 13px; color: #5A6E8A; margin-bottom: 28px; }
-        .section-title { background: #004B96; color: #fff; padding: 8px 16px; font-size: 12px; font-weight: 800; border-radius: 6px 6px 0 0; letter-spacing: 0.5px; margin-top: 20px; }
-        .section-body { border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 6px 6px; padding: 12px 16px; }
-        .row { display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
-        .label { color: #5A6E8A; font-weight: 700; min-width: 170px; }
-        .val { color: #1a202c; font-weight: 500; }
-        .green { color: #065F46; } .red { color: #C0392B; } .blue { color: #004B96; }
-        .notes { background: #f8fafc; border-radius: 6px; padding: 10px 14px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; margin-top: 6px; }
-        .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 700; color: #5A6E8A; border-bottom: 1px solid #e2e8f0; }
-        td { padding: 8px 12px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
-        .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #9CA3AF; border-top: 1px solid #e2e8f0; padding-top: 16px; }
-        @media print { body { padding: 0; } }
-      </style></head><body>
-      ${el.innerHTML}
-      </body></html>`);
-    w.document.close();
-    w.focus();
-    setTimeout(() => { w.print(); }, 400);
+
+    const printStyles = `
+      body { font-family: 'Segoe UI', sans-serif; color: #1a202c; padding: 32px; max-width: 900px; margin: 0 auto; }
+      h1 { font-size: 22px; color: #004B96; margin-bottom: 4px; }
+      .sub { font-size: 13px; color: #5A6E8A; margin-bottom: 28px; }
+      .section-title { background: #004B96; color: #fff; padding: 8px 16px; font-size: 12px; font-weight: 800; border-radius: 6px 6px 0 0; letter-spacing: 0.5px; margin-top: 20px; }
+      .section-body { border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 6px 6px; padding: 12px 16px; }
+      .row { display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+      .label { color: #5A6E8A; font-weight: 700; min-width: 170px; }
+      .val { color: #1a202c; font-weight: 500; }
+      .green { color: #065F46; } .red { color: #C0392B; } .blue { color: #004B96; }
+      .notes { background: #f8fafc; border-radius: 6px; padding: 10px 14px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; margin-top: 6px; }
+      .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+      table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+      th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 700; color: #5A6E8A; border-bottom: 1px solid #e2e8f0; }
+      td { padding: 8px 12px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+      .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #9CA3AF; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+      body::after { content: "Kafaale Qaad Hope Society"; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-size: 60px; font-weight: 900; color: rgba(0,75,150,0.07); white-space: nowrap; pointer-events: none; z-index: 9999; letter-spacing: 4px; }
+      @media print { body { padding: 0; } body::after { position: fixed; } }
+    `;
+
+    // Build a Blob URL — more reliable than document.write across browsers
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Kafaale Case Report — ${caseId}</title><style>${printStyles}</style></head><body>${el.innerHTML}</body></html>`;
+    const blob = new Blob([html], { type: "text/html" });
+    const url  = URL.createObjectURL(blob);
+
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:0;";
+    document.body.appendChild(iframe);
+
+    const cleanup = () => {
+      try { document.body.removeChild(iframe); } catch {}
+      URL.revokeObjectURL(url);
+    };
+
+    iframe.onload = () => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      // cleanup after print dialog closes (onafterprint) or after 5s fallback
+      iframe.contentWindow.onafterprint = cleanup;
+      setTimeout(cleanup, 5000);
+    };
+
+    iframe.src = url;
   };
 
   if (loading) return (
@@ -2059,7 +2648,20 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
         <Btn variant="primary" onClick={handlePrint}>🖨️ Print / Export PDF</Btn>
       </div>
 
-      <div id="kf-full-report">
+      <div id="kf-full-report" style={{ position: "relative" }}>
+        {/* Watermark overlay */}
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+          pointerEvents: "none", zIndex: 0, overflow: "hidden",
+        }}>
+          <div style={{
+            fontSize: 52, fontWeight: 900, color: "rgba(0,75,150,0.06)",
+            transform: "rotate(-35deg)", whiteSpace: "nowrap", letterSpacing: 4, userSelect: "none",
+          }}>
+            Kafaale Qaad Hope Society
+          </div>
+        </div>
+        <div style={{ position: "relative", zIndex: 1 }}>
         {/* Print header (visible on print) */}
         <div style={{ marginBottom: 24, borderBottom: `3px solid ${COLORS.primary}`, paddingBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
@@ -2267,8 +2869,9 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
 
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 28, paddingTop: 16, borderTop: `1px solid ${COLORS.border}`, fontSize: 11, color: COLORS.muted }}>
-          <strong style={{ color: COLORS.primary }}>KAFAALE QAAD</strong> · Confidential Case Report · {fmt(new Date().toISOString())} · Document generated for Super Admin review only
+          <strong style={{ color: COLORS.primary }}>KAFAALE QAAD</strong> · Kafaale Qaad Hope Society · Confidential Case Report · {fmt(new Date().toISOString())} · For Super Admin review only
         </div>
+        </div>{/* end zIndex:1 wrapper */}
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 24, paddingTop: 16, borderTop: `1px solid ${COLORS.border}` }}>
@@ -2384,7 +2987,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
 };
 
 // ─── CASE TABLE ─────────────────────────────────────────────────────────────
-const CaseTable = ({ cases, onView, compact, onReport }) => (
+const CaseTable = ({ cases, onView, compact, onReport, onPublish }) => (
   <div className="kf-table-wrap">
     {cases.length === 0 ? (
       <div style={{ padding: 32, textAlign: "center", color: COLORS.muted, fontSize: 14 }}>No cases found</div>
@@ -2410,8 +3013,11 @@ const CaseTable = ({ cases, onView, compact, onReport }) => (
               <td style={{ padding: compact ? "10px 12px" : "12px 16px" }}><UrgencyBadge level={c.urgency_level} /></td>
               <td style={{ padding: compact ? "10px 12px" : "12px 16px" }}><Badge status={c.status} /></td>
               <td style={{ padding: compact ? "10px 12px" : "12px 16px" }}>
-                <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   <Btn variant="ghost" size="sm" onClick={() => onView(c)}>View →</Btn>
+                  {onPublish && ["Awaiting Approval","Pending Verification"].includes(c.status) && (
+                    <Btn variant="success" size="sm" onClick={() => onPublish(c)}>📢 Publish</Btn>
+                  )}
                   {onReport && c.status === "Completed" && (
                     <Btn variant="primary" size="sm" onClick={() => onReport(c.id)}>📄 Report</Btn>
                   )}
@@ -2461,6 +3067,538 @@ const CaseStatusTracker = ({ status }) => {
           );
         })
       }
+    </div>
+  );
+};
+
+// ─── PUBLIC USER DASHBOARD — reporter + donor combined ────────────────────────
+const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSponsor, realRole }) => {
+  const C = COLORS;
+  // default tab: reporters start on "reports", donors start on "sponsor"
+  const [tab, setTab] = useState(realRole === "donor" ? "sponsor" : "reports");
+  const [myDonations, setMyDonations] = useState([]);
+  const [loadingDons, setLoadingDons] = useState(true);
+
+  useEffect(() => {
+    donations.my()
+      .then(data => { if (Array.isArray(data)) setMyDonations(data); })
+      .catch(() => {})
+      .finally(() => setLoadingDons(false));
+  }, []);
+
+  // Split cases: user's own submitted cases vs public cases to sponsor
+  const myCases     = cases.filter(c => c._isMine || c._raw?.reporterId === currentUser?.id || c._raw?.reporter?.id === currentUser?.id);
+  const publicCases = cases.filter(c => ["Waiting Sponsor", "Sponsored"].includes(c.status));
+
+  const myPending   = myCases.filter(c => c.status === "Pending Verification").length;
+  const myActive    = myCases.filter(c => !["Pending Verification","Completed"].includes(c.status)).length;
+  const myCompleted = myCases.filter(c => c.status === "Completed").length;
+
+  const totalGiven      = myDonations.reduce((a, d) => a + (d.amount || 0), 0);
+  const confirmedGiven  = myDonations.filter(d => d.status === "confirmed").reduce((a, d) => a + (d.amount || 0), 0);
+
+  const DON_STATUS_COLOR = { confirmed:"#065F46", pending:"#92400E", rejected:"#991B1B" };
+  const DON_STATUS_BG    = { confirmed:"#D1FAE5", pending:"#FEF3C7", rejected:"#FEE2E2" };
+
+  const [mySponsorships, setMySponsorships] = useState([]);
+  const [sponsorInvoice,  setSponsorInvoice]  = useState(null);
+  const [sponsorReport,   setSponsorReport]   = useState(null);
+  const [loadingSpons,    setLoadingSpons]    = useState(true);
+
+  useEffect(() => {
+    programs.mySponsorships()
+      .then(data => { if (Array.isArray(data)) setMySponsorships(data); })
+      .catch(() => {})
+      .finally(() => setLoadingSpons(false));
+  }, []);
+
+  const handlePayNow = async (spId) => {
+    try {
+      await programs.submitPayment(spId, {});
+      showToast("✅ Payment submitted — admin will confirm receipt.");
+      programs.mySponsorships().then(d => Array.isArray(d) && setMySponsorships(d));
+    } catch { showToast("Failed to submit payment", "error"); }
+  };
+
+  const handleViewInvoice = async (spId) => {
+    try { setSponsorInvoice(await programs.getInvoice(spId)); } catch { showToast("Could not load invoice", "error"); }
+  };
+
+  const handleViewReport = async (spId) => {
+    const now = new Date();
+    try { setSponsorReport(await programs.getMonthlyReport(spId, now.getFullYear(), now.getMonth()+1)); }
+    catch { showToast("No report available yet for this month", "error"); }
+  };
+
+  const MONTH_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const SPONS_STATUS = { active:{ label:"Active", color:"#065F46", bg:"#D1FAE5" }, paused:{ label:"Paused", color:"#92400E", bg:"#FEF3C7" }, cancelled:{ label:"Ended", color:"#991B1B", bg:"#FEE2E2" } };
+
+  const TABS = [
+    { id: "reports",  icon: "📋", label: "My Reports",        count: myCases.length },
+    { id: "sponsor",  icon: "❤️", label: "Sponsor Cases",      count: publicCases.length },
+    { id: "programs", icon: "🌱", label: "My Program Support", count: mySponsorships.length },
+    { id: "history",  icon: "💰", label: "Donation History",   count: myDonations.length },
+  ];
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20, flexWrap:"wrap", gap:12 }}>
+        <div>
+          <h2 style={{ margin:0, fontSize:22, fontWeight:800 }}>
+            {realRole === "donor" ? "❤️" : "📝"} {currentUser.fullname}'s Dashboard
+          </h2>
+          <p style={{ margin:"4px 0 0", color:C.muted, fontSize:13 }}>
+            You can both submit reports and sponsor cases — switch tabs below.
+          </p>
+        </div>
+        <div style={{ display:"flex", gap:8 }}>
+          <Btn variant="outline" size="sm" onClick={() => setTab("sponsor")}>❤️ Sponsor a Case</Btn>
+          <Btn variant="primary" size="sm" onClick={onReport}>+ Submit Report</Btn>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display:"flex", gap:0, borderBottom:`2px solid ${C.border}`, marginBottom:24 }}>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            padding:"10px 22px", fontSize:13, fontWeight:700, border:"none", background:"none", cursor:"pointer",
+            color: tab === t.id ? C.primary : C.muted,
+            borderBottom: tab === t.id ? `2px solid ${C.primary}` : "2px solid transparent",
+            marginBottom:-2, display:"flex", alignItems:"center", gap:6,
+          }}>
+            {t.icon} {t.label}
+            {t.count > 0 && (
+              <span style={{ background: tab === t.id ? C.primary : C.border, color: tab === t.id ? "#fff" : C.muted, borderRadius:20, padding:"1px 7px", fontSize:11, fontWeight:800 }}>
+                {t.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ── MY REPORTS tab ── */}
+      {tab === "reports" && (
+        <div>
+          <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
+            <StatCard label="Total Reports"  value={myCases.length}  icon="📋" color={C.primary}   />
+            <StatCard label="Pending Review" value={myPending}       icon="⏳" color="#F59E0B"     />
+            <StatCard label="In Progress"    value={myActive}        icon="🔄" color="#8B5CF6"     />
+            <StatCard label="Completed"      value={myCompleted}     icon="✅" color={C.secondary} />
+          </div>
+
+          {myCases.length === 0 ? (
+            <div style={{ background:"#fff", borderRadius:16, padding:40, textAlign:"center", boxShadow:"0 2px 8px #0001" }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>📝</div>
+              <div style={{ fontSize:17, fontWeight:700 }}>No reports submitted yet</div>
+              <div style={{ fontSize:13, color:C.muted, margin:"8px auto 20px", maxWidth:380 }}>
+                Report a case in your community and our field team will verify it within 48 hours.
+              </div>
+              <Btn variant="primary" onClick={onReport}>Submit Your First Report →</Btn>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              {myCases.map(c => (
+                <div key={c.id} style={{ background:"#fff", borderRadius:14, padding:18, boxShadow:"0 2px 8px #0001", border:`1px solid ${C.border}` }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:8 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:"flex", gap:8, marginBottom:6, flexWrap:"wrap", alignItems:"center" }}>
+                        <span style={{ fontSize:11, fontWeight:700, color:C.primary, background:C.primary+"12", borderRadius:20, padding:"2px 10px" }}>{c.ref}</span>
+                        <UrgencyBadge level={c.urgency_level} />
+                        <Badge status={c.status} />
+                      </div>
+                      <div style={{ fontSize:14, fontWeight:700, marginBottom:2 }}>{c.description?.slice(0,70) || "Case report"}</div>
+                      <div style={{ fontSize:12, color:C.muted }}>📍 {c.location || "Location pending"}</div>
+                    </div>
+                    <Btn variant="outline" size="sm" onClick={() => onViewCase(c)}>View →</Btn>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SPONSOR CASES tab ── */}
+      {tab === "sponsor" && (
+        <div>
+          {publicCases.length === 0 ? (
+            <div style={{ background:"#fff", borderRadius:16, padding:40, textAlign:"center", boxShadow:"0 2px 8px #0001" }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>❤️</div>
+              <div style={{ fontSize:17, fontWeight:700 }}>No cases open for sponsorship right now</div>
+              <div style={{ fontSize:13, color:C.muted, margin:"8px auto 20px", maxWidth:380 }}>
+                Check back soon — verified cases are published regularly.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(min(100%,280px),1fr))", gap:16 }}>
+              {publicCases.map(c => {
+                const goal   = c._raw?.targetGoal  || 0;
+                const raised = c._raw?.totalRaised || 0;
+                const pct    = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0;
+                const remain = Math.max(0, goal - raised);
+                return (
+                  <div key={c.id} style={{ background:"#fff", borderRadius:14, overflow:"hidden", boxShadow:"0 2px 10px #0001", border:`1px solid ${C.border}` }}>
+                    <div style={{ height:8, background:`linear-gradient(90deg,${C.primary},${C.accent})` }} />
+                    <div style={{ padding:18 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                        <Badge status={c.status} />
+                        <UrgencyBadge level={c.urgency_level} />
+                      </div>
+                      <div style={{ fontSize:14, fontWeight:800, color:C.navy, marginBottom:4, lineHeight:1.3 }}>
+                        {c._raw?.publicTitle || c.victim_name || "Verified Case"}
+                      </div>
+                      <div style={{ fontSize:12, color:C.muted, marginBottom:12 }}>📍 {c._raw?.publicCity || c.location || "Somalia"}</div>
+                      {goal > 0 && (
+                        <div style={{ marginBottom:14 }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                            <span style={{ fontSize:15, fontWeight:900, color:pct>=100?C.secondary:C.primary }}>{pct}% <span style={{ fontSize:11, fontWeight:600, color:C.muted }}>funded</span></span>
+                            <span style={{ fontSize:12, fontWeight:700 }}>${goal.toLocaleString()} {pct>=100?"✓":"needed"}</span>
+                          </div>
+                          <div style={{ background:C.bg, borderRadius:10, height:6 }}>
+                            <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg,${C.primary},${C.accent})`, borderRadius:10 }} />
+                          </div>
+                          <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:C.muted, marginTop:3 }}>
+                            <span>${raised.toLocaleString()} raised</span>
+                            {pct < 100 && <span>${remain.toLocaleString()} remaining</span>}
+                          </div>
+                        </div>
+                      )}
+                      <div style={{ display:"flex", gap:8 }}>
+                        <Btn variant="outline" size="sm" style={{ flex:1 }} onClick={() => onViewCase(c)}>Details</Btn>
+                        <Btn variant="primary" size="sm" style={{ flex:1 }} onClick={() => onSponsor(c)}>❤️ Sponsor</Btn>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── DONATION HISTORY tab ── */}
+      {tab === "history" && (
+        <div>
+          {/* Summary stats */}
+          <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
+            <StatCard label="Total Donations"  value={myDonations.length}           icon="💰" color={C.primary}   />
+            <StatCard label="Total Given"       value={`$${totalGiven.toLocaleString()}`}    icon="💵" color="#EC4899"   />
+            <StatCard label="Confirmed"         value={`$${confirmedGiven.toLocaleString()}`} icon="✅" color={C.secondary} />
+            <StatCard label="Pending Review"    value={myDonations.filter(d=>d.status==="pending").length} icon="⏳" color="#F59E0B" />
+          </div>
+
+          {loadingDons ? (
+            <div style={{ textAlign:"center", padding:40, color:C.muted }}>Loading your donations…</div>
+          ) : myDonations.length === 0 ? (
+            <div style={{ background:"#fff", borderRadius:16, padding:40, textAlign:"center", boxShadow:"0 2px 8px #0001" }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>💰</div>
+              <div style={{ fontSize:17, fontWeight:700 }}>No donations yet</div>
+              <div style={{ fontSize:13, color:C.muted, margin:"8px auto 20px", maxWidth:360 }}>
+                Your sponsorship history will appear here after you support a case.
+              </div>
+              <Btn variant="primary" onClick={() => setTab("sponsor")}>Browse Cases to Sponsor →</Btn>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {myDonations.map(d => {
+                const st  = (d.status || "pending").toLowerCase();
+                const bg  = DON_STATUS_BG[st]  || "#F3F4F6";
+                const clr = DON_STATUS_COLOR[st] || C.muted;
+                return (
+                  <div key={d.id} style={{ background:"#fff", borderRadius:12, padding:"16px 20px", boxShadow:"0 1px 6px #0001", border:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+                    {/* Amount */}
+                    <div style={{ minWidth:80, textAlign:"center" }}>
+                      <div style={{ fontSize:20, fontWeight:900, color:C.primary }}>${(d.amount||0).toLocaleString()}</div>
+                      <div style={{ fontSize:10, color:C.muted, fontWeight:600 }}>{d.method?.replace(/_/g," ") || "payment"}</div>
+                    </div>
+                    {/* Case info */}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:2 }}>
+                        {d.case?.publicTitle || "Verified Case"}
+                      </div>
+                      <div style={{ fontSize:12, color:C.muted }}>
+                        {d.case?.publicCity || "Somalia"} · {new Date(d.createdAt).toLocaleDateString()}
+                      </div>
+                      {d.donorMessage && (
+                        <div style={{ fontSize:11, color:C.muted, marginTop:4, fontStyle:"italic" }}>"{d.donorMessage}"</div>
+                      )}
+                    </div>
+                    {/* Status badge */}
+                    <span style={{ background:bg, color:clr, borderRadius:20, padding:"4px 12px", fontSize:11, fontWeight:800, whiteSpace:"nowrap" }}>
+                      {st === "confirmed" ? "✅ Confirmed" : st === "pending" ? "⏳ Pending" : "❌ Rejected"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── MY PROGRAM SUPPORT tab ── */}
+      {tab === "programs" && (
+        <div>
+          <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
+            <StatCard label="Active Sponsorships" value={mySponsorships.filter(s=>s.status==="active").length}                     icon="🌱" color={C.primary}   />
+            <StatCard label="Monthly Commitment"  value={`$${mySponsorships.filter(s=>s.status==="active").reduce((a,s)=>a+(s.monthlyAmount||0),0).toLocaleString()}`} icon="💵" color="#8B5CF6" />
+            <StatCard label="Total Paid"          value={`$${mySponsorships.reduce((a,s)=>a+(s.totalPaid||0),0).toLocaleString()}`} icon="✅" color={C.secondary} />
+            <StatCard label="People Supported"    value={mySponsorships.length}                                                     icon="👶" color="#EC4899" />
+          </div>
+
+          {loadingSpons ? (
+            <div style={{ textAlign:"center", padding:40, color:C.muted }}>Loading your sponsorships…</div>
+          ) : mySponsorships.length === 0 ? (
+            <div style={{ background:"#fff", borderRadius:16, padding:40, textAlign:"center", boxShadow:"0 2px 8px #0001" }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>🌱</div>
+              <div style={{ fontSize:17, fontWeight:700 }}>No program sponsorships yet</div>
+              <div style={{ fontSize:13, color:C.muted, margin:"8px auto 20px", maxWidth:380 }}>
+                Sponsor a child, widow, orphan or other beneficiary in an ongoing monthly program. You choose the amount and can pay part or all of their monthly need.
+              </div>
+              <Btn variant="primary" onClick={() => setTab("sponsor")}>Browse Cases to Sponsor</Btn>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+              {mySponsorships.map(s => {
+                const st       = SPONS_STATUS[s.status] || { label: s.status, color:C.muted, bg:"#F3F4F6" };
+                const ben      = s.beneficiary;
+                const nextDue  = s.nextPaymentDate ? new Date(s.nextPaymentDate) : null;
+                const daysLeft = nextDue ? Math.ceil((nextDue - new Date()) / (1000*60*60*24)) : null;
+                const prog     = ben?.program;
+                return (
+                  <div key={s.id} style={{ background:"#fff", borderRadius:14, border:`1px solid ${C.border}`, overflow:"hidden", boxShadow:"0 1px 6px #0001" }}>
+                    {/* Header bar */}
+                    <div style={{ background:`linear-gradient(90deg,${C.primary}18,${C.accent}10)`, borderBottom:`1px solid ${C.border}`, padding:"12px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <span style={{ fontSize:22 }}>{prog?.icon || "🌱"}</span>
+                        <div>
+                          <div style={{ fontWeight:800, fontSize:14 }}>{prog?.name || "Program"}</div>
+                          <div style={{ fontSize:11, color:C.muted }}>Beneficiary {ben?.publicId} · {ben?.programType?.replace(/_/g," ")}</div>
+                        </div>
+                      </div>
+                      <span style={{ background:st.bg, color:st.color, borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:800 }}>{st.label}</span>
+                    </div>
+                    {/* Body */}
+                    <div style={{ padding:"16px 20px" }}>
+                      <div style={{ display:"flex", gap:20, flexWrap:"wrap", marginBottom:14 }}>
+                        <div>
+                          <div style={{ fontSize:11, color:C.muted, fontWeight:600 }}>YOUR MONTHLY AMOUNT</div>
+                          <div style={{ fontSize:20, fontWeight:900, color:C.primary }}>${(s.monthlyAmount||0).toLocaleString()}</div>
+                          <div style={{ fontSize:11, color:C.muted }}>of ${(ben?.monthlyNeed||0).toLocaleString()} total need</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize:11, color:C.muted, fontWeight:600 }}>TOTAL PAID</div>
+                          <div style={{ fontSize:18, fontWeight:800, color:C.secondary }}>${(s.totalPaid||0).toLocaleString()}</div>
+                          <div style={{ fontSize:11, color:C.muted }}>{s.monthsCompleted || 0} months</div>
+                        </div>
+                        {nextDue && (
+                          <div>
+                            <div style={{ fontSize:11, color:C.muted, fontWeight:600 }}>NEXT PAYMENT DUE</div>
+                            <div style={{ fontSize:14, fontWeight:800, color: daysLeft <= 7 ? "#EF4444" : daysLeft <= 14 ? "#F59E0B" : C.text }}>
+                              {nextDue.toLocaleDateString("en-GB",{ day:"numeric", month:"short", year:"numeric" })}
+                            </div>
+                            <div style={{ fontSize:11, color: daysLeft <= 7 ? "#EF4444" : C.muted }}>
+                              {daysLeft <= 0 ? "⚠️ OVERDUE" : `in ${daysLeft} days`}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {/* Progress bar */}
+                      {ben?.monthlyNeed > 0 && (
+                        <div style={{ marginBottom:14 }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.muted, marginBottom:4 }}>
+                            <span>Your share of monthly need</span>
+                            <span>{Math.round((s.monthlyAmount/ben.monthlyNeed)*100)}%</span>
+                          </div>
+                          <div style={{ height:6, background:"#E5E7EB", borderRadius:10, overflow:"hidden" }}>
+                            <div style={{ width:`${Math.min(100,Math.round((s.monthlyAmount/ben.monthlyNeed)*100))}%`, height:"100%", background:`linear-gradient(90deg,${C.primary},${C.accent})`, borderRadius:10 }} />
+                          </div>
+                        </div>
+                      )}
+                      {/* Contract info */}
+                      {s.endDate && (
+                        <div style={{ background:"#EFF6FF", borderRadius:10, padding:"10px 14px", marginBottom:12, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
+                          <div style={{ fontSize:12, color:"#1E40AF" }}>
+                            <strong>📋 Contract:</strong> {s.monthsCompleted || 0} / {Math.round((new Date(s.endDate) - new Date(s.startDate || s.createdAt)) / (30*24*60*60*1000))} months completed
+                            {" · "}Expires <strong>{new Date(s.endDate).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</strong>
+                            {" · "}{Math.ceil((new Date(s.endDate) - new Date()) / (1000*60*60*24))} days left
+                          </div>
+                        </div>
+                      )}
+                      {/* Action buttons */}
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                        {s.status === "active" && (
+                          <Btn variant="primary" size="sm" onClick={() => handlePayNow(s.id)}>
+                            💳 Pay This Month (${(s.monthlyAmount||0).toLocaleString()})
+                          </Btn>
+                        )}
+                        <Btn variant="outline" size="sm" onClick={() => handleViewInvoice(s.id)}>🧾 Invoice Letter</Btn>
+                        <Btn variant="ghost" size="sm" onClick={() => handleViewReport(s.id)}>📊 Monthly Report</Btn>
+                        {s.status === "active" && (
+                          <Btn variant="success" size="sm" onClick={async () => {
+                            if (!window.confirm("Renew your sponsorship contract for another 12 months?")) return;
+                            try {
+                              await programsApi.renewContract(s.id, { months: 12 });
+                              showToast("✅ Contract renewed for 12 more months — thank you!");
+                              programs.mySponsorships().then(d => Array.isArray(d) && setMySponsorships(d));
+                            } catch (e) { showToast(e.message || "Failed to renew", "error"); }
+                          }}>🔄 Renew Contract</Btn>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── INVOICE MODAL ── */}
+          {sponsorInvoice && (() => {
+            const { invoiceNo, sponsorship: s, dueDate, issuedDate } = sponsorInvoice;
+            const ben = s?.beneficiary;
+            const donor = s?.sponsor;
+            const printInv = () => {
+              const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${invoiceNo}</title>
+              <style>body{font-family:Georgia,serif;max-width:700px;margin:40px auto;padding:0 24px;color:#1a1a1a}
+              .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #004B96;padding-bottom:16px;margin-bottom:24px}
+              .logo{font-size:22px;font-weight:900;color:#004B96}h1{font-size:18px;margin:0 0 24px;color:#004B96}
+              table{width:100%;border-collapse:collapse;margin:16px 0}td,th{padding:10px 12px;text-align:left;border:1px solid #e5e7eb}
+              th{background:#F0F4FF;font-weight:700;font-size:13px}.total{font-size:18px;font-weight:900;color:#004B96}
+              .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#6B7280;text-align:center}
+              .pay{background:#F0F4FF;border-radius:8px;padding:16px;margin:20px 0}
+              </style></head><body>
+              <div class="hdr"><div><div class="logo">☽ Kafaale Qaad</div><div style="font-size:13px;color:#6B7280;margin-top:4px">Humanitarian Relief Organization</div><div style="font-size:12px;color:#6B7280">Somalia · kafaaleqaad.org</div></div>
+              <div style="text-align:right"><div style="font-size:22px;font-weight:900">INVOICE</div><div style="color:#6B7280;font-size:13px">${invoiceNo}</div><div style="font-size:13px;margin-top:4px">Issued: ${new Date(issuedDate).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div></div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+              <div><div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:6px">BILL TO</div>
+              <div style="font-weight:700">${donor?.name||"Sponsor"}</div><div style="font-size:13px;color:#374151">${donor?.email||""}</div><div style="font-size:13px;color:#374151">${donor?.phone||""}</div></div>
+              <div><div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:6px">PAYMENT DUE</div>
+              <div style="font-weight:700;font-size:18px;color:#DC2626">${dueDate ? new Date(dueDate).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}) : "Upon receipt"}</div></div></div>
+              <h1>Monthly Sponsorship Invoice</h1>
+              <table><thead><tr><th>Description</th><th>Program</th><th>Beneficiary</th><th>Amount</th></tr></thead>
+              <tbody><tr><td>Monthly Sponsorship Support</td><td>${ben?.program?.name||"Program"}</td><td>${ben?.publicId||"—"} · ${ben?.publicRegion||"Somalia"}</td><td class="total">$${(s?.monthlyAmount||0).toLocaleString()} ${s?.currency||"USD"}</td></tr></tbody>
+              <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">TOTAL DUE</td><td class="total">$${(s?.monthlyAmount||0).toLocaleString()}</td></tr></tfoot></table>
+              <div class="pay"><div style="font-weight:700;margin-bottom:10px">💳 Payment Methods</div>
+              <div style="font-size:13px;line-height:2"><b>Bank Transfer:</b> Kafaale Qaad · IBAN: SO00 0000 0000 0000 0000 · BIC: CAFGSO1X<br/>
+              <b>Mobile Money (EVC+):</b> +252 61 200 0000 · Name: Kafaale Qaad<br/>
+              <b>Reference:</b> ${invoiceNo}</div></div>
+              <div class="footer">Thank you for your generous support. This invoice is issued by Kafaale Qaad, a registered humanitarian organization. Please include the invoice number as your payment reference so we can match your payment quickly.</div>
+              </body></html>`;
+              const blob = new Blob([html], { type: "text/html" });
+              const url = URL.createObjectURL(blob);
+              const iframe = document.createElement("iframe");
+              iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:0;";
+              document.body.appendChild(iframe);
+              iframe.onload = () => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+                const cleanup = () => { document.body.removeChild(iframe); URL.revokeObjectURL(url); };
+                iframe.contentWindow.onafterprint = cleanup;
+                setTimeout(cleanup, 10000);
+              };
+              iframe.src = url;
+            };
+            return (
+              <Modal title={`🧾 Invoice — ${invoiceNo}`} onClose={() => setSponsorInvoice(null)} wide>
+                <div style={{ background:"#F8FAFC", border:`1px solid ${C.border}`, borderRadius:12, padding:24, marginBottom:20 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:16 }}>
+                    <div><div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>BILL TO</div><div style={{ fontWeight:800 }}>{donor?.name}</div><div style={{ fontSize:13, color:C.muted }}>{donor?.email}</div></div>
+                    <div style={{ textAlign:"right" }}><div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>INVOICE NO.</div><div style={{ fontWeight:800 }}>{invoiceNo}</div><div style={{ fontSize:12, color:C.muted }}>{new Date(issuedDate).toLocaleDateString()}</div></div>
+                  </div>
+                  <div style={{ background:"#fff", borderRadius:10, padding:16, border:`1px solid ${C.border}`, marginBottom:16 }}>
+                    <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                      <thead><tr style={{ borderBottom:`1px solid ${C.border}` }}>
+                        <th style={{ textAlign:"left", padding:"6px 8px", fontSize:12, color:C.muted }}>Description</th>
+                        <th style={{ textAlign:"left", padding:"6px 8px", fontSize:12, color:C.muted }}>Program</th>
+                        <th style={{ textAlign:"right", padding:"6px 8px", fontSize:12, color:C.muted }}>Amount Due</th>
+                      </tr></thead>
+                      <tbody><tr>
+                        <td style={{ padding:"10px 8px", fontSize:14 }}>Monthly Sponsorship</td>
+                        <td style={{ padding:"10px 8px", fontSize:13, color:C.muted }}>{ben?.program?.icon} {ben?.program?.name}</td>
+                        <td style={{ padding:"10px 8px", textAlign:"right", fontWeight:900, fontSize:18, color:C.primary }}>${(s?.monthlyAmount||0).toLocaleString()} {s?.currency}</td>
+                      </tr></tbody>
+                    </table>
+                  </div>
+                  <div style={{ background:`${C.primary}08`, borderRadius:10, padding:14 }}>
+                    <div style={{ fontWeight:700, marginBottom:8, fontSize:13 }}>💳 How to Pay</div>
+                    <div style={{ fontSize:12, lineHeight:2, color:C.text }}>
+                      <b>Bank Transfer:</b> Kafaale Qaad · IBAN: SO00 0000 0000 0000 0000<br/>
+                      <b>Mobile Money (EVC+):</b> +252 61 200 0000<br/>
+                      <b>Reference:</b> {invoiceNo}
+                    </div>
+                  </div>
+                  {dueDate && <div style={{ marginTop:12, textAlign:"center", fontSize:13, color:"#EF4444", fontWeight:700 }}>Payment due: {new Date(dueDate).toLocaleDateString("en-GB",{ day:"numeric", month:"long", year:"numeric" })}</div>}
+                </div>
+                <div style={{ display:"flex", gap:10 }}>
+                  <Btn variant="muted" onClick={() => setSponsorInvoice(null)} style={{ flex:1 }}>Close</Btn>
+                  <Btn variant="primary" onClick={printInv} style={{ flex:2 }}>🖨️ Print / Save as PDF</Btn>
+                </div>
+              </Modal>
+            );
+          })()}
+
+          {/* ── MONTHLY REPORT MODAL ── */}
+          {sponsorReport && (() => {
+            const { sponsorship: s, year, month, update } = sponsorReport;
+            const ben = s?.beneficiary;
+            const deliveries = (() => { try { return JSON.parse(update?.deliveriesMade || "[]"); } catch { return []; } })();
+            return (
+              <Modal title={`📊 Monthly Report — ${MONTH_FULL[month-1]} ${year}`} onClose={() => setSponsorReport(null)} wide>
+                <div style={{ marginBottom:16, background:`linear-gradient(135deg,${C.primary}10,${C.accent}08)`, borderRadius:12, padding:20, border:`1px solid ${C.primary}20` }}>
+                  <div style={{ fontSize:15, fontWeight:800, marginBottom:4 }}>{ben?.program?.icon} {ben?.program?.name}</div>
+                  <div style={{ fontSize:13, color:C.muted }}>Beneficiary {ben?.publicId} · {ben?.programType?.replace(/_/g," ")} · {ben?.publicRegion || "Somalia"}</div>
+                </div>
+                {!update ? (
+                  <div style={{ textAlign:"center", padding:32, color:C.muted }}>
+                    <div style={{ fontSize:40, marginBottom:12 }}>📋</div>
+                    <div style={{ fontWeight:700 }}>No report published yet for {MONTH_FULL[month-1]} {year}</div>
+                    <div style={{ fontSize:13, marginTop:4 }}>The program manager will publish a monthly update soon. You'll be notified when it's ready.</div>
+                  </div>
+                ) : (
+                  <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+                    {/* Key metrics */}
+                    <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
+                      {update.schoolAttendance != null && <StatCard icon="🏫" label="School Attendance" value={`${update.schoolAttendance}%`} color={C.secondary} />}
+                      {update.healthStatus && <StatCard icon="❤️" label="Health Status" value={update.healthStatus} color="#EC4899" />}
+                      {deliveries.length > 0 && <StatCard icon="📦" label="Deliveries Made" value={deliveries.length} color={C.primary} />}
+                    </div>
+                    {/* Progress notes */}
+                    <div style={{ background:"#fff", borderRadius:12, padding:16, border:`1px solid ${C.border}` }}>
+                      <div style={{ fontWeight:700, marginBottom:8 }}>📝 Progress This Month</div>
+                      <p style={{ fontSize:14, color:C.text, lineHeight:1.7, margin:0 }}>{update.progressNotes}</p>
+                    </div>
+                    {/* Needs assessment */}
+                    {update.needsAssessment && (
+                      <div style={{ background:"#FEF3C7", borderRadius:12, padding:16, border:"1px solid #FCD34D" }}>
+                        <div style={{ fontWeight:700, marginBottom:8, color:"#92400E" }}>📋 Needs Assessment</div>
+                        <p style={{ fontSize:13, color:"#78350F", margin:0 }}>{update.needsAssessment}</p>
+                      </div>
+                    )}
+                    {/* Deliveries */}
+                    {deliveries.length > 0 && (
+                      <div style={{ background:"#fff", borderRadius:12, padding:16, border:`1px solid ${C.border}` }}>
+                        <div style={{ fontWeight:700, marginBottom:10 }}>📦 What Was Delivered</div>
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                          {deliveries.map((d, i) => <span key={i} style={{ background:`${C.primary}12`, color:C.primary, borderRadius:20, padding:"4px 12px", fontSize:12, fontWeight:600 }}>{d}</span>)}
+                        </div>
+                      </div>
+                    )}
+                    {/* Your contribution */}
+                    <div style={{ background:`${C.secondary}10`, borderRadius:12, padding:16, border:`1px solid ${C.secondary}30`, textAlign:"center" }}>
+                      <div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>YOUR CONTRIBUTION THIS MONTH</div>
+                      <div style={{ fontSize:26, fontWeight:900, color:C.secondary }}>${(s?.monthlyAmount||0).toLocaleString()}</div>
+                      <div style={{ fontSize:13, color:C.muted }}>Thank you for making this possible 💚</div>
+                    </div>
+                  </div>
+                )}
+                <div style={{ marginTop:16 }}>
+                  <Btn variant="muted" onClick={() => setSponsorReport(null)} style={{ width:"100%" }}>Close</Btn>
+                </div>
+              </Modal>
+            );
+          })()}
+        </div>
+      )}
     </div>
   );
 };
@@ -2616,7 +3754,6 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
           ) : (
             <Btn variant="success" size="sm" onClick={() => onPublish(c)}>✅ Approve & Publish</Btn>
           )}
-          <Btn variant="success" size="sm" onClick={() => onPublish(c)}>✅ Publish as Emergency</Btn>
           <Btn variant="danger"  size="sm" onClick={() => onReject(c)}>❌ Reject</Btn>
         </>}
         {["Under Review","Investigating"].includes(c.status) && (
@@ -2772,7 +3909,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                             ✓ Confirm
                           </button>
                         )}
-                        {d.status === "confirmed" && ["sponsored","waiting_for_sponsor"].includes(d.case?.status) && onStartDelivery && (
+                        {d.status === "confirmed" && ["sponsored","waiting_for_sponsor","Sponsored","Waiting Sponsor"].includes(d.case?.status) && onStartDelivery && (
                           <button onClick={() => onStartDelivery({
                             id: d.caseId, victim_name: d.case?.publicTitle || `Case #${(d.caseId||"").slice(-6)}`,
                             location: d.case?.publicCity || "", donation_amount: d.amount,
@@ -3139,10 +4276,12 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
   const confirmedTotal = myDonations.filter(d => d.status === "confirmed").reduce((a, d) => a + (d.amount || 0), 0);
 
   const STATUS_COLORS = {
-    pending:   { bg: "#FEF3C7", color: "#92400E",  label: "⏳ Pending"   },
-    confirmed: { bg: "#D1FAE5", color: "#065F46",  label: "✅ Confirmed" },
-    failed:    { bg: "#FEE2E2", color: COLORS.danger, label: "❌ Failed" },
+    pending:   { bg: "#FEF3C7", color: "#92400E",  label: "⏳ Awaiting Payment Verification" },
+    confirmed: { bg: "#D1FAE5", color: "#065F46",  label: "✅ Payment Confirmed" },
+    failed:    { bg: "#FEE2E2", color: COLORS.danger, label: "❌ Payment Failed" },
   };
+
+  const [certDonation, setCertDonation] = useState(null);
 
   const METHOD_LABELS = {
     mobile_money:  "📱 Mobile Money",
@@ -3269,11 +4408,16 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
           const isCompleted = caseStatus === "completed";
 
           const caseStatusLabel = {
-            waiting_for_sponsor: { label: "⏳ Awaiting sponsor match", color: "#92400E", bg: "#FEF3C7" },
-            sponsored:           { label: "✅ Donation received — starting delivery", color: "#065F46", bg: "#D1FAE5" },
-            delivering:          { label: "🚚 Aid en route to beneficiary", color: "#0891B2", bg: "#CFFAFE" },
-            proof_uploaded:      { label: "📦 Aid delivered — admin reviewing", color: "#6D28D9", bg: "#EDE9FE" },
-            completed:           { label: "🏁 Completed — aid confirmed delivered", color: "#065F46", bg: "#D1FAE5" },
+            waiting_for_sponsor:  { label: "⏳ Awaiting sponsor match", color: "#92400E", bg: "#FEF3C7" },
+            "Waiting Sponsor":    { label: "⏳ Awaiting sponsor match", color: "#92400E", bg: "#FEF3C7" },
+            sponsored:            { label: "✅ Donation received — starting delivery", color: "#065F46", bg: "#D1FAE5" },
+            "Sponsored":          { label: "✅ Donation received — starting delivery", color: "#065F46", bg: "#D1FAE5" },
+            delivering:           { label: "🚚 Aid en route to beneficiary", color: "#0891B2", bg: "#CFFAFE" },
+            "Delivering":         { label: "🚚 Aid en route to beneficiary", color: "#0891B2", bg: "#CFFAFE" },
+            proof_uploaded:       { label: "📦 Aid delivered — admin reviewing", color: "#6D28D9", bg: "#EDE9FE" },
+            "Aid Delivered":      { label: "📦 Aid delivered — admin reviewing", color: "#6D28D9", bg: "#EDE9FE" },
+            completed:            { label: "🏁 Completed — aid confirmed delivered", color: "#065F46", bg: "#D1FAE5" },
+            "Completed":          { label: "🏁 Completed — aid confirmed delivered", color: "#065F46", bg: "#D1FAE5" },
           }[caseStatus] || { label: caseStatus || "—", color: COLORS.muted, bg: "#F3F4F6" };
 
           return (
@@ -3326,8 +4470,14 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
                       </div>
                     )}
                     {isCompleted && (
-                      <div style={{ marginTop: 10, background: "#065F46", color: "#fff", borderRadius: 8, padding: "10px 14px", fontSize: 12, fontWeight: 700, textAlign: "center" }}>
-                        🏁 Case fully completed on {d.case?.completedAt ? new Date(d.case.completedAt).toLocaleDateString() : "—"} — Thank you for your generosity!
+                      <div style={{ marginTop: 10 }}>
+                        <div style={{ background: "#065F46", color: "#fff", borderRadius: 8, padding: "10px 14px", fontSize: 12, fontWeight: 700, textAlign: "center", marginBottom: 8 }}>
+                          🏁 Case fully completed on {d.case?.completedAt ? new Date(d.case.completedAt).toLocaleDateString() : "—"} — Thank you for your generosity!
+                        </div>
+                        <Btn variant="ghost" size="sm" onClick={() => setCertDonation(d)}
+                          style={{ width: "100%", border: `1.5px solid ${COLORS.secondary}`, color: COLORS.secondary }}>
+                          🏆 View Impact Certificate
+                        </Btn>
                       </div>
                     )}
                   </div>
@@ -3345,6 +4495,43 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
         })}
       </div>
       </div>
+      )}
+
+      {/* Impact Certificate Modal */}
+      {certDonation && (
+        <Modal title="🏆 Impact Certificate" onClose={() => setCertDonation(null)} wide>
+          <style>{`@media print { .no-print { display: none !important; } body * { visibility: hidden; } #impact-cert, #impact-cert * { visibility: visible; } #impact-cert { position: fixed; top: 0; left: 0; width: 100%; } }`}</style>
+          <div id="impact-cert" style={{ background: `linear-gradient(145deg, ${COLORS.navy}, ${COLORS.primary})`, borderRadius: 20, padding: "36px 40px", color: "#fff", textAlign: "center", marginBottom: 20 }}>
+            <div style={{ fontSize: 48, marginBottom: 8 }}>🕊️</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, opacity: 0.7, marginBottom: 4 }}>KAFAALE QAAD · HUMANITARIAN AID PLATFORM</div>
+            <div style={{ fontSize: 28, fontWeight: 900, margin: "12px 0 6px" }}>Certificate of Impact</div>
+            <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 24 }}>This certifies that the following contribution reached its beneficiary</div>
+            <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 14, padding: "20px 28px", marginBottom: 20 }}>
+              <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 4 }}>DONOR</div>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>{currentUser?.fullname || currentUser?.name || "Anonymous Donor"}</div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
+              {[
+                { label: "AMOUNT", val: `$${(certDonation.amount||0).toLocaleString()}` },
+                { label: "CASE", val: certDonation.case?.publicTitle || `Case #${certDonation.caseId?.slice(-6)}` },
+                { label: "REGION", val: certDonation.case?.publicCity || "Somalia" },
+              ].map((item,i) => (
+                <div key={i} style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "12px 10px" }}>
+                  <div style={{ fontSize: 9, letterSpacing: 2, opacity: 0.7, marginBottom: 4 }}>{item.label}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800 }}>{item.val}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: "#10B981", borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
+              ✅ Aid Delivered & Confirmed — {certDonation.case?.completedAt ? new Date(certDonation.case.completedAt).toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" }) : "Completed"}
+            </div>
+            <div style={{ fontSize: 11, opacity: 0.55 }}>Issued by Kafaale Qaad Hope Society · kafaaleqaad.org</div>
+          </div>
+          <div className="no-print" style={{ display: "flex", gap: 10 }}>
+            <Btn variant="ghost" onClick={() => setCertDonation(null)} style={{ flex: 1 }}>Close</Btn>
+            <Btn variant="primary" onClick={() => window.print()} style={{ flex: 2 }}>🖨️ Print / Save as PDF</Btn>
+          </div>
+        </Modal>
       )}
     </div>
   );
@@ -3462,19 +4649,24 @@ const UserAvatar = ({ name, size = 36 }) => {
 
 // ─── USERS TAB — avatars, inline role change, delete ─────────────────────────
 const ALL_ROLES = [
-  { value: "reporter",         label: "📝 Reporter"          },
-  { value: "donor",            label: "💳 Donor"              },
-  { value: "field_agent",      label: "🔍 Field Agent"        },
-  { value: "admin",            label: "🟠 Admin"              },
-  { value: "program_manager",  label: "🌱 Program Manager"   },
-  { value: "super_admin",      label: "🔴 Super Admin"        },
+  { value: "reporter",            label: "📝 Reporter"              },
+  { value: "donor",               label: "💳 Donor"                  },
+  { value: "field_agent",         label: "🔍 Field Agent"            },
+  { value: "verification_office", label: "🏛️ Verification Office"   },
+  { value: "program_manager",     label: "🌱 Program Manager"        },
+  { value: "project_manager",     label: "🏗️ Project Manager"       },
+  { value: "admin",               label: "🟠 Admin"                  },
+  { value: "super_admin",         label: "🔴 Super Admin"            },
 ];
 const ROLE_COLORS = {
-  super_admin:  { bg: "#FEE2E2", text: "#991B1B" },
-  admin:        { bg: "#FEF3C7", text: "#92400E" },
-  field_agent:  { bg: "#EDE9FE", text: "#5B21B6" },
-  donor:        { bg: "#D1FAE5", text: "#065F46" },
-  reporter:     { bg: "#DBEAFE", text: "#1E40AF" },
+  super_admin:         { bg: "#FEE2E2", text: "#991B1B" },
+  admin:               { bg: "#FEF3C7", text: "#92400E" },
+  field_agent:         { bg: "#EDE9FE", text: "#5B21B6" },
+  donor:               { bg: "#D1FAE5", text: "#065F46" },
+  reporter:            { bg: "#DBEAFE", text: "#1E40AF" },
+  verification_office: { bg: "#E0F2FE", text: "#0369A1" },
+  program_manager:     { bg: "#DCFCE7", text: "#14532D" },
+  project_manager:     { bg: "#FEF9C3", text: "#713F12" },
 };
 
 const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
@@ -3522,9 +4714,9 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
                 <td style={{ padding: "10px 16px", fontSize: 13 }}>{u.phone || "—"}</td>
                 <td style={{ padding: "10px 16px" }}>
                   {isSuperAdmin && isEditing ? (
-                    <select defaultValue={u.role} disabled={isSaving}
-                      onChange={e => handleRoleChange(u, e.target.value)}
-                      onBlur={() => setEditingId(null)}
+                    <select value={u.role} disabled={isSaving}
+                      onChange={e => { handleRoleChange(u, e.target.value); setEditingId(null); }}
+                      onKeyDown={e => e.key === "Escape" && setEditingId(null)}
                       autoFocus
                       style={{ padding: "4px 8px", borderRadius: 8, border: `1.5px solid ${COLORS.primary}`, fontSize: 12, fontWeight: 700, cursor: "pointer", background: "#fff", outline: "none" }}>
                       {ALL_ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
@@ -4125,9 +5317,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                   </div>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                     <div>
-                      <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Date</label>
-                      <input type="date" value={updateForm.date} onChange={e=>setUpdateForm(f=>({...f,date:e.target.value}))}
-                        style={{ width:"100%", padding:"10px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:14, fontFamily:"inherit", boxSizing:"border-box" }} />
+                      <DatePicker label="Date" value={updateForm.date} onChange={e=>setUpdateForm(f=>({...f,date:e.target.value}))} style={{ marginBottom:0 }} />
                     </div>
                     <div>
                       <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Location</label>
@@ -5002,8 +6192,7 @@ const HistoryPanel = ({ showToast }) => {
                 <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} style={{ width:"100%", padding:"10px 13px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:14, boxSizing:"border-box" }} />
               </div>
               <div>
-                <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Date *</label>
-                <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ width:"100%", padding:"10px 13px", borderRadius:9, border:`1.5px solid ${COLORS.border}`, fontSize:14, boxSizing:"border-box" }} />
+                <DatePicker label="Date *" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{ marginBottom:0 }} />
               </div>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
@@ -5097,11 +6286,12 @@ const HistoryPanel = ({ showToast }) => {
 };
 
 // ─── ADMIN DASHBOARD — app-launcher grid ─────────────────────────────────────
-const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, isSuperAdmin, currentUser, showToast }) => {
-  const [activeModule, setActiveModule] = useState(null);
+const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, onAssign, onPublish, onReject, onRequestInfo, onEnroll, isSuperAdmin, currentUser, showToast }) => {
+  const [activeModule, setActiveModule] = useState("workflow");
   const [donFilter, setDonFilter] = useState("all");
   const { t } = useLang();
   const isMob = useIsMobile();
+  const isDemoMode = currentUser?.id?.startsWith('demo-');
   const totalDonated = donations.reduce((a, d) => a + (d.amount || 0), 0);
   const confirmedTotal = donations.filter(d => d.status === "confirmed").reduce((a, d) => a + (d.amount || 0), 0);
   const pendingTotal   = donations.filter(d => d.status === "pending").reduce((a, d) => a + (d.amount || 0), 0);
@@ -5113,7 +6303,16 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   const partnerApps = (() => { try { return JSON.parse(localStorage.getItem("kf_partner_applications")||"[]"); } catch { return []; } })();
   const volApps     = (() => { try { return JSON.parse(localStorage.getItem("kf_volunteer_applications")||"[]"); } catch { return []; } })();
 
+  const newReports      = cases.filter(c => c.status === "Pending Verification");
+  const investigateDone = cases.filter(c => c.status === "Awaiting Approval");
+  const proofSubmitted  = cases.filter(c => c.status === "Proof Submitted");
+  const pendingPayments = donations.filter(d => d.status === "pending");
+  const deliveryCases   = cases.filter(c => c.status === "Sponsored");
+  const completedCases  = cases.filter(c => c.status === "Completed");
+  const workflowAlerts  = newReports.length + investigateDone.length + proofSubmitted.length + pendingPayments.length;
+
   const SUPER_MODULES = [
+    { id:"workflow",   icon:"🔄", label:"Workflow",        sub:`${workflowAlerts} need action`, color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: workflowAlerts },
     { id:"overview",   icon:"📊", label:"Overview",        sub:`${cases.length} cases`,         color:"#004B96", g:"linear-gradient(135deg,#004B96,#0072CE)", badge: pendingCases.length },
     { id:"users",      icon:"👥", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
     { id:"cases",      icon:"📋", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
@@ -5124,6 +6323,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"volunteers", icon:"🙋", label:"Volunteers",      sub:`${volApps.filter(a=>a.status==="pending").length} pending`,    color:"#9333EA", g:"linear-gradient(135deg,#9333EA,#C026D3)", badge: volApps.filter(a=>a.status==="pending").length },
     { id:"impact_stories", icon:"📸", label:"Stories",    sub:"Impact content",                 color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: 0 },
     { id:"updates",    icon:"🚨", label:"Updates",         sub:"Alerts & news",                  color:"#D97706", g:"linear-gradient(135deg,#D97706,#F59E0B)", badge: 0 },
+    { id:"completed",  icon:"🏁", label:"Completed Ops",   sub:`${completedCases.length} operations`, color:"#065F46", g:"linear-gradient(135deg,#065F46,#10B981)", badge: 0 },
     { id:"history",    icon:"📚", label:"History",         sub:"Records & archive",              color:"#0F766E", g:"linear-gradient(135deg,#0F766E,#14B8A6)", badge: 0 },
     { id:"settings",   icon:"⚙️", label:"Settings",        sub:"Site configuration",             color:"#374151", g:"linear-gradient(135deg,#374151,#6B7280)", badge: 0 },
   ];
@@ -5143,6 +6343,23 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
 
   return (
     <div>
+      {/* ── DEMO MODE BANNER ── */}
+      {isDemoMode && (
+        <div style={{ background:"linear-gradient(90deg,#92400E,#B45309)", color:"#fff", borderRadius:12, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:20 }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight:800, fontSize:14 }}>Demo Mode Active — Showing sample data</div>
+              <div style={{ fontSize:12, opacity:0.85 }}>You are not connected to the live database. Log out and sign in while the server is running to see real data.</div>
+            </div>
+          </div>
+          <Btn variant="outline" size="sm" style={{ background:"rgba(255,255,255,0.15)", borderColor:"rgba(255,255,255,0.4)", color:"#fff", whiteSpace:"nowrap" }}
+            onClick={() => { localStorage.removeItem('kf_token'); localStorage.removeItem('kf_user'); window.location.href = '/login'; }}>
+            🔑 Sign in for Live Data
+          </Btn>
+        </div>
+      )}
+
       {/* ── HOME GRID ── */}
       {!activeModule && (
         <div>
@@ -5210,13 +6427,139 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
               <div style={{ fontSize:16, fontWeight:800 }}>{activeModuleInfo?.label}</div>
               <div style={{ fontSize:11, color:COLORS.muted }}>{activeModuleInfo?.sub}</div>
             </div>
-            {activeModule === "cases" && (
+            {activeModule === "cases" && isSuperAdmin && (
               <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
                 <Btn variant="teal" onClick={onExport}>Export</Btn>
+              </div>
+            )}
+            {activeModule === "users" && isSuperAdmin && (
+              <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>
                 <Btn variant="primary" onClick={onAddUser}>Add User</Btn>
               </div>
             )}
           </div>
+
+          {/* ── Workflow ─────────────────────────────────────────── */}
+          {activeModule === "workflow" && (() => {
+            const WfSection = ({ title, badge, badgeColor = COLORS.danger, children }) => (
+              <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px #0001", marginBottom: 20, overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", borderBottom: `1px solid ${COLORS.border}`, background: "#F8FAFC" }}>
+                  <div style={{ fontWeight: 800, fontSize: 15 }}>{title}</div>
+                  {badge > 0 && <span style={{ background: badgeColor, color: "#fff", borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 800 }}>{badge}</span>}
+                </div>
+                <div style={{ padding: "12px 20px" }}>{children}</div>
+              </div>
+            );
+            const WfRow = ({ c, buttons }) => (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${COLORS.border}`, flexWrap: "wrap", gap: 10 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, background: COLORS.primary + "15", borderRadius: 20, padding: "2px 9px" }}>{c.ref}</span>
+                    <UrgencyBadge level={c.urgency_level} />
+                    <span style={{ fontSize: 12, color: COLORS.muted }}>{c.created_at}</span>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 340 }}>{c.victim_name}</div>
+                  <div style={{ fontSize: 12, color: COLORS.muted }}>📍 {c.location} · {c._raw?.category?.replace(/_/g," ")}</div>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: 0 }}>
+                  <Btn size="sm" variant="ghost" onClick={() => onViewCase(c)}>👁 View</Btn>
+                  {buttons}
+                </div>
+              </div>
+            );
+
+            // Open publish modal directly — no intermediate status update needed
+            // The publish endpoint sets waiting_for_sponsor from any current status
+            const approveAndPublish = (c) => onPublish(c);
+
+            return (
+              <div>
+                {/* Step 1 — New Reports */}
+                <WfSection title="📥 Step 1 — New Reports" badge={newReports.length}>
+                  {newReports.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>✅ No new reports pending</div>
+                  ) : newReports.map(c => (
+                    <WfRow key={c.id} c={c} buttons={<>
+                      <Btn size="sm" variant="danger" onClick={() => onReject(c)}>❌ Reject</Btn>
+                      <Btn size="sm" variant="primary" onClick={() => approveAndPublish(c)}>✅ Approve → Publish</Btn>
+                      <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>🗺️ Assign Team</Btn>
+                    </>} />
+                  ))}
+                </WfSection>
+
+                {/* Step 2 — Under Investigation */}
+                {(() => {
+                  const underInvestigation = cases.filter(c => ["Under Review","Investigating"].includes(c.status));
+                  return underInvestigation.length > 0 ? (
+                    <WfSection title="🔍 Step 2 — Under Investigation" badge={0} badgeColor={COLORS.secondary}>
+                      {underInvestigation.map(c => (
+                        <WfRow key={c.id} c={c} buttons={<>
+                          <Btn size="sm" variant="ghost" onClick={() => onReject(c)}>❌ Reject</Btn>
+                          <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>🔄 Reassign</Btn>
+                        </>} />
+                      ))}
+                    </WfSection>
+                  ) : null;
+                })()}
+
+                {/* Step 3 — Investigation Report Ready */}
+                {(() => {
+                  const invDone = cases.filter(c => c.status === "Awaiting Approval");
+                  return (
+                    <WfSection title="📋 Step 3 — Investigation Report Ready" badge={invDone.length}>
+                      {invDone.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No investigation reports ready</div>
+                      ) : invDone.map(c => (
+                        <WfRow key={c.id} c={c} buttons={<>
+                          <Btn size="sm" variant="danger" onClick={() => onReject(c)}>❌ Reject</Btn>
+                          <Btn size="sm" variant="primary" onClick={() => onPublish(c)}>✅ Approve → Publish</Btn>
+                          <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>🔄 Reassign</Btn>
+                          <Btn size="sm" variant="ghost" onClick={() => onRequestInfo(c)}>💬 Request Info</Btn>
+                        </>} />
+                      ))}
+                    </WfSection>
+                  );
+                })()}
+
+                {/* Step 4 — Pending Donations */}
+                <WfSection title="💳 Step 4 — Pending Payments" badge={pendingPayments.length} badgeColor="#F59E0B">
+                  {pendingPayments.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No pending payments</div>
+                  ) : pendingPayments.map(d => (
+                    <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${COLORS.border}`, flexWrap: "wrap", gap: 8 }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14 }}>${(d.amount||0).toLocaleString()} — {d.case?.publicTitle || `Case #${d.caseId?.slice(-6)}`}</div>
+                        <div style={{ fontSize: 12, color: COLORS.muted }}>{d.donor?.name || "Donor"} · {d.method?.replace(/_/g," ")} · {d.createdAt?.slice(0,10)}</div>
+                      </div>
+                      <Btn size="sm" variant="primary" onClick={() => onConfirmDonation && onConfirmDonation(d.id)}>✅ Confirm Payment</Btn>
+                    </div>
+                  ))}
+                </WfSection>
+
+                {/* Step 5 — Assign Delivery */}
+                <WfSection title="🚚 Step 5 — Ready for Delivery" badge={deliveryCases.length} badgeColor={COLORS.secondary}>
+                  {deliveryCases.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No cases ready for delivery</div>
+                  ) : deliveryCases.map(c => (
+                    <WfRow key={c.id} c={c} buttons={
+                      <Btn size="sm" variant="primary" onClick={() => onStartDelivery && onStartDelivery(c)}>🚚 Assign Delivery</Btn>
+                    } />
+                  ))}
+                </WfSection>
+
+                {/* Step 6 — Proof Submitted */}
+                <WfSection title="📦 Step 6 — Delivery Proof Submitted" badge={proofSubmitted.length} badgeColor={COLORS.secondary}>
+                  {proofSubmitted.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No delivery proofs pending</div>
+                  ) : proofSubmitted.map(c => (
+                    <WfRow key={c.id} c={c} buttons={<>
+                      <Btn size="sm" variant="primary" onClick={() => onComplete(c)}>🏁 Complete Case</Btn>
+                    </>} />
+                  ))}
+                </WfSection>
+              </div>
+            );
+          })()}
 
           {/* Overview */}
           {activeModule === "overview" && (
@@ -5307,7 +6650,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           )}
 
           {activeModule === "cases" && (
-            <CaseTable cases={cases} onView={onViewCase} onReport={onFullReport} />
+            <CaseTable cases={cases} onView={onViewCase} onPublish={onPublish} onReport={isSuperAdmin ? onFullReport : undefined} />
           )}
 
           {activeModule === "donations" && (
@@ -5375,10 +6718,63 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
             </div>
           )}
 
-          {activeModule === "programs"      && <ProgramsDashboard currentUser={currentUser} showToast={showToast||(() => {})} />}
+          {activeModule === "programs"      && <ProgramsDashboard currentUser={currentUser} showToast={showToast||(() => {})} adminPaymentsApi={programsApi} />}
           {activeModule === "impact_stories" && <ImpactStoriesPanel showToast={showToast||(() => {})} />}
           {activeModule === "partners"       && <PartnerApplicationsPanel showToast={showToast} />}
           {activeModule === "volunteers"     && <VolunteerApplicationsPanel showToast={showToast} />}
+          {activeModule === "completed" && (() => {
+            const totalDelivered = completedCases.reduce((a, c) => a + (c._raw?.deliveryProof?.amountDelivered || c.donation_amount || 0), 0);
+            return (
+              <div>
+                <div className="kf-stats-row" style={{ marginBottom: 24 }}>
+                  <StatCard label="Total Completed"  value={completedCases.length}             icon="🏁" color="#065F46" />
+                  <StatCard label="Total Delivered"  value={`$${totalDelivered.toLocaleString()}`} icon="💰" color={COLORS.secondary} />
+                  <StatCard label="Families Helped"  value={completedCases.length}             icon="❤️" color={COLORS.primary} />
+                </div>
+                {completedCases.length === 0 ? (
+                  <div style={{ textAlign:"center", padding:"60px 0", color:COLORS.muted }}>
+                    <div style={{ fontSize:48, marginBottom:12 }}>🏁</div>
+                    <div style={{ fontSize:16, fontWeight:700 }}>No completed operations yet</div>
+                    <div style={{ fontSize:13, marginTop:6 }}>Completed cases will appear here automatically</div>
+                  </div>
+                ) : (
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:16 }}>
+                    {completedCases.map(c => (
+                      <div key={c.id} style={{ background:"#fff", borderRadius:16, border:"2px solid #A7F3D0", overflow:"hidden", boxShadow:"0 2px 8px #0001" }}>
+                        <div style={{ background:"linear-gradient(135deg,#065F46,#10B981)", padding:"12px 16px", display:"flex", alignItems:"center", gap:10 }}>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontWeight:800, fontSize:14, color:"#fff" }}>{c.ref}</div>
+                            <div style={{ fontSize:11, color:"rgba(255,255,255,0.75)", marginTop:2 }}>Completed {c._raw?.completedAt?.slice(0,10) || c.created_at}</div>
+                          </div>
+                          <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:800, color:"#fff" }}>🏁 DONE</span>
+                        </div>
+                        <div style={{ padding:"14px 16px" }}>
+                          <div style={{ fontWeight:700, fontSize:15, marginBottom:4 }}>{c.victim_name}</div>
+                          <div style={{ fontSize:12, color:COLORS.muted, marginBottom:10 }}>📍 {c.location} · {c._raw?.category?.replace(/_/g," ")}</div>
+                          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:12 }}>
+                            <div style={{ background:"#F0FDF4", borderRadius:8, padding:"8px 12px" }}>
+                              <div style={{ fontSize:10, color:"#065F46", fontWeight:700 }}>RAISED</div>
+                              <div style={{ fontSize:14, fontWeight:800 }}>${(c.donation_amount||0).toLocaleString()}</div>
+                            </div>
+                            <div style={{ background:"#EFF6FF", borderRadius:8, padding:"8px 12px" }}>
+                              <div style={{ fontSize:10, color:COLORS.primary, fontWeight:700 }}>GOAL</div>
+                              <div style={{ fontSize:14, fontWeight:800 }}>${(c.target_goal||0).toLocaleString()}</div>
+                            </div>
+                          </div>
+                          <div style={{ display:"flex", gap:8 }}>
+                            <Btn size="sm" variant="ghost" onClick={() => onViewCase(c)} style={{ flex:1 }}>👁 View</Btn>
+                            {isSuperAdmin && (
+                              <Btn size="sm" variant="primary" onClick={() => onFullReport(c.id)} style={{ flex:1 }}>📄 Full Report</Btn>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           {activeModule === "history"        && <HistoryPanel showToast={showToast} />}
           {activeModule === "updates"        && <div style={{ padding:"8px 0" }}><SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} defaultTab="updates_mgr" /></div>}
           {activeModule === "settings"       && isSuperAdmin && <SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} />}
@@ -5413,7 +6809,8 @@ const BeneficiaryStatusBadge = ({ status }) => {
     pending_verification: { bg: "#F3F4F6", color: COLORS.muted, label: "⏳ Pending" },
     verified:             { bg: "#DBEAFE", color: "#1E40AF",    label: "✅ Verified" },
     seeking_sponsor:      { bg: "#FEF3C7", color: "#92400E",    label: "🤝 Seeking Sponsor" },
-    sponsored:            { bg: "#D1FAE5", color: "#065F46",    label: "❤️ Sponsored" },
+    sponsored:            { bg: "#D1FAE5", color: "#065F46",    label: "🤝 Under Sponsor" },
+    under_sponsor:        { bg: "#D1FAE5", color: "#065F46",    label: "🤝 Under Sponsor" },
     completed:            { bg: "#F0FDF4", color: "#166534",    label: "🏁 Completed" },
     on_hold:              { bg: "#F3F4F6", color: COLORS.muted, label: "⏸ On Hold" },
   };
@@ -5667,6 +7064,326 @@ const MonthlyUpdateModal = ({ beneficiary, onClose, showToast }) => {
   );
 };
 
+// ── Bulk Child Enrollment Modal ───────────────────────────────────────────────
+const BulkChildEnrollModal = ({ programs, onClose, onDone, showToast }) => {
+  const C = COLORS;
+  const emptyRow = () => ({ privateFullName: '', publicAge: '', publicGender: '', privateGuardianName: '', privateGuardianPhone: '', publicRegion: '', publicCity: '', monthlyNeed: '', privateSchoolName: '', privateMedicalNotes: '' });
+  const [selectedProgram, setSelectedProgram] = useState(programs[0]?.id || '');
+  const [rows, setRows] = useState([emptyRow()]);
+  const [loading, setLoading] = useState(false);
+
+  const setRow = (i, k, v) => setRows(rs => rs.map((r, idx) => idx === i ? { ...r, [k]: v } : r));
+  const addRow = () => setRows(rs => [...rs, emptyRow()]);
+  const removeRow = (i) => setRows(rs => rs.filter((_, idx) => idx !== i));
+
+  const handle = async () => {
+    const validRows = rows.filter(r => r.privateFullName.trim().length >= 2);
+    if (!validRows.length) { showToast('Add at least one child with a name', 'error'); return; }
+    if (!selectedProgram) { showToast('Select a program first', 'error'); return; }
+    setLoading(true);
+    try {
+      const children = validRows.map(r => ({
+        programId: selectedProgram,
+        privateFullName: r.privateFullName.trim(),
+        publicAge: r.publicAge ? parseInt(r.publicAge) : undefined,
+        publicGender: r.publicGender || undefined,
+        privateGuardianName: r.privateGuardianName || undefined,
+        privateGuardianPhone: r.privateGuardianPhone || undefined,
+        publicRegion: r.publicRegion || undefined,
+        publicCity: r.publicCity || undefined,
+        monthlyNeed: r.monthlyNeed ? parseFloat(r.monthlyNeed) : undefined,
+        privateSchoolName: r.privateSchoolName || undefined,
+        privateMedicalNotes: r.privateMedicalNotes || undefined,
+      }));
+      const res = await programsApi.bulkEnroll({ children });
+      showToast(`✅ ${res.count || validRows.length} children enrolled successfully!`);
+      onDone();
+      onClose();
+    } catch (e) {
+      showToast(e.message || 'Bulk enrollment failed', 'error');
+    } finally { setLoading(false); }
+  };
+
+  const FIELDS = [
+    { key: 'privateFullName', label: 'Full Name *', w: 160 },
+    { key: 'publicAge', label: 'Age', w: 60, type: 'number' },
+    { key: 'publicGender', label: 'Gender', w: 90, select: ['', 'male', 'female'] },
+    { key: 'privateGuardianName', label: 'Guardian', w: 130 },
+    { key: 'privateGuardianPhone', label: 'Phone', w: 110 },
+    { key: 'publicRegion', label: 'Region', w: 110 },
+    { key: 'publicCity', label: 'City', w: 100 },
+    { key: 'monthlyNeed', label: 'Need ($/mo)', w: 90, type: 'number' },
+    { key: 'privateSchoolName', label: 'School', w: 130 },
+    { key: 'privateMedicalNotes', label: 'Medical', w: 130 },
+  ];
+
+  return (
+    <Modal title="👶 Bulk Child Registration" onClose={onClose} wide>
+      <Select label="PROGRAM *" value={selectedProgram} onChange={e => setSelectedProgram(e.target.value)} wrapStyle={{ marginBottom: 16 }}>
+        {programs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+      </Select>
+      <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 900 }}>
+          <thead>
+            <tr>
+              <th style={{ width: 32, padding: '6px 4px', fontSize: 11, color: C.muted, fontWeight: 700, textAlign: 'center', borderBottom: `2px solid ${C.border}` }}>#</th>
+              {FIELDS.map(f => (
+                <th key={f.key} style={{ padding: '6px 6px', fontSize: 11, color: C.muted, fontWeight: 700, textAlign: 'left', borderBottom: `2px solid ${C.border}`, minWidth: f.w, whiteSpace: 'nowrap' }}>{f.label}</th>
+              ))}
+              <th style={{ width: 40, borderBottom: `2px solid ${C.border}` }} />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#F9FAFB' }}>
+                <td style={{ textAlign: 'center', fontSize: 11, color: C.muted, padding: '4px 4px' }}>{i + 1}</td>
+                {FIELDS.map(f => (
+                  <td key={f.key} style={{ padding: '4px 4px' }}>
+                    {f.select ? (
+                      <select value={row[f.key]} onChange={e => setRow(i, f.key, e.target.value)}
+                        style={{ width: '100%', padding: '5px 6px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 12, background: '#fff' }}>
+                        {f.select.map(s => <option key={s} value={s}>{s || '—'}</option>)}
+                      </select>
+                    ) : (
+                      <input type={f.type || 'text'} value={row[f.key]} onChange={e => setRow(i, f.key, e.target.value)}
+                        style={{ width: '100%', padding: '5px 6px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 12, boxSizing: 'border-box', outline: 'none' }}
+                        placeholder={f.key === 'privateFullName' ? 'Required' : ''} />
+                    )}
+                  </td>
+                ))}
+                <td style={{ padding: '4px 4px', textAlign: 'center' }}>
+                  {rows.length > 1 && (
+                    <button onClick={() => removeRow(i)}
+                      style={{ background: 'none', border: 'none', color: C.danger, fontSize: 16, cursor: 'pointer', padding: '2px 6px' }}>×</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
+        <button onClick={addRow}
+          style={{ padding: '7px 16px', borderRadius: 8, border: `1.5px dashed ${C.primary}`, background: '#EFF6FF', color: C.primary, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+          + Add Row
+        </button>
+        <span style={{ fontSize: 12, color: C.muted }}>{rows.length} child{rows.length !== 1 ? 'ren' : ''} ready to enroll</span>
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <Btn variant="muted" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
+        <Btn variant="success" onClick={handle} disabled={loading} style={{ flex: 2 }}>
+          {loading ? 'Enrolling…' : `👶 Enroll ${rows.filter(r => r.privateFullName.trim().length >= 2).length || rows.length} Children`}
+        </Btn>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Assign Donor to Beneficiaries Modal ───────────────────────────────────────
+const AssignDonorModal = ({ beneficiaries, onClose, onDone, showToast }) => {
+  const C = COLORS;
+  const [users, setUsers] = useState([]);
+  const [selectedBens, setSelectedBens] = useState([]);
+  const [donorId, setDonorId] = useState('');
+  const [monthlyAmount, setMonthlyAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
+  const [commitmentMonths, setCommitmentMonths] = useState('12');
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
+  useEffect(() => {
+    adminApi.users().then(u => setUsers(Array.isArray(u) ? u : [])).catch(() => {}).finally(() => setLoadingUsers(false));
+  }, []);
+
+  const donors = users.filter(u => ['donor', 'reporter'].includes(u.role));
+  const filteredBens = beneficiaries.filter(b =>
+    !search || (b.privateFullName || '').toLowerCase().includes(search.toLowerCase()) || (b.publicId || '').toLowerCase().includes(search.toLowerCase())
+  );
+  const toggleBen = (id) => setSelectedBens(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+
+  const handle = async () => {
+    if (!donorId) { showToast('Select a donor', 'error'); return; }
+    if (!selectedBens.length) { showToast('Select at least one beneficiary', 'error'); return; }
+    if (!monthlyAmount || parseFloat(monthlyAmount) <= 0) { showToast('Enter monthly amount', 'error'); return; }
+    setLoading(true);
+    try {
+      const months = Math.max(12, parseInt(commitmentMonths) || 12);
+      const res = await programsApi.assignDonor({ donorId, beneficiaryIds: selectedBens, monthlyAmount: parseFloat(monthlyAmount), paymentMethod, commitmentMonths: months });
+      showToast(`✅ Donor assigned to ${res.count || selectedBens.length} beneficiar${selectedBens.length > 1 ? 'ies' : 'y'}!`);
+      onDone();
+      onClose();
+    } catch (e) {
+      showToast(e.message || 'Assignment failed', 'error');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <Modal title="🤝 Assign Donor to Beneficiaries" onClose={onClose} wide>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap: 14, marginBottom: 16 }}>
+        <div>
+          {loadingUsers
+            ? <div style={{ color: C.muted, fontSize: 13, padding: '10px 0' }}>Loading users…</div>
+            : <Select label="DONOR *" value={donorId} onChange={e => setDonorId(e.target.value)}>
+                <option value=''>— Select donor —</option>
+                {donors.map(u => <option key={u.id} value={u.id}>{u.name || u.email} ({u.role})</option>)}
+              </Select>
+          }
+        </div>
+        <div>
+          <Input label="MONTHLY AMOUNT (USD) *" type="number" value={monthlyAmount} onChange={e => setMonthlyAmount(e.target.value)} placeholder="e.g. 50" />
+        </div>
+        <div>
+          <Select label="PAYMENT METHOD" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="mobile_money">Mobile Money (EVC+)</option>
+            <option value="card">Card</option>
+            <option value="cash">Cash</option>
+          </Select>
+        </div>
+        <div>
+          <Input label="CONTRACT LENGTH (months, min 12)" type="number" min="12" max="120" value={commitmentMonths} onChange={e => setCommitmentMonths(e.target.value)} placeholder="12" />
+        </div>
+      </div>
+      <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#1E40AF' }}>
+        📋 <strong>Minimum contract: 12 months.</strong> The contract is <strong>{Math.max(12, parseInt(commitmentMonths)||12)} months</strong> — expires {new Date(Date.now() + Math.max(12, parseInt(commitmentMonths)||12) * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}. Donor will receive a renewal reminder 30 days before expiry.
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <label style={{ fontSize: 12, fontWeight: 700, color: C.muted, display: 'block', marginBottom: 4 }}>SELECT BENEFICIARIES ({selectedBens.length} selected)</label>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or ID…"
+          style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${C.border}`, fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }} />
+        <div style={{ maxHeight: 260, overflowY: 'auto', border: `1px solid ${C.border}`, borderRadius: 10 }}>
+          {filteredBens.length === 0 ? (
+            <div style={{ padding: 24, textAlign: 'center', color: C.muted, fontSize: 13 }}>No beneficiaries found</div>
+          ) : filteredBens.map(b => (
+            <label key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', borderBottom: `1px solid ${C.border}`, background: selectedBens.includes(b.id) ? '#EFF6FF' : '#fff' }}>
+              <input type="checkbox" checked={selectedBens.includes(b.id)} onChange={() => toggleBen(b.id)} style={{ accentColor: C.primary }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{b.privateFullName || 'Beneficiary'}</div>
+                <div style={{ fontSize: 11, color: C.muted }}>{b.publicId} · {b.publicCity || '—'} · ${b.monthlyNeed || 0}/mo · {(b.status || '').replace(/_/g,' ')}</div>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+        <Btn variant="muted" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
+        <Btn variant="primary" onClick={handle} disabled={loading} style={{ flex: 2 }}>
+          {loading ? 'Assigning…' : `🤝 Assign Donor to ${selectedBens.length || '?'} Beneficiar${selectedBens.length !== 1 ? 'ies' : 'y'}`}
+        </Btn>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Per-child Monthly Report Modal ────────────────────────────────────────────
+const ChildMonthlyReportModal = ({ beneficiary, onClose, showToast }) => {
+  const C = COLORS;
+  const now = new Date();
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const [form, setForm] = useState({ month: now.getMonth() + 1, year: now.getFullYear(), schoolAttendance: '', healthStatus: 'good', progressNotes: '', needsAssessment: '', deliveries: [], photoUrl: '' });
+  const [newDelivery, setNewDelivery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [loadingReports, setLoadingReports] = useState(true);
+
+  const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    programsApi.getUpdates(beneficiary.id).then(d => setReports(Array.isArray(d) ? d : [])).catch(() => {}).finally(() => setLoadingReports(false));
+  }, [beneficiary.id]);
+
+  const addDelivery = () => { if (!newDelivery.trim()) return; setF('deliveries', [...form.deliveries, newDelivery.trim()]); setNewDelivery(''); };
+  const removeDelivery = (i) => setF('deliveries', form.deliveries.filter((_, idx) => idx !== i));
+
+  const handle = async () => {
+    setLoading(true);
+    try {
+      await programsApi.submitUpdate(beneficiary.id, {
+        month: parseInt(form.month), year: parseInt(form.year),
+        schoolAttendance: form.schoolAttendance ? parseFloat(form.schoolAttendance) : undefined,
+        healthStatus: form.healthStatus, progressNotes: form.progressNotes, needsAssessment: form.needsAssessment,
+        deliveriesMade: JSON.stringify(form.deliveries),
+        photoUrls: form.photoUrl ? JSON.stringify([form.photoUrl]) : undefined,
+      });
+      showToast('✅ Monthly report submitted!');
+      programsApi.getUpdates(beneficiary.id).then(d => setReports(Array.isArray(d) ? d : [])).catch(() => {});
+      setForm(f => ({ ...f, progressNotes: '', needsAssessment: '', deliveries: [], photoUrl: '', schoolAttendance: '' }));
+    } catch (e) {
+      showToast(e.message || 'Failed to submit report', 'error');
+    } finally { setLoading(false); }
+  };
+
+  const HEALTH_COLOR = { good: '#16A34A', fair: '#D97706', poor: '#DC2626', critical: '#7C3AED' };
+
+  return (
+    <Modal title={`📊 Monthly Report — ${beneficiary.privateFullName || beneficiary.publicId}`} onClose={onClose} wide>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap: 12, marginBottom: 14 }}>
+        <Select label="MONTH" value={form.month} onChange={e => setF('month', e.target.value)}>
+          {MONTHS.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
+        </Select>
+        <Input label="YEAR" type="number" value={form.year} onChange={e => setF('year', e.target.value)} />
+        <Input label="SCHOOL ATTENDANCE (%)" type="number" min="0" max="100" value={form.schoolAttendance} onChange={e => setF('schoolAttendance', e.target.value)} placeholder="e.g. 90" />
+        <Select label="HEALTH STATUS" value={form.healthStatus} onChange={e => setF('healthStatus', e.target.value)}>
+          <option value="good">Good</option>
+          <option value="fair">Fair</option>
+          <option value="poor">Poor</option>
+          <option value="critical">Critical</option>
+        </Select>
+      </div>
+      <Textarea label="PROGRESS NOTES" value={form.progressNotes} onChange={e => setF('progressNotes', e.target.value)} rows={3} placeholder="Describe the child's progress this month…" />
+      <Textarea label="NEEDS ASSESSMENT" value={form.needsAssessment} onChange={e => setF('needsAssessment', e.target.value)} rows={2} placeholder="Any new or ongoing needs…" />
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ fontSize: 12, fontWeight: 700, color: C.muted, display: 'block', marginBottom: 4 }}>DELIVERIES MADE</label>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <input value={newDelivery} onChange={e => setNewDelivery(e.target.value)} onKeyDown={e => e.key === 'Enter' && addDelivery()} placeholder="e.g. School supplies · Press Enter to add"
+            style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: `1.5px solid ${C.border}`, fontSize: 13, outline: 'none' }} />
+          <button onClick={addDelivery} style={{ padding: '7px 14px', borderRadius: 8, background: C.primary, color: '#fff', border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Add</button>
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {form.deliveries.map((d, i) => (
+            <span key={i} style={{ background: '#EFF6FF', color: C.primary, borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              {d}
+              <button onClick={() => removeDelivery(i)} style={{ background: 'none', border: 'none', color: C.danger, cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: '0 2px' }}>×</button>
+            </span>
+          ))}
+        </div>
+      </div>
+      <Input label="PHOTO URL (optional)" value={form.photoUrl} onChange={e => setF('photoUrl', e.target.value)} placeholder="https://…" />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
+        <Btn variant="muted" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
+        <Btn variant="primary" onClick={handle} disabled={loading} style={{ flex: 2 }}>
+          {loading ? 'Submitting…' : '📊 Submit Monthly Report'}
+        </Btn>
+      </div>
+
+      {/* Previous reports list */}
+      {loadingReports ? (
+        <div style={{ textAlign: 'center', color: C.muted, fontSize: 13, padding: 12 }}>Loading previous reports…</div>
+      ) : reports.length > 0 && (
+        <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>📋 Previous Reports ({reports.length})</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {reports.map(r => (
+              <div key={r.id} style={{ background: '#F9FAFB', borderRadius: 10, padding: '12px 14px', border: `1px solid ${C.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontWeight: 800, fontSize: 13 }}>{MONTHS[(r.month || 1) - 1]} {r.year}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: HEALTH_COLOR[r.healthStatus] || C.muted }}>
+                    {r.healthStatus ? r.healthStatus.charAt(0).toUpperCase() + r.healthStatus.slice(1) : '—'}
+                  </span>
+                </div>
+                {r.schoolAttendance != null && <div style={{ fontSize: 12, color: C.muted }}>🎓 School attendance: <b>{r.schoolAttendance}%</b></div>}
+                {r.progressNotes && <div style={{ fontSize: 12, marginTop: 4 }}>{r.progressNotes}</div>}
+                {r.isPublished && <span style={{ fontSize: 10, background: '#DCFCE7', color: '#166534', borderRadius: 4, padding: '2px 6px', fontWeight: 700 }}>Published to Sponsor</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+};
+
 // ── Create Community Project Modal ────────────────────────────────────────────
 const CreateProjectModal = ({ onClose, onDone, showToast }) => {
   const [form, setForm] = useState({ title: "", description: "", category: "water", location: "", region: "", populationSize: "", problemDesc: "", solutionDesc: "", fundingGoal: "" });
@@ -5716,7 +7433,7 @@ const CreateProjectModal = ({ onClose, onDone, showToast }) => {
 };
 
 // ── Programs Dashboard (admin / program_manager) ───────────────────────────────
-const ProgramsDashboard = ({ currentUser, showToast }) => {
+const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
   const [tab, setTab] = useState("overview");
   const [programs, setPrograms] = useState([]);
   const [beneficiaries, setBeneficiaries] = useState([]);
@@ -5725,10 +7442,15 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
   const [showEnroll, setShowEnroll] = useState(false);
   const [showCreateProg, setShowCreateProg] = useState(false);
   const [showCreateProj, setShowCreateProj] = useState(false);
+  const [showBulkEnroll, setShowBulkEnroll] = useState(false);
+  const [showAssignDonor, setShowAssignDonor] = useState(false);
+  const [reportChild, setReportChild] = useState(null);
   const [updateTarget, setUpdateTarget] = useState(null);
   const [filterStatus, setFilterStatus] = useState("");
+  const [pendingPayments, setPendingPayments] = useState([]);
+  const [loadingPay, setLoadingPay] = useState(false);
 
-  const isAdmin = ["super_admin","verification_office","program_manager"].includes(currentUser?.role || "");
+  const isAdmin = ["super_admin","admin","verification_office","program_manager"].includes(currentUser?.role || "");
 
   const load = () => {
     setLoading(true);
@@ -5744,6 +7466,24 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
   };
 
   useEffect(() => { load(); }, []);
+  useEffect(() => { if (tab === "payments") loadPendingPayments(); }, [tab]);
+
+  const loadPendingPayments = () => {
+    if (!adminPaymentsApi) return;
+    setLoadingPay(true);
+    programsApi.adminPayments()
+      .then(d => setPendingPayments(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      .finally(() => setLoadingPay(false));
+  };
+
+  const confirmSponsorPayment = async (paymentId) => {
+    try {
+      await programsApi.confirmPayment(paymentId);
+      showToast("✅ Payment confirmed — sponsor's total updated.");
+      loadPendingPayments();
+    } catch { showToast("Failed to confirm payment", "error"); }
+  };
 
   const handleVerify = async (id, status) => {
     try {
@@ -5755,12 +7495,26 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
     }
   };
 
-  const filteredBens = filterStatus ? beneficiaries.filter(b => b.status === filterStatus) : beneficiaries;
+  const handleEndSponsorship = async (sponsorshipId, reason) => {
+    if (!window.confirm("End this sponsorship? The child will return to 'Seeking Sponsor' status and the donor will be notified.")) return;
+    try {
+      await programsApi.endSponsorship(sponsorshipId, reason);
+      showToast("✅ Sponsorship ended — child is now seeking a new sponsor");
+      load();
+    } catch (e) {
+      showToast(e.message || "Failed to end sponsorship", "error");
+    }
+  };
+
+  const filteredBens = filterStatus
+    ? beneficiaries.filter(b => filterStatus === "under_sponsor" ? (b.status === "under_sponsor" || b.status === "sponsored") : b.status === filterStatus)
+    : beneficiaries;
 
   const TABS = [
     { id: "overview",      label: "📊 Overview" },
     { id: "beneficiaries", label: `👶 Beneficiaries (${beneficiaries.length})` },
     { id: "projects",      label: `🏗️ Community Projects (${projects.length})` },
+    { id: "payments",      label: `💳 Sponsor Payments${pendingPayments.length > 0 ? ` (${pendingPayments.length} pending)` : ""}` },
   ];
 
   if (loading) return (
@@ -5781,6 +7535,8 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
           <div style={{ display: "flex", gap: 8 }}>
             <Btn variant="primary" size="sm" onClick={() => setShowCreateProg(true)}>+ Program</Btn>
             <Btn variant="success" size="sm" onClick={() => programs.length > 0 ? setShowEnroll(true) : showToast("Create a program first", "error")}>👶 Enroll</Btn>
+            <Btn variant="outline" size="sm" onClick={() => programs.length > 0 ? setShowBulkEnroll(true) : showToast("Create a program first", "error")}>📋 Bulk Register</Btn>
+            <Btn variant="primary" size="sm" onClick={() => beneficiaries.length > 0 ? setShowAssignDonor(true) : showToast("Enroll beneficiaries first", "error")}>🤝 Assign Donor</Btn>
             <Btn variant="teal" size="sm" onClick={() => setShowCreateProj(true)}>🏗️ Project</Btn>
           </div>
         )}
@@ -5791,8 +7547,9 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
         <StatCard label="Programs"         value={programs.length}                                           icon="🌱" color={COLORS.secondary} />
         <StatCard label="Beneficiaries"    value={beneficiaries.length}                                      icon="👶" color="#EC4899" />
         <StatCard label="Seeking Sponsor"  value={beneficiaries.filter(b=>b.status==="seeking_sponsor").length} icon="🤝" color={COLORS.accent} />
-        <StatCard label="Sponsored"        value={beneficiaries.filter(b=>b.status==="sponsored").length}    icon="❤️" color={COLORS.primary} />
+        <StatCard label="Under Sponsor"    value={beneficiaries.filter(b=>b.status==="under_sponsor"||b.status==="sponsored").length} icon="❤️" color={COLORS.primary} />
         <StatCard label="Projects"         value={projects.length}                                            icon="🏗️" color={COLORS.teal} />
+        <StatCard label="Pending Payments" value={pendingPayments.length}                                     icon="💳" color="#F59E0B" />
       </div>
 
       {/* Tabs */}
@@ -5854,10 +7611,17 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
       {tab === "beneficiaries" && (
         <div>
           <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-            {["","pending_verification","verified","seeking_sponsor","sponsored","completed"].map(s => (
-              <button key={s} onClick={() => setFilterStatus(s)}
-                style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1.5px solid ${filterStatus === s ? COLORS.primary : COLORS.border}`, background: filterStatus === s ? COLORS.primary : "#fff", color: filterStatus === s ? "#fff" : COLORS.muted, cursor: "pointer" }}>
-                {s === "" ? `All (${beneficiaries.length})` : s.replace(/_/g," ") + ` (${beneficiaries.filter(b=>b.status===s).length})`}
+            {[
+              { key: "",                 label: `All (${beneficiaries.length})` },
+              { key: "pending_verification", label: `Pending (${beneficiaries.filter(b=>b.status==="pending_verification").length})` },
+              { key: "verified",         label: `Verified (${beneficiaries.filter(b=>b.status==="verified").length})` },
+              { key: "seeking_sponsor",  label: `🤝 Seeking Sponsor (${beneficiaries.filter(b=>b.status==="seeking_sponsor").length})` },
+              { key: "under_sponsor",    label: `❤️ Under Sponsor (${beneficiaries.filter(b=>b.status==="under_sponsor"||b.status==="sponsored").length})` },
+              { key: "completed",        label: `Completed (${beneficiaries.filter(b=>b.status==="completed").length})` },
+            ].map(({ key, label }) => (
+              <button key={key} onClick={() => setFilterStatus(key)}
+                style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1.5px solid ${filterStatus === key ? COLORS.primary : COLORS.border}`, background: filterStatus === key ? COLORS.primary : "#fff", color: filterStatus === key ? "#fff" : COLORS.muted, cursor: "pointer" }}>
+                {label}
               </button>
             ))}
           </div>
@@ -5889,8 +7653,14 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
                           Program: <strong>{b.program?.name || "—"}</strong> · Monthly need: <strong style={{ color: COLORS.secondary }}>${b.monthlyNeed}/mo</strong>
                         </div>
                         {activeSponsor && (
-                          <div style={{ fontSize: 12, color: "#065F46", marginTop: 2, fontWeight: 600 }}>
-                            ❤️ Active sponsorship: ${activeSponsor.monthlyAmount}/mo ({activeSponsor.type})
+                          <div style={{ marginTop: 4, background: "#ECFDF5", borderRadius: 8, padding: "6px 10px" }}>
+                            <div style={{ fontSize: 12, color: "#065F46", fontWeight: 700 }}>
+                              ❤️ Sponsored by: {activeSponsor.sponsor?.name || activeSponsor.sponsor?.email || activeSponsor.sponsorId}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#065F46" }}>
+                              ${activeSponsor.monthlyAmount}/mo · {activeSponsor.monthsCompleted} month{activeSponsor.monthsCompleted !== 1 ? 's' : ''} completed
+                              {activeSponsor.endDate && ` · Ends ${new Date(activeSponsor.endDate).toLocaleDateString()}`}
+                            </div>
                           </div>
                         )}
                         <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2 }}>
@@ -5907,14 +7677,50 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
                         {isAdmin && b.status === "verified" && (
                           <Btn variant="primary" size="sm" onClick={() => handleVerify(b.id, "seeking_sponsor")}>🤝 Seek Sponsor</Btn>
                         )}
-                        {["field_team","program_manager"].some(r => r === currentUser?.role) && b.status === "sponsored" && (
+                        {isAdmin && (
+                          <Btn variant="outline" size="sm" onClick={() => setReportChild(b)}>📊 Report</Btn>
+                        )}
+                        {["field_team","program_manager"].some(r => r === currentUser?.role) && (b.status === "sponsored" || b.status === "under_sponsor") && (
                           <Btn variant="purple" size="sm" onClick={() => setUpdateTarget(b)}>📊 Monthly Update</Btn>
                         )}
-                        {b.status === "sponsored" && isAdmin && (
+                        {(b.status === "sponsored" || b.status === "under_sponsor") && isAdmin && (
                           <Btn variant="purple" size="sm" onClick={() => setUpdateTarget(b)}>📊 Submit Update</Btn>
                         )}
-                        {isAdmin && b.status === "sponsored" && (
+                        {isAdmin && (b.status === "sponsored" || b.status === "under_sponsor") && activeSponsor && (
+                          <Btn variant="success" size="sm" onClick={async () => {
+                            const now = new Date();
+                            try {
+                              const r = await programsApi.markPaid(activeSponsor.id, { month: now.getMonth()+1, year: now.getFullYear() });
+                              showToast(`✅ Payment marked — Receipt ${r.receiptNo}`);
+                              load();
+                            } catch (e) { showToast(e.message || "Failed to mark payment", "error"); }
+                          }}>✅ Mark Paid</Btn>
+                        )}
+                        {isAdmin && (b.status === "sponsored" || b.status === "under_sponsor") && activeSponsor && (
+                          <Btn variant="primary" size="sm" onClick={async () => {
+                            if (!window.confirm("Renew this sponsorship contract for another 12 months?")) return;
+                            try {
+                              await programsApi.renewContract(activeSponsor.id, { months: 12 });
+                              showToast("✅ Contract renewed for 12 more months — donor notified");
+                              load();
+                            } catch (e) { showToast(e.message || "Failed to renew", "error"); }
+                          }}>🔄 Renew Contract</Btn>
+                        )}
+                        {isAdmin && (b.status === "sponsored" || b.status === "under_sponsor") && (
                           <Btn variant="muted" size="sm" onClick={() => handleVerify(b.id, "completed")}>🏁 Complete</Btn>
+                        )}
+                        {isAdmin && activeSponsor && (
+                          <Btn variant="danger" size="sm" onClick={() => handleEndSponsorship(activeSponsor.id, "")}>🔚 End Sponsorship</Btn>
+                        )}
+                        {isAdmin && (b.status === "sponsored" || b.status === "under_sponsor" || b.status === "seeking_sponsor") && (
+                          <Btn variant="outline" size="sm" style={{ borderColor:"#DC2626", color:"#DC2626" }} onClick={async () => {
+                            if (!window.confirm("Move this beneficiary back to Seeking Sponsor? All active sponsorships will be ended.")) return;
+                            try {
+                              await programsApi.releaseToSeeking(b.id);
+                              showToast("✅ Beneficiary released — now seeking a new sponsor");
+                              load();
+                            } catch (e) { showToast(e.message || "Failed to release", "error"); }
+                          }}>🔓 Release</Btn>
                         )}
                       </div>
                     </div>
@@ -5982,8 +7788,84 @@ const ProgramsDashboard = ({ currentUser, showToast }) => {
         </div>
       )}
 
+      {/* ── SPONSOR PAYMENTS tab ── */}
+      {tab === "payments" && (() => {
+        if (!isAdmin) return null;
+        if (loadingPay) return <div style={{ textAlign:"center", padding:40, color:COLORS.muted }}>Loading payments…</div>;
+        return (
+          <div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, flexWrap:"wrap", gap:8 }}>
+              <div style={{ fontWeight:800, fontSize:16 }}>💳 Pending Sponsorship Payments</div>
+              <div style={{ display:"flex", gap:8 }}>
+                <Btn size="sm" variant="primary" onClick={async () => {
+                  try {
+                    const r = await programsApi.sendReminders({ daysAhead: 5 });
+                    showToast(`✅ ${r.message}`);
+                  } catch { showToast("Failed to send reminders", "error"); }
+                }}>📬 Send Invoice Reminders (5 days)</Btn>
+                <Btn size="sm" variant="outline" onClick={loadPendingPayments}>🔄 Refresh</Btn>
+              </div>
+            </div>
+            <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:12, color:"#1E40AF" }}>
+              💡 <strong>Auto-reminder:</strong> Donors are automatically notified 5 days before their monthly payment is due (daily at 8 AM). Use the button above to send manually at any time.
+            </div>
+            {pendingPayments.length === 0 ? (
+              <div style={{ textAlign:"center", padding:40, color:COLORS.muted, background:"#fff", borderRadius:16, boxShadow:"0 2px 8px #0001" }}>
+                <div style={{ fontSize:40, marginBottom:12 }}>✅</div>
+                <div style={{ fontWeight:700 }}>No pending payments</div>
+                <div style={{ fontSize:13, marginTop:4 }}>All sponsorship payments have been confirmed.</div>
+              </div>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                {pendingPayments.map(p => {
+                  const sp  = p.sponsorship;
+                  const ben = sp?.beneficiary;
+                  const donor = sp?.sponsor;
+                  return (
+                    <div key={p.id} style={{ background:"#fff", borderRadius:12, padding:"16px 20px", border:`1px solid ${COLORS.border}`, boxShadow:"0 1px 4px #0001" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12 }}>
+                        <div>
+                          <div style={{ fontWeight:800, fontSize:15 }}>{donor?.name || "Sponsor"}</div>
+                          <div style={{ fontSize:12, color:COLORS.muted }}>{donor?.email} · {donor?.phone}</div>
+                          <div style={{ fontSize:13, marginTop:6 }}>
+                            Program: <b>{ben?.program?.name}</b> · Beneficiary: <b>{ben?.publicId}</b>
+                          </div>
+                          <div style={{ fontSize:12, color:COLORS.muted, marginTop:2 }}>
+                            {ben?.programType?.replace(/_/g," ")} · {ben?.beneficiary?.publicRegion || "Somalia"}
+                          </div>
+                          <div style={{ fontSize:11, color:COLORS.muted, marginTop:4 }}>
+                            Submitted: {new Date(p.createdAt).toLocaleString()} · Month {p.month}/{p.year}
+                          </div>
+                        </div>
+                        <div style={{ textAlign:"right" }}>
+                          <div style={{ fontSize:22, fontWeight:900, color:COLORS.primary }}>${(p.amount||0).toLocaleString()}</div>
+                          <div style={{ fontSize:11, color:COLORS.muted }}>{p.currency || "USD"}</div>
+                          <span style={{ background:"#FEF3C7", color:"#92400E", borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700, display:"inline-block", marginTop:4 }}>⏳ Pending</span>
+                        </div>
+                      </div>
+                      <div style={{ marginTop:14, display:"flex", gap:8, flexWrap:"wrap" }}>
+                        <Btn variant="success" size="sm" onClick={() => confirmSponsorPayment(p.id)}>✅ Confirm Payment Received</Btn>
+                        <Btn variant="outline" size="sm" onClick={async () => {
+                          try {
+                            const r = await programsApi.sendReminders({ sponsorshipId: sp?.id });
+                            showToast(`✅ ${r.message}`);
+                          } catch { showToast("Failed to send reminder", "error"); }
+                        }}>📬 Send Invoice to Donor</Btn>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Modals */}
       {showEnroll && <EnrollBeneficiaryModal programs={programs} onClose={() => setShowEnroll(false)} onDone={load} showToast={showToast} />}
+      {showBulkEnroll && <BulkChildEnrollModal programs={programs} onClose={() => setShowBulkEnroll(false)} onDone={load} showToast={showToast} />}
+      {showAssignDonor && <AssignDonorModal beneficiaries={beneficiaries} onClose={() => setShowAssignDonor(false)} onDone={load} showToast={showToast} />}
+      {reportChild && <ChildMonthlyReportModal beneficiary={reportChild} onClose={() => setReportChild(null)} showToast={showToast} />}
       {showCreateProg && <CreateProgramModal onClose={() => setShowCreateProg(false)} onDone={load} showToast={showToast} />}
       {showCreateProj && <CreateProjectModal onClose={() => setShowCreateProj(false)} onDone={load} showToast={showToast} />}
       {updateTarget && <MonthlyUpdateModal beneficiary={updateTarget} onClose={() => setUpdateTarget(null)} showToast={showToast} />}
@@ -6002,28 +7884,168 @@ const ProgramManagerDashboard = ({ currentUser, showToast }) => {
   );
 };
 
+const ProjectManagerDashboard = ({ currentUser, showToast }) => {
+  const C = COLORS;
+  const [projects,    setProjects]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [showCreate,  setShowCreate]  = useState(false);
+  const [filterStatus, setFilterStatus] = useState("");
+
+  const load = () => {
+    setLoading(true);
+    projectsApi.list({ limit: "100" })
+      .then(d => setProjects(d?.projects ?? (Array.isArray(d) ? d : [])))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, []);
+
+  const filtered = filterStatus ? projects.filter(p => p.status === filterStatus) : projects;
+
+  const STATUS_LABELS = {
+    seeking_funding: { label: "Seeking Funding", color: "#F59E0B", bg: "#FEF3C7" },
+    funded:          { label: "Funded",           color: "#3B82F6", bg: "#DBEAFE" },
+    in_progress:     { label: "In Progress",      color: "#8B5CF6", bg: "#EDE9FE" },
+    completed:       { label: "Completed",         color: "#10B981", bg: "#D1FAE5" },
+  };
+  const CAT_ICONS = { water:"💧", school:"🏫", health:"🏥", agriculture:"🌾", shelter:"🏠", energy:"⚡" };
+
+  const totalGoal   = projects.reduce((a, p) => a + (p.fundingGoal  || 0), 0);
+  const totalRaised = projects.reduce((a, p) => a + (p.totalRaised   || 0), 0);
+  const active      = projects.filter(p => p.status === "in_progress").length;
+  const seeking     = projects.filter(p => p.status === "seeking_funding").length;
+
+  const updateProjectStatus = async (projId, status) => {
+    try {
+      await projectsApi.updateStatus(projId, { status });
+      showToast(`✅ Project status updated to "${STATUS_LABELS[status]?.label || status}"`);
+      load();
+    } catch { showToast("Failed to update status", "error"); }
+  };
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12, marginBottom:24 }}>
+        <div>
+          <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:800 }}>🏗️ Project Manager</h2>
+          <p style={{ margin:0, color:C.muted }}>Welcome, {currentUser.fullname} — create and manage community infrastructure projects</p>
+        </div>
+        <Btn variant="primary" onClick={() => setShowCreate(true)}>+ New Project</Btn>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:24 }}>
+        <StatCard icon="🏗️" label="Total Projects"    value={projects.length}                  color={C.primary}   />
+        <StatCard icon="🔧" label="In Progress"        value={active}                           color="#8B5CF6"     />
+        <StatCard icon="💰" label="Seeking Funding"    value={seeking}                          color="#F59E0B"     />
+        <StatCard icon="🎯" label="Total Goal"         value={`$${totalGoal.toLocaleString()}`} color={C.secondary} />
+        <StatCard icon="✅" label="Raised So Far"      value={`$${totalRaised.toLocaleString()}`} color="#10B981"  />
+      </div>
+
+      {/* Filter tabs */}
+      <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:20 }}>
+        {[["","All Projects", projects.length], ["seeking_funding","Seeking Funding", seeking], ["in_progress","In Progress", active], ["funded","Funded", projects.filter(p=>p.status==="funded").length], ["completed","Completed", projects.filter(p=>p.status==="completed").length]].map(([val, lbl, cnt]) => (
+          <button key={val} onClick={() => setFilterStatus(val)}
+            style={{ background: filterStatus===val ? C.primary : "#fff", color: filterStatus===val ? "#fff" : C.text, border:`1px solid ${filterStatus===val ? C.primary : C.border}`, borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+            {lbl} ({cnt})
+          </button>
+        ))}
+      </div>
+
+      {/* Project list */}
+      <div style={{ background:"#fff", borderRadius:16, padding:24, boxShadow:"0 2px 8px #0001" }}>
+        {loading ? (
+          <div style={{ textAlign:"center", padding:40, color:C.muted }}>Loading projects…</div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign:"center", padding:40, color:C.muted }}>
+            <div style={{ fontSize:48, marginBottom:12 }}>🏘️</div>
+            <div style={{ fontSize:17, fontWeight:700 }}>{filterStatus ? "No projects in this status" : "No community projects yet"}</div>
+            <div style={{ fontSize:13, marginTop:4, marginBottom:20 }}>Click "+ New Project" to register a water well, school, clinic, or other infrastructure project.</div>
+            <Btn variant="primary" onClick={() => setShowCreate(true)}>+ Create First Project</Btn>
+          </div>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {filtered.map(p => {
+              const pct  = p.fundingGoal > 0 ? Math.min(100, Math.round((p.totalRaised || 0) / p.fundingGoal * 100)) : 0;
+              const st   = STATUS_LABELS[p.status] || { label: p.status, color: C.muted, bg: "#F3F4F6" };
+              const icon = CAT_ICONS[p.category] || "🏗️";
+              const nextStatuses = { seeking_funding:["funded","in_progress"], funded:["in_progress"], in_progress:["completed"] };
+              const nextSt = nextStatuses[p.status] || [];
+              return (
+                <div key={p.id} style={{ border:`1px solid ${C.border}`, borderRadius:12, padding:"18px 20px" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:8, marginBottom:12 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:4 }}>
+                        <span style={{ fontSize:18 }}>{icon}</span>
+                        <span style={{ fontWeight:800, fontSize:15 }}>{p.title}</span>
+                        <span style={{ background:st.bg, color:st.color, borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>{st.label}</span>
+                        <span style={{ background:"#F3F4F6", borderRadius:20, padding:"2px 10px", fontSize:11, color:C.muted, fontWeight:600 }}>{p.category}</span>
+                      </div>
+                      <div style={{ fontSize:12, color:C.muted }}>📍 {p.location}{p.region ? `, ${p.region}` : ""} {p.populationSize ? `· 👥 ${p.populationSize.toLocaleString()} people` : ""}</div>
+                    </div>
+                    <div style={{ textAlign:"right", flexShrink:0 }}>
+                      <div style={{ fontWeight:900, fontSize:18, color:C.primary }}>${(p.totalRaised||0).toLocaleString()}</div>
+                      <div style={{ fontSize:11, color:C.muted }}>of ${(p.fundingGoal||0).toLocaleString()}</div>
+                    </div>
+                  </div>
+                  {/* Progress bar */}
+                  <div style={{ height:6, background:"#E5E7EB", borderRadius:10, marginBottom:8, overflow:"hidden" }}>
+                    <div style={{ width:`${pct}%`, height:"100%", background:`linear-gradient(90deg,${C.primary},${C.accent})`, borderRadius:10, transition:"width 0.5s" }} />
+                  </div>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.muted, marginBottom:12 }}>
+                    <span>{pct}% funded</span>
+                    <span>{p._count?.contributions || 0} contributions</span>
+                  </div>
+                  {/* Description */}
+                  {p.description && <p style={{ fontSize:13, color:C.text, margin:"0 0 12px", lineHeight:1.6 }}>{p.description.slice(0,200)}{p.description.length>200?"…":""}</p>}
+                  {/* Actions */}
+                  {nextSt.length > 0 && (
+                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                      {nextSt.map(ns => (
+                        <Btn key={ns} size="sm" variant="outline" onClick={() => updateProjectStatus(p.id, ns)}>
+                          → Mark as {STATUS_LABELS[ns]?.label || ns}
+                        </Btn>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Create modal */}
+      {showCreate && <CreateProjectModal onClose={() => setShowCreate(false)} onDone={() => { load(); setShowCreate(false); }} showToast={showToast} />}
+    </div>
+  );
+};
+
 // ─── Role → internal dashboard key ─────────────────────────────────────────
 const ROLE_MAP = {
-  reporter:            "observer",
-  admin:               "admin",           // → AdminDashboard grid (limited tiles)
-  super_admin:         "super_admin",     // → AdminDashboard grid (all tiles)
+  reporter:            "public_user",
+  donor:               "public_user",
+  admin:               "admin",
+  super_admin:         "super_admin",
   field_agent:         "field_team",
-  donor:               "donor",
-  // legacy keys (pass-through)
-  observer:            "observer",
+  observer:            "public_user",
   verification_office: "verification_office",
   field_team:          "field_team",
   program_manager:     "program_manager",
+  project_manager:     "project_manager",
 };
 
 const ROLE_LABELS = {
+  public_user:         { icon: "👤",  label: "User"                  },
   observer:            { icon: "📝",  label: "Reporter"              },
   admin:               { icon: "🟠",  label: "Administrator"         },
-  verification_office: { icon: "🏛️", label: "Verification Officer"   },
+  verification_office: { icon: "🏛️", label: "Admin"   },
   field_team:          { icon: "🗺️", label: "Field Agent"            },
   donor:               { icon: "❤️", label: "Donor / Sponsor"        },
   super_admin:         { icon: "🛡️", label: "Super Administrator"    },
   program_manager:     { icon: "🌱",  label: "Program Manager"       },
+  project_manager:     { icon: "🏗️", label: "Project Manager"       },
 };
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────
@@ -6066,7 +8088,17 @@ export default function KafaaleQaadApp() {
     caseType:         c.caseType || "emergency",
     needsChecklist:   c.needsChecklist || [],
     target_goal:      c.targetGoal  || 0,
-    media_files: [], proof_files: [],
+    media_files: (c.mediaFiles || []).map(f => typeof f === 'string' ? { url: f, type: 'image' } : f),
+    proof_files: (() => {
+      const dp = c.deliveryProof;
+      if (!dp) return [];
+      const parse = (v) => { try { return JSON.parse(v || '[]'); } catch { return []; } };
+      return [
+        ...parse(dp.photoUrls).map(u => ({ url: u, type: 'image' })),
+        ...parse(dp.videoUrls).map(u => ({ url: u, type: 'video' })),
+        ...parse(dp.receiptUrls).map(u => ({ url: u, type: 'document' })),
+      ];
+    })(),
     fieldInvestigation: c.fieldInvestigation,
     _raw: c,
   });
@@ -6115,6 +8147,24 @@ export default function KafaaleQaadApp() {
     if (!authUser) navigate("/login");
   }, [authUser, navigate]);
 
+  // ─── Privacy: block copy, right-click, devtools for non-admin roles ────
+  useEffect(() => {
+    const adminRoles = ['admin','super_admin','verification_office'];
+    if (!authUser || adminRoles.includes(authUser.role)) return; // admins unrestricted
+    const block    = (e) => e.preventDefault();
+    const blockKey = (e) => {
+      if (e.ctrlKey && ['c','a','s','p','u','v'].includes(e.key.toLowerCase())) e.preventDefault();
+      if (e.key === 'F12' || e.key === 'PrintScreen') e.preventDefault();
+      if (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) e.preventDefault();
+    };
+    document.addEventListener('contextmenu', block);
+    document.addEventListener('keydown', blockKey);
+    return () => {
+      document.removeEventListener('contextmenu', block);
+      document.removeEventListener('keydown', blockKey);
+    };
+  }, [authUser]);
+
   // ─── Build currentUser from real auth ──────────────────────────────────
   const currentUser = authUser ? {
     id:       authUser.id,
@@ -6131,30 +8181,39 @@ export default function KafaaleQaadApp() {
     if (!authUser) return;
     if (showLoader) setDataLoading(true);
     try {
-      if (["admin","super_admin","verification_office","program_manager"].includes(authUser.role)) {
-        const data = await adminApi.cases({ limit: 30 });
-        if (data?.cases) setCases(data.cases.map(c => mapCase(c, "admin")));
-        // Load users + donations after dashboard is visible (non-blocking)
-        setTimeout(async () => {
-          try {
-            const [usersRes, donRes] = await Promise.allSettled([adminApi.users(), adminApi.donations()]);
-            if (usersRes.status === "fulfilled" && Array.isArray(usersRes.value)) {
-              setUsers(usersRes.value);
-              setAgents(usersRes.value.filter(u => u.role === "field_agent" && u.isActive));
-            }
-            if (donRes.status === "fulfilled" && donRes.value?.donations)
-              setDonations(donRes.value.donations);
-          } catch { /* ignore */ }
-        }, 800);
-      } else if (authUser.role === "reporter") {
-        const data = await casesApi.my();
-        if (Array.isArray(data)) setCases(data.map(c => mapCase(c, "reporter")));
+      if (["admin","super_admin","verification_office","program_manager","project_manager"].includes(authUser.role)) {
+        const [data, usersRes, donRes] = await Promise.allSettled([
+          adminApi.cases({ limit: 30 }),
+          adminApi.users(),
+          adminApi.donations(),
+        ]);
+        if (data.status === "fulfilled" && data.value?.cases)
+          setCases(data.value.cases.map(c => mapCase(c, "admin")));
+        if (usersRes.status === "fulfilled" && Array.isArray(usersRes.value)) {
+          setUsers(usersRes.value);
+          setAgents(usersRes.value.filter(u => u.role === "field_agent" && u.isActive));
+        }
+        if (donRes.status === "fulfilled" && donRes.value?.donations)
+          setDonations(donRes.value.donations);
+      } else if (["reporter","donor","observer"].includes(authUser.role)) {
+        // Public users (reporter OR donor) load both: their submitted cases + public sponsorable cases
+        const [myData, publicData] = await Promise.allSettled([
+          casesApi.my(),
+          casesApi.list({ limit: 30 }),
+        ]);
+        const myCases = myData.status === "fulfilled"
+          ? (myData.value?.cases ?? (Array.isArray(myData.value) ? myData.value : [])).map(c => ({ ...mapCase(c, "reporter"), _isMine: true }))
+          : [];
+        const publicCases = publicData.status === "fulfilled"
+          ? (publicData.value?.cases ?? []).map(c => mapCase(c, "donor"))
+          : [];
+        // Merge: myCases first (unique by id), then public cases not already in myCases
+        const myIds = new Set(myCases.map(c => c.id));
+        setCases([...myCases, ...publicCases.filter(c => !myIds.has(c.id))]);
       } else if (authUser.role === "field_agent") {
         const data = await fieldApi.assignments();
-        if (Array.isArray(data)) setCases(data.map(c => mapCase(c, "field_agent")));
-      } else if (authUser.role === "donor") {
-        const data = await casesApi.list({ limit: 30 });
-        if (data?.cases) setCases(data.cases.map(c => mapCase(c, "donor")));
+        const list = data?.assignments ?? data?.cases ?? (Array.isArray(data) ? data : []);
+        setCases(list.map(c => mapCase(c, "field_agent")));
       }
     } catch (e) {
       console.error("Failed to load data:", e);
@@ -6307,7 +8366,7 @@ export default function KafaaleQaadApp() {
   }
 
   // ─── Access denied guard ────────────────────────────────────────────────
-  const VALID_ROLES = ["observer","verification_office","field_team","donor","super_admin","admin","program_manager"];
+  const VALID_ROLES = ["public_user","observer","verification_office","field_team","donor","super_admin","admin","program_manager","project_manager"];
   if (!VALID_ROLES.includes(internalRole)) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg }}>
@@ -6331,25 +8390,40 @@ export default function KafaaleQaadApp() {
     onExport: () => setShowExport(true),
     onConfirmDonation: handleConfirmDonation, onComplete: setCompleteCase,
     onStartDelivery: setDeliveryAssign, onFullReport: setFullReportId,
+    // workflow actions (assign, publish, reject, request-info)
+    onAssign: setAssignCase, onPublish: setPublishCase,
+    onReject: setRejectCase, onRequestInfo: setRequestInfoCase,
+    onEnroll: setEnrollCase,
     currentUser, showToast,
   };
   const ROLE_DASHBOARDS = {
+    public_user: (
+      <PublicUserDashboard
+        cases={filteredCases}
+        currentUser={currentUser}
+        onReport={() => setShowReport(true)}
+        onViewCase={setSelectedCase}
+        onSponsor={setSponsorCase}
+        realRole={authUser?.role}
+      />
+    ),
     observer: (
-      <ObserverDashboard cases={filteredCases} currentUser={currentUser}
-        onReport={() => setShowReport(true)} onViewCase={setSelectedCase} />
+      <PublicUserDashboard
+        cases={filteredCases}
+        currentUser={currentUser}
+        onReport={() => setShowReport(true)}
+        onViewCase={setSelectedCase}
+        onSponsor={setSponsorCase}
+        realRole={authUser?.role}
+      />
     ),
     // admin role → new grid dashboard with limited tiles (no Users/Settings)
     admin: (
       <AdminDashboard {...sharedAdminProps} isSuperAdmin={false} />
     ),
-    // verification_office → case workflow pipeline view
+    // verification_office → same full admin dashboard
     verification_office: (
-      <VerificationDashboard cases={filteredCases} agents={agents} donations={donations}
-        onViewCase={setSelectedCase} onAssign={setAssignCase} onReject={setRejectCase}
-        onPublish={setPublishCase} onViewReport={setFieldReportCase}
-        onConfirmDonation={handleConfirmDonation} onComplete={setCompleteCase}
-        onStartDelivery={setDeliveryAssign}
-        onRequestInfo={setRequestInfoCase} onEnroll={setEnrollCase} />
+      <AdminDashboard {...sharedAdminProps} isSuperAdmin={false} />
     ),
     field_team: (
       <FieldTeamDashboard cases={filteredCases} currentUser={currentUser}
@@ -6357,8 +8431,14 @@ export default function KafaaleQaadApp() {
         onDeliver={setDeliveryCase} />
     ),
     donor: (
-      <DonorDashboard cases={filteredCases}
-        currentUser={currentUser} onViewCase={setSelectedCase} onSponsor={setSponsorCase} />
+      <PublicUserDashboard
+        cases={filteredCases}
+        currentUser={currentUser}
+        onReport={() => setShowReport(true)}
+        onViewCase={setSelectedCase}
+        onSponsor={setSponsorCase}
+        realRole="donor"
+      />
     ),
     // super_admin → full grid (all 12 tiles)
     super_admin: (
@@ -6366,6 +8446,9 @@ export default function KafaaleQaadApp() {
     ),
     program_manager: (
       <ProgramManagerDashboard currentUser={currentUser} showToast={showToast} />
+    ),
+    project_manager: (
+      <ProjectManagerDashboard currentUser={currentUser} showToast={showToast} cases={filteredCases} />
     ),
   };
 
@@ -6457,7 +8540,7 @@ export default function KafaaleQaadApp() {
       </div>
 
       {/* ── Pipeline Banner (admin/field only) ── */}
-      {["verification_office","super_admin","field_team"].includes(internalRole) && (
+      {["admin","verification_office","super_admin","field_team"].includes(internalRole) && (
         <div style={{ background: "#fff", borderBottom: `1px solid ${COLORS.border}`, padding: "8px 16px" }}>
           <div className="kf-pipeline" style={{ maxWidth: 1400, margin: "0 auto" }}>
             <span style={{ fontSize: 10, color: COLORS.muted, fontWeight: 700, marginRight: 6, whiteSpace: "nowrap" }}>PIPELINE:</span>
@@ -6485,7 +8568,7 @@ export default function KafaaleQaadApp() {
 
       {/* ── Modals ── */}
       {selectedCase && (
-        <CaseDetailModal c={selectedCase} currentUser={currentUser} onClose={() => setSelectedCase(null)} onUpdateCase={() => reloadCases()} onSponsor={setSponsorCase} />
+        <CaseDetailModal c={selectedCase} currentUser={currentUser} onClose={() => setSelectedCase(null)} onUpdateCase={handleCaseStatusUpdate} onSponsor={setSponsorCase} />
       )}
       {showReport && (
         <ReportCaseModal onClose={() => setShowReport(false)} currentUser={currentUser}

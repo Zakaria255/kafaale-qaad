@@ -13,7 +13,12 @@ const DonationSchema = z.object({
   transactionRef: z.string().max(100).optional(),
 });
 
+const STAFF_ROLES = ['admin','super_admin','field_agent','verification_office','office_staff','program_manager','project_manager'];
+
 router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
+  if (STAFF_ROLES.includes(req.user!.role)) {
+    return res.status(403).json({ error: 'Staff accounts cannot make donations. Use a donor or reporter account.' });
+  }
   try {
     const data = DonationSchema.parse(req.body);
     const kase = await prisma.case.findUnique({ where: { id: data.caseId } });

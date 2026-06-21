@@ -42,7 +42,7 @@ export default function Footer() {
       fontFamily: "'Segoe UI', system-ui, sans-serif",
       marginTop: 80,
     }}>
-      {/* Gold top accent line */}
+      {/* Brand accent line */}
       <div style={{ height: 4, background: `linear-gradient(90deg, ${B.blue}, ${B.green}, ${B.gold})` }} />
 
       <div style={{ maxWidth: 1340, margin: "0 auto", padding: isMobile ? "48px 20px 0" : "64px 32px 0" }}>
