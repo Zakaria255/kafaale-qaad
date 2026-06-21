@@ -3104,6 +3104,27 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
   const [sponsorInvoice,  setSponsorInvoice]  = useState(null);
   const [sponsorReport,   setSponsorReport]   = useState(null);
   const [loadingSpons,    setLoadingSpons]    = useState(true);
+  const [invoiceEditMode, setInvoiceEditMode] = useState(false);
+  const DEFAULT_INVOICE_SETTINGS = {
+    orgName:       "Kafaale Qaad",
+    orgSub:        "Humanitarian Relief Organization",
+    orgCountry:    "Somalia · kafaaleqaad.org",
+    bankName:      "Kafaale Qaad",
+    bankIBAN:      "SO00 0000 0000 0000 0000",
+    bankBIC:       "CAFGSO1X",
+    mobileNumber:  "+252 61 200 0000",
+    mobileName:    "Kafaale Qaad",
+    footerMsg:     "Thank you for your generous support. Please include the invoice number as your payment reference.",
+    description:   "Monthly Sponsorship Support",
+  };
+  const [invoiceSettings, setInvoiceSettings] = useState(() => {
+    try { return { ...DEFAULT_INVOICE_SETTINGS, ...JSON.parse(localStorage.getItem("kf_invoice_settings") || "{}") }; }
+    catch { return DEFAULT_INVOICE_SETTINGS; }
+  });
+  const saveInvoiceSettings = (s) => {
+    setInvoiceSettings(s);
+    localStorage.setItem("kf_invoice_settings", JSON.stringify(s));
+  };
 
   useEffect(() => {
     programsApi.mySponsorships()
@@ -3457,6 +3478,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
             const { invoiceNo, sponsorship: s, dueDate, issuedDate } = sponsorInvoice;
             const ben = s?.beneficiary;
             const donor = s?.sponsor;
+            const IS = invoiceSettings;
             const printInv = () => {
               const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${invoiceNo}</title>
               <style>body{font-family:Georgia,serif;max-width:700px;margin:40px auto;padding:0 24px;color:#1a1a1a}
@@ -3467,22 +3489,22 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
               .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#6B7280;text-align:center}
               .pay{background:#F0F4FF;border-radius:8px;padding:16px;margin:20px 0}
               </style></head><body>
-              <div class="hdr"><div><div class="logo">☽ Kafaale Qaad</div><div style="font-size:13px;color:#6B7280;margin-top:4px">Humanitarian Relief Organization</div><div style="font-size:12px;color:#6B7280">Somalia · kafaaleqaad.org</div></div>
+              <div class="hdr"><div><div class="logo">&#9789; ${IS.orgName}</div><div style="font-size:13px;color:#6B7280;margin-top:4px">${IS.orgSub}</div><div style="font-size:12px;color:#6B7280">${IS.orgCountry}</div></div>
               <div style="text-align:right"><div style="font-size:22px;font-weight:900">INVOICE</div><div style="color:#6B7280;font-size:13px">${invoiceNo}</div><div style="font-size:13px;margin-top:4px">Issued: ${new Date(issuedDate).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div></div></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
               <div><div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:6px">BILL TO</div>
-              <div style="font-weight:700">${donor?.name||"Sponsor"}</div><div style="font-size:13px;color:#374151">${donor?.email||""}</div><div style="font-size:13px;color:#374151">${donor?.phone||""}</div></div>
+              <div style="font-weight:700">${donor?.name||"Sponsor"}</div><div style="font-size:13px;color:#374151">${donor?.email||""}</div></div>
               <div><div style="font-size:12px;font-weight:700;color:#6B7280;margin-bottom:6px">PAYMENT DUE</div>
               <div style="font-weight:700;font-size:18px;color:#DC2626">${dueDate ? new Date(dueDate).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}) : "Upon receipt"}</div></div></div>
               <h1>Monthly Sponsorship Invoice</h1>
               <table><thead><tr><th>Description</th><th>Program</th><th>Beneficiary</th><th>Amount</th></tr></thead>
-              <tbody><tr><td>Monthly Sponsorship Support</td><td>${ben?.program?.name||"Program"}</td><td>${ben?.publicId||"—"} · ${ben?.publicRegion||"Somalia"}</td><td class="total">$${(s?.monthlyAmount||0).toLocaleString()} ${s?.currency||"USD"}</td></tr></tbody>
+              <tbody><tr><td>${IS.description}</td><td>${ben?.program?.name||"Program"}</td><td>${ben?.publicId||"—"} &middot; ${ben?.publicRegion||"Somalia"}</td><td class="total">$${(s?.monthlyAmount||0).toLocaleString()} ${s?.currency||"USD"}</td></tr></tbody>
               <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">TOTAL DUE</td><td class="total">$${(s?.monthlyAmount||0).toLocaleString()}</td></tr></tfoot></table>
-              <div class="pay"><div style="font-weight:700;margin-bottom:10px">💳 Payment Methods</div>
-              <div style="font-size:13px;line-height:2"><b>Bank Transfer:</b> Kafaale Qaad · IBAN: SO00 0000 0000 0000 0000 · BIC: CAFGSO1X<br/>
-              <b>Mobile Money (EVC+):</b> +252 61 200 0000 · Name: Kafaale Qaad<br/>
+              <div class="pay"><div style="font-weight:700;margin-bottom:10px">&#128179; Payment Methods</div>
+              <div style="font-size:13px;line-height:2"><b>Bank Transfer:</b> ${IS.bankName} &middot; IBAN: ${IS.bankIBAN} &middot; BIC: ${IS.bankBIC}<br/>
+              <b>Mobile Money (EVC+):</b> ${IS.mobileNumber} &middot; ${IS.mobileName}<br/>
               <b>Reference:</b> ${invoiceNo}</div></div>
-              <div class="footer">Thank you for your generous support. This invoice is issued by Kafaale Qaad, a registered humanitarian organization. Please include the invoice number as your payment reference so we can match your payment quickly.</div>
+              <div class="footer">${IS.footerMsg}</div>
               </body></html>`;
               const blob = new Blob([html], { type: "text/html" });
               const url = URL.createObjectURL(blob);
@@ -3498,40 +3520,98 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
               };
               iframe.src = url;
             };
+            const ifield = (key, label, wide) => (
+              <div style={{ marginBottom:10, gridColumn: wide ? "1 / -1" : undefined }}>
+                <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:3 }}>{label}</div>
+                <input value={IS[key]} onChange={e => saveInvoiceSettings({ ...IS, [key]: e.target.value })}
+                  style={{ width:"100%", padding:"7px 10px", borderRadius:7, border:`1.5px solid ${C.primary}`, fontSize:13, boxSizing:"border-box" }} />
+              </div>
+            );
+            const isAdmin = user?.role === "super_admin" || user?.role === "admin";
             return (
-              <Modal title={`🧾 Invoice — ${invoiceNo}`} onClose={() => setSponsorInvoice(null)} wide>
-                <div style={{ background:"#F8FAFC", border:`1px solid ${C.border}`, borderRadius:12, padding:24, marginBottom:20 }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:16 }}>
-                    <div><div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>BILL TO</div><div style={{ fontWeight:800 }}>{donor?.name}</div><div style={{ fontSize:13, color:C.muted }}>{donor?.email}</div></div>
-                    <div style={{ textAlign:"right" }}><div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>INVOICE NO.</div><div style={{ fontWeight:800 }}>{invoiceNo}</div><div style={{ fontSize:12, color:C.muted }}>{new Date(issuedDate).toLocaleDateString()}</div></div>
-                  </div>
-                  <div style={{ background:"#fff", borderRadius:10, padding:16, border:`1px solid ${C.border}`, marginBottom:16 }}>
-                    <table style={{ width:"100%", borderCollapse:"collapse" }}>
-                      <thead><tr style={{ borderBottom:`1px solid ${C.border}` }}>
-                        <th style={{ textAlign:"left", padding:"6px 8px", fontSize:12, color:C.muted }}>Description</th>
-                        <th style={{ textAlign:"left", padding:"6px 8px", fontSize:12, color:C.muted }}>Program</th>
-                        <th style={{ textAlign:"right", padding:"6px 8px", fontSize:12, color:C.muted }}>Amount Due</th>
-                      </tr></thead>
-                      <tbody><tr>
-                        <td style={{ padding:"10px 8px", fontSize:14 }}>Monthly Sponsorship</td>
-                        <td style={{ padding:"10px 8px", fontSize:13, color:C.muted }}>{ben?.program?.icon} {ben?.program?.name}</td>
-                        <td style={{ padding:"10px 8px", textAlign:"right", fontWeight:900, fontSize:18, color:C.primary }}>${(s?.monthlyAmount||0).toLocaleString()} {s?.currency}</td>
-                      </tr></tbody>
-                    </table>
-                  </div>
-                  <div style={{ background:`${C.primary}08`, borderRadius:10, padding:14 }}>
-                    <div style={{ fontWeight:700, marginBottom:8, fontSize:13 }}>💳 How to Pay</div>
-                    <div style={{ fontSize:12, lineHeight:2, color:C.text }}>
-                      <b>Bank Transfer:</b> Kafaale Qaad · IBAN: SO00 0000 0000 0000 0000<br/>
-                      <b>Mobile Money (EVC+):</b> +252 61 200 0000<br/>
-                      <b>Reference:</b> {invoiceNo}
+              <Modal title={`🧾 Invoice — ${invoiceNo}`} onClose={() => { setSponsorInvoice(null); setInvoiceEditMode(false); }} wide>
+                {invoiceEditMode ? (
+                  <div style={{ background:"#F0F7FF", border:`1.5px solid ${C.primary}30`, borderRadius:12, padding:20, marginBottom:16 }}>
+                    <div style={{ fontWeight:800, fontSize:14, color:C.primary, marginBottom:16 }}>✏️ Edit Invoice Template</div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 16px" }}>
+                      {ifield("orgName",      "Organization Name")}
+                      {ifield("orgSub",       "Subtitle")}
+                      {ifield("orgCountry",   "City · Website", true)}
+                      {ifield("description",  "Line-Item Description", true)}
+                      {ifield("bankName",     "Bank Account Name")}
+                      {ifield("bankBIC",      "BIC / SWIFT")}
+                      {ifield("bankIBAN",     "IBAN", true)}
+                      {ifield("mobileNumber", "Mobile Money Number")}
+                      {ifield("mobileName",   "Mobile Money Name")}
+                    </div>
+                    <div style={{ marginBottom:10 }}>
+                      <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:3 }}>Footer Message</div>
+                      <textarea value={IS.footerMsg} onChange={e => saveInvoiceSettings({ ...IS, footerMsg: e.target.value })}
+                        rows={2} style={{ width:"100%", padding:"7px 10px", borderRadius:7, border:`1.5px solid ${C.primary}`, fontSize:13, resize:"vertical", boxSizing:"border-box" }} />
+                    </div>
+                    <div style={{ display:"flex", gap:8 }}>
+                      <Btn variant="muted" size="sm" onClick={() => saveInvoiceSettings({ ...DEFAULT_INVOICE_SETTINGS })}>↺ Reset to Default</Btn>
+                      <Btn variant="primary" size="sm" onClick={() => setInvoiceEditMode(false)}>✅ Done Editing</Btn>
                     </div>
                   </div>
-                  {dueDate && <div style={{ marginTop:12, textAlign:"center", fontSize:13, color:"#EF4444", fontWeight:700 }}>Payment due: {new Date(dueDate).toLocaleDateString("en-GB",{ day:"numeric", month:"long", year:"numeric" })}</div>}
-                </div>
-                <div style={{ display:"flex", gap:10 }}>
-                  <Btn variant="muted" onClick={() => setSponsorInvoice(null)} style={{ flex:1 }}>Close</Btn>
-                  <Btn variant="primary" onClick={printInv} style={{ flex:2 }}>🖨️ Print / Save as PDF</Btn>
+                ) : (
+                  <div style={{ background:"#F8FAFC", border:`1px solid ${C.border}`, borderRadius:12, padding:24, marginBottom:16 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12, marginBottom:16 }}>
+                      <div>
+                        <div style={{ fontWeight:900, fontSize:16, color:C.primary }}>☽ {IS.orgName}</div>
+                        <div style={{ fontSize:12, color:C.muted }}>{IS.orgSub}</div>
+                        <div style={{ fontSize:12, color:C.muted }}>{IS.orgCountry}</div>
+                      </div>
+                      <div style={{ textAlign:"right" }}>
+                        <div style={{ fontSize:11, color:C.muted, fontWeight:700 }}>INVOICE NO.</div>
+                        <div style={{ fontWeight:800 }}>{invoiceNo}</div>
+                        <div style={{ fontSize:12, color:C.muted }}>{new Date(issuedDate).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
+                      <div style={{ background:"#fff", borderRadius:8, padding:12, border:`1px solid ${C.border}` }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:4 }}>BILL TO</div>
+                        <div style={{ fontWeight:700 }}>{donor?.name}</div>
+                        <div style={{ fontSize:12, color:C.muted }}>{donor?.email}</div>
+                      </div>
+                      <div style={{ background:"#fff", borderRadius:8, padding:12, border:`1px solid ${C.border}` }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:C.muted, marginBottom:4 }}>PAYMENT DUE</div>
+                        <div style={{ fontWeight:800, color:"#EF4444" }}>{dueDate ? new Date(dueDate).toLocaleDateString("en-GB",{ day:"numeric", month:"long", year:"numeric" }) : "Upon receipt"}</div>
+                      </div>
+                    </div>
+                    <div style={{ background:"#fff", borderRadius:10, padding:16, border:`1px solid ${C.border}`, marginBottom:16, overflowX:"auto" }}>
+                      <table style={{ width:"100%", borderCollapse:"collapse", minWidth:320 }}>
+                        <thead><tr style={{ borderBottom:`1px solid ${C.border}` }}>
+                          <th style={{ textAlign:"left", padding:"6px 8px", fontSize:12, color:C.muted }}>Description</th>
+                          <th style={{ textAlign:"left", padding:"6px 8px", fontSize:12, color:C.muted }}>Program</th>
+                          <th style={{ textAlign:"right", padding:"6px 8px", fontSize:12, color:C.muted }}>Amount</th>
+                        </tr></thead>
+                        <tbody><tr>
+                          <td style={{ padding:"10px 8px", fontSize:13 }}>{IS.description}</td>
+                          <td style={{ padding:"10px 8px", fontSize:13, color:C.muted }}>{ben?.program?.icon} {ben?.program?.name}</td>
+                          <td style={{ padding:"10px 8px", textAlign:"right", fontWeight:900, fontSize:18, color:C.primary }}>${(s?.monthlyAmount||0).toLocaleString()} {s?.currency}</td>
+                        </tr></tbody>
+                      </table>
+                    </div>
+                    <div style={{ background:`${C.primary}08`, borderRadius:10, padding:14, marginBottom:12 }}>
+                      <div style={{ fontWeight:700, marginBottom:8, fontSize:13 }}>💳 How to Pay</div>
+                      <div style={{ fontSize:12, lineHeight:2, color:C.text }}>
+                        <b>Bank Transfer:</b> {IS.bankName} · IBAN: {IS.bankIBAN} · BIC: {IS.bankBIC}<br/>
+                        <b>Mobile Money (EVC+):</b> {IS.mobileNumber} · {IS.mobileName}<br/>
+                        <b>Reference:</b> {invoiceNo}
+                      </div>
+                    </div>
+                    <div style={{ fontSize:11, color:C.muted, textAlign:"center" }}>{IS.footerMsg}</div>
+                  </div>
+                )}
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                  <Btn variant="muted" onClick={() => { setSponsorInvoice(null); setInvoiceEditMode(false); }} style={{ flex:1, minWidth:80 }}>Close</Btn>
+                  {isAdmin && (
+                    <Btn variant="outline" onClick={() => setInvoiceEditMode(m => !m)} style={{ flex:1, minWidth:100 }}>
+                      {invoiceEditMode ? "👁️ Preview" : "✏️ Edit Template"}
+                    </Btn>
+                  )}
+                  <Btn variant="primary" onClick={printInv} style={{ flex:2, minWidth:160 }}>🖨️ Print / Save as PDF</Btn>
                 </div>
               </Modal>
             );
