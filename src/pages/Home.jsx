@@ -233,16 +233,13 @@ export default function Home() {
       <section style={{ background:C.bg, borderBottom:`1px solid ${C.border}`, padding: isMobile?"16px 20px":"14px 32px" }}>
         <div style={{ maxWidth:1280, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", gap: isMobile?10:20, flexWrap:"wrap" }}>
           {[
-            { icon:"✅", bg:"#D1FAE5", color:"#065F46", label:"100% Field Verified" },
-            { icon:"📍", bg:"#DBEAFE", color:"#1D4ED8", label:"GPS-Tracked Delivery" },
-            { icon:"🔒", bg:"#EDE9FE", color:"#5B21B6", label:"Encrypted Payments" },
-            { icon:"📊", bg:"#FEF3C7", color:"#92400E", label:"Full Audit Trail" },
-            { icon:"🤝", bg:"#FCE7F3", color:"#9D174D", label:"No Hidden Fees" },
-          ].map((b, i) => (
-            <div key={i} className="kf-trust-badge">
-              <span className="icon" style={{ background:b.bg, color:b.color }}>{b.icon}</span>
-              {b.label}
-            </div>
+            "100% Field Verified",
+            "GPS-Tracked Delivery",
+            "Encrypted Payments",
+            "Full Audit Trail",
+            "No Hidden Fees",
+          ].map((label, i) => (
+            <div key={i} className="kf-trust-badge">{label}</div>
           ))}
         </div>
       </section>
