@@ -4868,12 +4868,12 @@ const TEAM_VIS_KEY_ADMIN = "kf_team_visible";
 const UPDATES_ADMIN_KEY = "kf_updates";
 
 const DEFAULT_TEAM_ADMIN = [
-  { id:"t1", name:"Abdimalik Hassan", role:"Project Lead & CEO",       bio:"Humanitarian sector leader with 10+ years in crisis response across the Horn of Africa.", photo:"", linkedin:"", show:true },
-  { id:"t2", name:"Asha Mohammed",    role:"Product Manager",          bio:"Driving platform strategy and community partnerships across 4 countries.", photo:"", linkedin:"", show:true },
-  { id:"t3", name:"Fatima Ali",       role:"Design Lead",              bio:"Award-winning UX designer focused on making aid technology accessible in low-connectivity environments.", photo:"", linkedin:"", show:true },
-  { id:"t4", name:"Omar Ibrahim",     role:"Lead Backend Engineer",    bio:"Full-stack engineer specialising in secure, high-availability humanitarian platforms.", photo:"", linkedin:"", show:true },
-  { id:"t5", name:"Hodan Warsame",    role:"Field Operations Manager", bio:"Former UNHCR field officer with direct experience in IDP camp management and emergency response.", photo:"", linkedin:"", show:true },
-  { id:"t6", name:"Mahad Yusuf",      role:"Security & DevOps",        bio:"Cybersecurity specialist ensuring donor data and beneficiary privacy across all systems.", photo:"", linkedin:"", show:true },
+  { id:"t1", name:"Abdimalik Hassan", role:"Project Lead & CEO",       bio:"Humanitarian sector leader with 10+ years in crisis response across the Horn of Africa.", photo:"https://randomuser.me/api/portraits/men/32.jpg",  linkedin:"", show:true },
+  { id:"t2", name:"Asha Mohammed",    role:"Product Manager",          bio:"Driving platform strategy and community partnerships across 4 countries.", photo:"https://randomuser.me/api/portraits/women/44.jpg", linkedin:"", show:true },
+  { id:"t3", name:"Fatima Ali",       role:"Design Lead",              bio:"Award-winning UX designer focused on making aid technology accessible in low-connectivity environments.", photo:"https://randomuser.me/api/portraits/women/26.jpg", linkedin:"", show:true },
+  { id:"t4", name:"Omar Ibrahim",     role:"Lead Backend Engineer",    bio:"Full-stack engineer specialising in secure, high-availability humanitarian platforms.", photo:"https://randomuser.me/api/portraits/men/68.jpg",  linkedin:"", show:true },
+  { id:"t5", name:"Hodan Warsame",    role:"Field Operations Manager", bio:"Former UNHCR field officer with direct experience in IDP camp management and emergency response.", photo:"https://randomuser.me/api/portraits/women/62.jpg", linkedin:"", show:true },
+  { id:"t6", name:"Mahad Yusuf",      role:"Security & DevOps",        bio:"Cybersecurity specialist ensuring donor data and beneficiary privacy across all systems.", photo:"https://randomuser.me/api/portraits/men/45.jpg",  linkedin:"", show:true },
 ];
 const DEFAULT_UPDATES_ADMIN = [
   { id:"upd-1", type:"Flood",    published:true,  title:"Severe Flooding Displaces 3,000+ Families in Beledweyne", date:"2026-06-15", location:"Beledweyne, Hiran Region",  severity:"critical", body:"Unprecedented flooding along the Shabelle River has displaced over 3,000 families in Beledweyne. Access roads are cut off. Emergency food, shelter, and clean water are urgently needed.", img:"https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=700&q=75", needs:["Emergency Shelter Kits","Clean Water","Food Packages"] },
@@ -4881,7 +4881,16 @@ const DEFAULT_UPDATES_ADMIN = [
   { id:"upd-3", type:"Emergency",published:true,  title:"IDP Camp Medical Emergency — Mogadishu North",            date:"2026-06-05", location:"Mogadishu, Benadir",         severity:"high",     body:"A disease outbreak in Mogadishu North IDP camp is affecting hundreds of families. Medical supplies are critically low.", img:"https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=700&q=75", needs:["Medicine","ORS Kits","Mobile Clinic"] },
   { id:"upd-4", type:"General",  published:true,  title:"Kafaale Qaad Expands to Lower Jubba Region",              date:"2026-05-28", location:"Kismayo, Lower Jubba",       severity:"info",     body:"We are proud to announce our expansion into the Lower Jubba region. Local field agents have been trained and onboarded.", img:"https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=700&q=75", needs:[] },
 ];
-const loadTeamAdmin = () => { try { return JSON.parse(localStorage.getItem(TEAM_KEY_ADMIN)||"null")||DEFAULT_TEAM_ADMIN; } catch { return DEFAULT_TEAM_ADMIN; } };
+const loadTeamAdmin = () => {
+  try {
+    const s = JSON.parse(localStorage.getItem(TEAM_KEY_ADMIN)||"null");
+    if (!s) return DEFAULT_TEAM_ADMIN;
+    return s.map(m => {
+      const def = DEFAULT_TEAM_ADMIN.find(d => d.id === m.id);
+      return (!m.photo && def?.photo) ? { ...m, photo: def.photo } : m;
+    });
+  } catch { return DEFAULT_TEAM_ADMIN; }
+};
 const loadUpdatesAdmin = () => { try { return JSON.parse(localStorage.getItem(UPDATES_ADMIN_KEY)||"null")||DEFAULT_UPDATES_ADMIN; } catch { return DEFAULT_UPDATES_ADMIN; } };
 const BLANK_MEMBER = { id:"", name:"", role:"", bio:"", photo:"", linkedin:"", show:true };
 const BLANK_UPDATE = { id:"", type:"General", published:false, title:"", date:"", location:"", severity:"medium", body:"", img:"", needs:[] };
@@ -5310,13 +5319,42 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                     { key:"role",     label:"Role / Title",   type:"text"  },
                     { key:"photo",    label:"Photo URL",      type:"url"   },
                     { key:"linkedin", label:"LinkedIn URL",   type:"url"   },
-                  ].map(({key,label,type}) => (
+                  ].map(({key,label,type}) => key === "photo" ? null : (
                     <div key={key}>
                       <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>{label}</label>
                       <input type={type} value={memberForm[key]||""} onChange={e => setMemberForm(f => ({...f,[key]:e.target.value}))}
                         style={{ width:"100%", padding:"10px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:14, fontFamily:"inherit", boxSizing:"border-box" }} />
                     </div>
                   ))}
+                  {/* Photo — upload file OR paste URL */}
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:8, textTransform:"uppercase", letterSpacing:.5 }}>Photo</label>
+                    <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
+                      {/* Preview */}
+                      <div style={{ width:72, height:72, borderRadius:"50%", overflow:"hidden", border:`2px solid ${C.border}`, flexShrink:0, background:C.bg, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        {memberForm.photo
+                          ? <img src={memberForm.photo} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                          : <span style={{ fontSize:28, opacity:0.3 }}>👤</span>}
+                      </div>
+                      <div style={{ flex:1, minWidth:160 }}>
+                        {/* File upload */}
+                        <label style={{ display:"block", padding:"8px 14px", background:C.primary+"15", color:C.primary, borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, textAlign:"center", marginBottom:8, border:`1px solid ${C.primary}40` }}>
+                          📷 Upload Photo
+                          <input type="file" accept="image/*" style={{ display:"none" }} onChange={e => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = ev => setMemberForm(f => ({...f, photo: ev.target.result}));
+                            reader.readAsDataURL(file);
+                          }} />
+                        </label>
+                        {/* URL fallback */}
+                        <input type="url" value={memberForm.photo||""} onChange={e => setMemberForm(f => ({...f,photo:e.target.value}))}
+                          placeholder="…or paste image URL"
+                          style={{ width:"100%", padding:"8px 12px", borderRadius:8, border:`1px solid ${C.border}`, fontSize:12, fontFamily:"inherit", boxSizing:"border-box", color:C.muted }} />
+                      </div>
+                    </div>
+                  </div>
                   <div>
                     <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Bio</label>
                     <textarea rows={3} value={memberForm.bio||""} onChange={e => setMemberForm(f => ({...f,bio:e.target.value}))}
@@ -5329,11 +5367,6 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                     </button>
                   </div>
                 </div>
-                {memberForm.photo && (
-                  <div style={{ marginTop:14, textAlign:"center" }}>
-                    <img src={memberForm.photo} alt="" style={{ width:72, height:72, borderRadius:"50%", objectFit:"cover", border:`2px solid ${C.border}` }} />
-                  </div>
-                )}
                 <div style={{ display:"flex", gap:12, marginTop:22 }}>
                   <button onClick={saveMember} style={{ flex:1, padding:"11px", background:C.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14 }}>
                     {editMember==="new" ? "Add Member" : "Save Changes"}
