@@ -462,87 +462,78 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ HOW IT WORKS + MINI STORIES ══════════════ */}
-      <section style={sec(C.bg)}>
-        <div style={wrap}>
-
-          {/* Section header */}
-          <div style={{ textAlign:"center", marginBottom: isMobile ? 40 : 64 }}>
-            <span className="kf-badge" style={{ background:C.primary+"15", color:C.primary }}>{P.workflow_badge}</span>
-            <hr className="kf-rule-center" />
-            <h2 style={{ fontSize:"clamp(26px,3.5vw,42px)", fontWeight:900, margin:"0 0 14px", letterSpacing:-0.5 }}>{P.workflow_title}</h2>
-            <p style={{ fontSize:17, color:C.muted, maxWidth:540, margin:"0 auto", lineHeight:1.7 }}>{P.workflow_sub}</p>
+      {/* ── Children Photo Section ── */}
+      <section style={{ position:"relative", overflow:"hidden" }}>
+        <div style={{
+          display:"grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+          minHeight: isMobile ? "auto" : 520,
+        }}>
+          {/* Image side */}
+          <div style={{ position:"relative", minHeight: isMobile ? 260 : "auto", overflow:"hidden" }}>
+            <img
+              src="/children-sharing.jpg"
+              alt="Children sharing a meal together"
+              style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" }}
+            />
+            {/* Subtle overlay for depth */}
+            <div style={{ position:"absolute", inset:0, background:"linear-gradient(to right, transparent 60%, rgba(0,38,81,0.12))" }} />
           </div>
 
-          {/* ── Impact story cards (from admin or fallback) ── */}
-          {(() => {
-            let stories = [];
-            try { stories = JSON.parse(localStorage.getItem("kf_impact_stories") || "[]"); } catch {}
-            const FALLBACK = [
-              { id:"f1", icon:"🏠", color:"#10B981", category:"Shelter", title:"Family Rehoused After Flood", location:"Baidoa", beforeDesc:"Family of 6 living in damaged structure with no protection from rain.", afterDesc:"New shelter built, family safe and healthy after 12 days.", daysToDeliver:"12", amountDistributed:"$780" },
-              { id:"f2", icon:"🩺", color:"#3B82F6", category:"Medical", title:"Child Receives Surgery",       location:"Mogadishu", beforeDesc:"8-year-old with untreated heart condition, family unable to afford care.", afterDesc:"Surgery completed successfully, child recovering at home.", daysToDeliver:"9",  amountDistributed:"$2,100" },
-              { id:"f3", icon:"📚", color:"#F59E0B", category:"Education","title":"Orphan Back in School",     location:"Garowe", beforeDesc:"Three siblings dropped out after losing parents — no one to pay fees.", afterDesc:"School fees paid for full year, all 3 children re-enrolled.", daysToDeliver:"7",  amountDistributed:"$540" },
-              { id:"f4", icon:"💧", color:"#06B6D4", category:"Water",    title:"Village Gets Clean Water",    location:"Kismayo", beforeDesc:"Community walking 4 km daily for unsafe water; waterborne disease high.", afterDesc:"Borehole drilled, water tested clean — 280 families now served.", daysToDeliver:"21", amountDistributed:"$3,200" },
-            ];
-            const shown = stories.length > 0 ? stories.slice(0,4) : FALLBACK;
-            return (
-              <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": isTablet?"1fr 1fr":"repeat(4,1fr)", gap: isMobile?14:22 }}>
-                {shown.map((st) => {
-                  const accent = st.color || C.secondary;
-                  return (
-                    <div key={st.id} style={{
-                      background:"#fff", borderRadius:18, overflow:"hidden",
-                      boxShadow:"0 2px 16px rgba(0,38,81,0.07)",
-                      border:`1.5px solid ${C.border}`,
-                      display:"flex", flexDirection:"column",
-                      transition:"box-shadow .2s, transform .2s",
-                    }}
-                      onMouseOver={e => { e.currentTarget.style.boxShadow="0 8px 32px rgba(0,38,81,0.13)"; e.currentTarget.style.transform="translateY(-3px)"; }}
-                      onMouseOut={e  => { e.currentTarget.style.boxShadow="0 2px 16px rgba(0,38,81,0.07)"; e.currentTarget.style.transform="none"; }}
-                    >
-                      {st.afterImg
-                        ? <img src={st.afterImg} alt={st.title} style={{ width:"100%", height:130, objectFit:"cover" }} />
-                        : <div style={{ height:130, background:`linear-gradient(135deg,${accent}22,${accent}44)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:44 }}>
-                            {st.icon || "✨"}
-                          </div>
-                      }
-                      <div style={{ padding:"14px 16px", flex:1, display:"flex", flexDirection:"column", gap:6 }}>
-                        <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                          <span style={{ fontSize:10, fontWeight:800, background:accent+"18", color:accent, borderRadius:6, padding:"2px 8px" }}>{st.category}</span>
-                          {st.location && <span style={{ fontSize:10, color:C.muted }}>📍 {st.location}</span>}
-                        </div>
-                        <div style={{ fontSize:13, fontWeight:800, color:C.text, lineHeight:1.4 }}>{st.title}</div>
-                        <div style={{ fontSize:11, color:C.muted, lineHeight:1.6, flex:1 }}>{st.afterDesc || st.beforeDesc}</div>
-                        <div style={{ display:"flex", gap:12, marginTop:6, paddingTop:8, borderTop:`1px solid ${C.border}` }}>
-                          {st.daysToDeliver && <div style={{ fontSize:10, color:C.muted }}><span style={{ fontWeight:800, color:accent, fontSize:13 }}>{st.daysToDeliver}</span> days</div>}
-                          {st.amountDistributed && <div style={{ fontSize:10, color:C.muted }}><span style={{ fontWeight:800, color:C.secondary, fontSize:13 }}>{st.amountDistributed}</span> aid</div>}
-                          <div style={{ marginLeft:"auto", fontSize:10, color:"#10B981", fontWeight:700, display:"flex", alignItems:"center", gap:3 }}>
-                            <span style={{ width:6, height:6, borderRadius:"50%", background:"#10B981", display:"inline-block" }}/>Verified
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
+          {/* Message side */}
+          <div style={{
+            background:`linear-gradient(135deg, ${C.navy} 0%, #0f3460 60%, ${C.secondary}99 100%)`,
+            display:"flex", flexDirection:"column", justifyContent:"center",
+            padding: isMobile ? "48px 28px" : "64px 56px",
+            color:"#fff",
+          }}>
+            <span style={{
+              display:"inline-block", fontSize:11, fontWeight:800, letterSpacing:2,
+              textTransform:"uppercase", color:C.gold, marginBottom:20,
+              background:"rgba(224,171,33,0.12)", border:"1px solid rgba(224,171,33,0.3)",
+              borderRadius:6, padding:"4px 12px", width:"fit-content",
+            }}>Our Mission in Action</span>
 
-          {/* ── CTAs ── */}
-          <div style={{ display:"flex", justifyContent:"center", gap:14, marginTop: isMobile?36:48, flexWrap:"wrap" }}>
-            <Link to="/stories" style={{
-              padding:"13px 32px", borderRadius:12, fontWeight:800, fontSize:14,
-              background:`linear-gradient(135deg,${C.secondary},#3A6214)`,
-              color:"#fff", textDecoration:"none",
-              boxShadow:`0 4px 16px ${C.secondary}40`,
+            <h2 style={{
+              fontSize: isMobile ? 28 : "clamp(28px,3vw,42px)",
+              fontWeight:900, lineHeight:1.2, margin:"0 0 20px", letterSpacing:-0.5,
             }}>
-              Explore More Stories →
-            </Link>
-            <Link to="/how-it-works" className="kf-btn kf-btn-navy"
-              style={{ padding:"13px 32px", borderRadius:12, fontWeight:700, fontSize:14 }}>
-              {P.workflow_link} →
-            </Link>
-          </div>
+              Every Child Deserves<br/>
+              <span style={{ color:C.gold }}>a Meal, Safety,</span><br/>
+              and a Future.
+            </h2>
 
+            <p style={{ fontSize:16, lineHeight:1.8, opacity:0.85, margin:"0 0 16px", maxWidth:420 }}>
+              Behind every number in our system is a real child — hungry, hopeful, and waiting.
+              These children share what little they have. With your support, we make sure
+              they never have to.
+            </p>
+
+            <p style={{
+              fontSize:13, lineHeight:1.8, opacity:0.65, margin:"0 0 36px",
+              fontStyle:"italic", borderLeft:"3px solid rgba(224,171,33,0.5)", paddingLeft:14,
+            }}>
+              "Whoever saves a soul, it is as if he has saved all mankind." — Quran 5:32
+            </p>
+
+            <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
+              <Link to="/donate" style={{
+                padding:"13px 32px", borderRadius:12, fontWeight:800, fontSize:14,
+                background:`linear-gradient(135deg,${C.secondary},#3A6214)`,
+                color:"#fff", textDecoration:"none",
+                boxShadow:`0 4px 20px rgba(75,125,25,0.4)`,
+              }}>
+                Donate Now →
+              </Link>
+              <Link to="/cases" style={{
+                padding:"13px 32px", borderRadius:12, fontWeight:700, fontSize:14,
+                background:"rgba(255,255,255,0.1)", border:"1.5px solid rgba(255,255,255,0.25)",
+                color:"#fff", textDecoration:"none",
+              }}>
+                See Their Stories →
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
