@@ -461,8 +461,33 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════ HOW IT WORKS + MINI STORIES ══════════════ */}
-      {/* ── Children Photo Section ── */}
+      {/* ══════════════════════════ CTA BANNER — real photo background ═════ */}
+      <section style={{ position:"relative", overflow:"hidden", minHeight: isMobile?300:380, display:"flex", alignItems:"center" }}>
+        {/* Real photo bg */}
+        <div style={{ position:"absolute", inset:0, backgroundImage:"url('https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1400&q=80')", backgroundSize:"cover", backgroundPosition:"center 40%" }} />
+        <div style={{ position:"absolute", inset:0, background:`linear-gradient(135deg, rgba(0,38,81,0.82) 0%, rgba(0,75,150,0.72) 50%, rgba(75,125,25,0.65) 100%)` }} />
+        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize:"36px 36px" }} />
+
+        <div style={{ position:"relative", zIndex:2, width:"100%", padding: isMobile?"44px 20px":"56px 32px", textAlign:"center", color:"#fff" }}>
+          <div style={{ maxWidth:700, margin:"0 auto" }}>
+            <span style={{ display:"inline-block", background:"rgba(224,171,33,0.2)", border:"1px solid rgba(224,171,33,0.5)", color:C.gold, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:24 }}>MAKE AN IMPACT</span>
+            <h2 style={{ fontSize:"clamp(28px,4vw,50px)", fontWeight:900, margin:"0 0 18px", lineHeight:1.1, letterSpacing:-1 }}>{P.cta_title}</h2>
+            <p style={{ fontSize: isMobile?15:18, opacity:0.88, marginBottom:44, lineHeight:1.7, maxWidth:520, margin:"0 auto 44px" }}>{P.cta_sub}</p>
+            <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
+              <button className="kf-btn kf-btn-gold" onClick={() => navigate("/donate")}
+                style={{ padding: isMobile?"14px 28px":"16px 40px", borderRadius:14, fontSize: isMobile?14:16, fontWeight:800, border:"none", boxShadow:`0 8px 28px rgba(224,171,33,0.4)` }}>
+                ❤️ {P.cta_donor}
+              </button>
+              <button className="kf-btn kf-btn-ghost" onClick={() => navigate("/contact")}
+                style={{ padding: isMobile?"14px 28px":"16px 40px", borderRadius:14, fontSize: isMobile?14:16, fontWeight:700, border:"none" }}>
+                {P.cta_report}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Children Photo Section — just above footer ── */}
       <section style={{ position:"relative", overflow:"hidden" }}>
         <div style={{
           display:"grid",
@@ -470,13 +495,12 @@ export default function Home() {
           minHeight: isMobile ? "auto" : 520,
         }}>
           {/* Image side */}
-          <div style={{ position:"relative", minHeight: isMobile ? 260 : "auto", overflow:"hidden" }}>
+          <div style={{ position:"relative", minHeight: isMobile ? 280 : "auto", overflow:"hidden" }}>
             <img
               src="/children-sharing.jpg"
               alt="Children sharing a meal together"
               style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" }}
             />
-            {/* Subtle overlay for depth */}
             <div style={{ position:"absolute", inset:0, background:"linear-gradient(to right, transparent 60%, rgba(0,38,81,0.12))" }} />
           </div>
 
@@ -505,8 +529,7 @@ export default function Home() {
 
             <p style={{ fontSize:16, lineHeight:1.8, opacity:0.85, margin:"0 0 16px", maxWidth:420 }}>
               Behind every number in our system is a real child — hungry, hopeful, and waiting.
-              These children share what little they have. With your support, we make sure
-              they never have to.
+              These children share what little they have. With your support, we make sure they never have to.
             </p>
 
             <p style={{
@@ -522,42 +545,12 @@ export default function Home() {
                 background:`linear-gradient(135deg,${C.secondary},#3A6214)`,
                 color:"#fff", textDecoration:"none",
                 boxShadow:`0 4px 20px rgba(75,125,25,0.4)`,
-              }}>
-                Donate Now →
-              </Link>
+              }}>Donate Now →</Link>
               <Link to="/cases" style={{
                 padding:"13px 32px", borderRadius:12, fontWeight:700, fontSize:14,
                 background:"rgba(255,255,255,0.1)", border:"1.5px solid rgba(255,255,255,0.25)",
                 color:"#fff", textDecoration:"none",
-              }}>
-                See Their Stories →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════ CTA BANNER — real photo background ═════ */}
-      <section style={{ position:"relative", overflow:"hidden", minHeight: isMobile?300:380, display:"flex", alignItems:"center" }}>
-        {/* Real photo bg */}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"url('https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1400&q=80')", backgroundSize:"cover", backgroundPosition:"center 40%" }} />
-        <div style={{ position:"absolute", inset:0, background:`linear-gradient(135deg, rgba(0,38,81,0.82) 0%, rgba(0,75,150,0.72) 50%, rgba(75,125,25,0.65) 100%)` }} />
-        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize:"36px 36px" }} />
-
-        <div style={{ position:"relative", zIndex:2, width:"100%", padding: isMobile?"44px 20px":"56px 32px", textAlign:"center", color:"#fff" }}>
-          <div style={{ maxWidth:700, margin:"0 auto" }}>
-            <span style={{ display:"inline-block", background:"rgba(224,171,33,0.2)", border:"1px solid rgba(224,171,33,0.5)", color:C.gold, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:24 }}>MAKE AN IMPACT</span>
-            <h2 style={{ fontSize:"clamp(28px,4vw,50px)", fontWeight:900, margin:"0 0 18px", lineHeight:1.1, letterSpacing:-1 }}>{P.cta_title}</h2>
-            <p style={{ fontSize: isMobile?15:18, opacity:0.88, marginBottom:44, lineHeight:1.7, maxWidth:520, margin:"0 auto 44px" }}>{P.cta_sub}</p>
-            <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
-              <button className="kf-btn kf-btn-gold" onClick={() => navigate("/donate")}
-                style={{ padding: isMobile?"14px 28px":"16px 40px", borderRadius:14, fontSize: isMobile?14:16, fontWeight:800, border:"none", boxShadow:`0 8px 28px rgba(224,171,33,0.4)` }}>
-                ❤️ {P.cta_donor}
-              </button>
-              <button className="kf-btn kf-btn-ghost" onClick={() => navigate("/contact")}
-                style={{ padding: isMobile?"14px 28px":"16px 40px", borderRadius:14, fontSize: isMobile?14:16, fontWeight:700, border:"none" }}>
-                {P.cta_report}
-              </button>
+              }}>See Their Stories →</Link>
             </div>
           </div>
         </div>
