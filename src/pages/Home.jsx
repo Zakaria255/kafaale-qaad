@@ -521,23 +521,44 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ CTA BANNER — real photo background ═════ */}
-      <section style={{ position:"relative", overflow:"hidden", minHeight: isMobile?300:380, display:"flex", alignItems:"center" }}>
-        {/* Real photo bg */}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"url('/cta-bg.jpg')", backgroundSize:"cover", backgroundPosition:"center center" }} />
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(0,20,50,0.55) 0%, rgba(0,20,50,0.45) 100%)" }} />
+      <section style={{ position:"relative", overflow:"hidden", minHeight: isMobile?360:480, display:"flex", alignItems:"center" }}>
+        {/* Photo */}
+        <div style={{ position:"absolute", inset:0, backgroundImage:"url('/cta-bg.jpg')", backgroundSize:"cover", backgroundPosition:"center 40%", transform:"scale(1.04)" }} />
+        {/* Vignette: dark edges, clear center so the children show through */}
+        <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at center, rgba(0,10,30,0.18) 0%, rgba(0,10,30,0.72) 100%)" }} />
+        {/* Bottom fade into page */}
+        <div style={{ position:"absolute", bottom:0, left:0, right:0, height:120, background:"linear-gradient(to top, rgba(0,10,30,0.7) 0%, transparent 100%)" }} />
 
-        <div style={{ position:"relative", zIndex:2, width:"100%", padding: isMobile?"44px 20px":"56px 32px", textAlign:"center", color:"#fff" }}>
-          <div style={{ maxWidth:700, margin:"0 auto" }}>
-            <span style={{ display:"inline-block", background:"rgba(224,171,33,0.2)", border:"1px solid rgba(224,171,33,0.5)", color:C.gold, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:24 }}>MAKE AN IMPACT</span>
-            <h2 style={{ fontSize:"clamp(28px,4vw,50px)", fontWeight:900, margin:"0 0 18px", lineHeight:1.1, letterSpacing:-1 }}>{P.cta_title}</h2>
-            <p style={{ fontSize: isMobile?15:18, opacity:0.88, marginBottom:44, lineHeight:1.7, maxWidth:520, margin:"0 auto 44px" }}>{P.cta_sub}</p>
-            <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
+        <div style={{ position:"relative", zIndex:2, width:"100%", padding: isMobile?"52px 20px":"72px 32px", textAlign:"center", color:"#fff" }}>
+          <div style={{ maxWidth:660, margin:"0 auto" }}>
+            <span style={{
+              display:"inline-block",
+              background:"rgba(224,171,33,0.18)", border:"1.5px solid rgba(224,171,33,0.6)",
+              color:"#F5C842", borderRadius:24, padding:"7px 22px",
+              fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase",
+              marginBottom:28, backdropFilter:"blur(6px)",
+            }}>Make an Impact</span>
+
+            <h2 style={{
+              fontSize:"clamp(30px,4.5vw,54px)", fontWeight:900,
+              margin:"0 0 20px", lineHeight:1.08, letterSpacing:-1.5,
+              textShadow:"0 2px 24px rgba(0,0,0,0.5)",
+            }}>{P.cta_title}</h2>
+
+            <p style={{
+              fontSize: isMobile?15:18, lineHeight:1.75,
+              maxWidth:500, margin:"0 auto 48px",
+              color:"rgba(255,255,255,0.88)",
+              textShadow:"0 1px 8px rgba(0,0,0,0.4)",
+            }}>{P.cta_sub}</p>
+
+            <div style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
               <button className="kf-btn kf-btn-gold" onClick={() => navigate("/donate")}
-                style={{ padding: isMobile?"14px 28px":"16px 40px", borderRadius:14, fontSize: isMobile?14:16, fontWeight:800, border:"none", boxShadow:`0 8px 28px rgba(224,171,33,0.4)` }}>
+                style={{ padding: isMobile?"15px 32px":"17px 44px", borderRadius:50, fontSize: isMobile?14:16, fontWeight:800, border:"none", boxShadow:"0 8px 32px rgba(224,171,33,0.5)", letterSpacing:0.3 }}>
                 ❤️ {P.cta_donor}
               </button>
               <button className="kf-btn kf-btn-ghost" onClick={() => navigate("/contact")}
-                style={{ padding: isMobile?"14px 28px":"16px 40px", borderRadius:14, fontSize: isMobile?14:16, fontWeight:700, border:"none" }}>
+                style={{ padding: isMobile?"15px 32px":"17px 44px", borderRadius:50, fontSize: isMobile?14:16, fontWeight:700, border:"none", backdropFilter:"blur(8px)", background:"rgba(255,255,255,0.15)", letterSpacing:0.3 }}>
                 {P.cta_report}
               </button>
             </div>
