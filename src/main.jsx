@@ -72,38 +72,48 @@ function ShareStoryBanner() {
   return (
     <div style={{
       position: "relative", overflow: "hidden",
-      minHeight: 200,
+      minHeight: 260,
       display: "flex", alignItems: "center", justifyContent: "space-between",
-      flexWrap: "wrap", gap: 24,
-      padding: "52px clamp(20px, 6vw, 80px)",
+      flexWrap: "wrap", gap: 32,
+      padding: "64px clamp(24px, 7vw, 96px)",
       marginTop: 80,
     }}>
-      {/* Photo bg */}
+      {/* Photo — full brightness, vignette handles darkness */}
       <div style={{
         position: "absolute", inset: 0,
         backgroundImage: `url("/story-bg.jpg")`,
-        backgroundSize: "cover", backgroundPosition: "center 30%",
-        filter: "brightness(0.28)",
+        backgroundSize: "cover", backgroundPosition: "center 35%",
+        transform: "scale(1.04)",
       }} />
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(0,38,81,0.75) 0%,rgba(75,125,25,0.55) 100%)" }} />
+      {/* Vignette: dark left where text sits, lighter right */}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,15,40,0.88) 0%, rgba(0,15,40,0.60) 55%, rgba(0,15,40,0.30) 100%)" }} />
+      {/* Bottom edge fade */}
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: "linear-gradient(to top, rgba(0,10,30,0.5) 0%, transparent 100%)" }} />
 
       {/* Text */}
-      <div style={{ position: "relative", zIndex: 1, color: "#fff", maxWidth: 580 }}>
-        <div style={{ fontSize: "clamp(22px,3.5vw,34px)", fontWeight: 900, marginBottom: 12, letterSpacing: -0.5, lineHeight: 1.2 }}>
-          ✍️ Have a Story to Share?
+      <div style={{ position: "relative", zIndex: 1, color: "#fff", maxWidth: 600 }}>
+        <div style={{
+          display: "inline-block",
+          background: "rgba(224,171,33,0.18)", border: "1.5px solid rgba(224,171,33,0.55)",
+          color: "#F5C842", borderRadius: 24, padding: "5px 18px",
+          fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase",
+          marginBottom: 18, backdropFilter: "blur(6px)",
+        }}>Your Voice Matters</div>
+        <div style={{ fontSize: "clamp(24px,3.5vw,38px)", fontWeight: 900, marginBottom: 14, letterSpacing: -0.5, lineHeight: 1.15, textShadow: "0 2px 16px rgba(0,0,0,0.5)" }}>
+          Have a Story to Share?
         </div>
-        <p style={{ fontSize: 15, opacity: 0.88, margin: 0, lineHeight: 1.75 }}>
+        <p style={{ fontSize: 15, color: "rgba(255,255,255,0.86)", margin: 0, lineHeight: 1.8, maxWidth: 480, textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>
           Are you a beneficiary, community member, or field volunteer? Submit your story — our team reviews every submission and publishes verified stories to inspire more donors.
         </p>
       </div>
 
       {/* CTA */}
       <a href="/stories#share" style={{
-        position: "relative", zIndex: 1,
-        padding: "15px 36px", borderRadius: 14, fontWeight: 800, fontSize: 15,
+        position: "relative", zIndex: 1, flexShrink: 0,
+        padding: "17px 42px", borderRadius: 50, fontWeight: 800, fontSize: 15,
         background: "#E0AB21", color: "#fff", textDecoration: "none", whiteSpace: "nowrap",
-        boxShadow: "0 6px 24px rgba(0,0,0,0.35)",
-        fontFamily: "inherit",
+        boxShadow: "0 8px 32px rgba(224,171,33,0.45)",
+        fontFamily: "inherit", letterSpacing: 0.3,
       }}>
         Share My Story →
       </a>
