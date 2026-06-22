@@ -290,10 +290,8 @@ export default function About() {
         .kf-about-slide { position:absolute; inset:0; background-size:cover; background-position:center; animation-duration:24s; animation-timing-function:ease-in-out; animation-iteration-count:infinite; }
       `}</style>
       <section style={{ position:"relative", overflow:"hidden", padding:"64px 24px", textAlign:"center", color:"#fff", minHeight:360, display:"flex", alignItems:"center", background:"#001A40" }}>
-        {/* Cinematic slideshow */}
-        <div className="kf-about-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1400&q=80')", animationName:"kfAboutSlide1" }} />
-        <div className="kf-about-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1400&q=80')", animationName:"kfAboutSlide2" }} />
-        <div className="kf-about-slide" style={{ backgroundImage:"url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1400&q=80')", animationName:"kfAboutSlide3" }} />
+        {/* Background photo */}
+        <div className="kf-about-slide" style={{ backgroundImage:"url('/cta-bg.jpg')", backgroundPosition:"center 35%", animationName:"none", opacity:1 }} />
 
         {/* Dark overlay */}
         <div style={{ position:"absolute", inset:0, background:`linear-gradient(135deg, rgba(0,38,81,0.80) 0%, rgba(0,75,150,0.68) 50%, rgba(75,125,25,0.60) 100%)`, zIndex:5 }} />
