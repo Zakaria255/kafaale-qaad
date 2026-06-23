@@ -76,8 +76,9 @@ export default function Contact() {
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", color: "#0D1F3C" }}>
 
       {/* Hero */}
-      <section style={{ background: `linear-gradient(135deg, ${C.primary} 0%, ${C.secondary} 100%)`, color: "#fff", padding: "72px 24px 52px", textAlign: "center" }}>
-        <div style={{ maxWidth: 660, margin: "0 auto" }}>
+      <section style={{ backgroundImage: "url('/contact-hero.jpg')", backgroundSize: "cover", backgroundPosition: "center", position: "relative", color: "#fff", padding: "120px 24px 100px", textAlign: "center" }}>
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,20,60,0.60)" }} />
+        <div style={{ maxWidth: 660, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <h1 style={{ fontSize: "clamp(28px, 4vw, 48px)", fontWeight: 900, margin: "0 0 14px" }}>{P.hero_title}</h1>
           <p style={{ fontSize: 17, opacity: 0.85, lineHeight: 1.7 }}>{P.hero_sub}</p>
         </div>

@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import FixedSelect from "../components/FixedSelect.jsx";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const C = { navy:"#002651", primary:"#004B96", secondary:"#4B7D19", accent:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC", border:"#D8E4F0", text:"#0D1F3C", danger:"#C0392B" };
 
 const PARTNER_REG_KEY = "kf_partner_applications";
+const ADMIN_PARTNERS_KEY = "kf_admin_partners";
 
 const ALL_COUNTRIES = [
   "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan",
@@ -23,8 +25,23 @@ const ALL_COUNTRIES = [
 ];
 
 const ORG_TYPES = [
-  "International NGO","Local NGO","Government Agency","UN Agency","Religious Organization",
-  "Foundation","Corporate CSR","Academic Institution","Media Organization","Community Group","Other",
+  "International NGO",
+  "Local NGO",
+  "Government Agency",
+  "UN Agency / Intergovernmental",
+  "Religious Organization",
+  "Foundation",
+  "Corporate CSR / Business",
+  "Academic / Research Institution",
+  "Healthcare Organization",
+  "Humanitarian Response Network",
+  "Diaspora Organization",
+  "Media Organization",
+  "Community Group / CBO",
+  "Social Enterprise",
+  "Advocacy & Policy Organization",
+  "Red Cross / Red Crescent",
+  "Other",
 ];
 
 const FOCUS_AREAS = [
@@ -46,17 +63,102 @@ const BLANK = {
   orgName:"", type:"", country:"", website:"", regNumber:"", yearFounded:"",
   contactName:"", contactTitle:"", contactEmail:"", contactPhone:"",
   focusAreas:[], operatingRegions:"", description:"", annualBudget:"", staffCount:"",
-  hasFieldTeam:false, previousSomalia:false, acceptsTerms:false,
+  hasFieldTeam:false, previousSomalia:false, acceptsTerms:false, logoUrl:"",
+};
+
+const BLANK_PARTNER = {
+  name:"", type:"", country:"", website:"", focusAreas:[], description:"", cases:0, logoUrl:"", color:"#004B96", published:false,
 };
 
 const STEPS = ["Organisation","Contact Person","Operations","Review & Submit"];
 
 export default function ImpactPartners() {
-  const [tab, setTab]       = useState("partners");   // "partners" | "register"
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+
+  const [tab, setTab]       = useState("partners");   // "partners" | "register" | "admin"
   const [step, setStep]     = useState(0);
   const [form, setForm]     = useState(BLANK);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const getAdminPartners = () => { try { return JSON.parse(localStorage.getItem(ADMIN_PARTNERS_KEY)||"[]"); } catch { return []; } };
+  const saveAdminPartners = (list) => localStorage.setItem(ADMIN_PARTNERS_KEY, JSON.stringify(list));
+
+  const [adminPartners, setAdminPartners] = useState(getAdminPartners);
+  const [apForm, setApForm] = useState(BLANK_PARTNER);
+  const [apErrors, setApErrors] = useState({});
+  const [apSaved, setApSaved] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const logoInputRef = useRef(null);
+  const regLogoInputRef = useRef(null);
+
+  const setAp = (k, v) => setApForm(f => ({ ...f, [k]: v }));
+  const toggleApFocus = (f) => setApForm(prev => ({
+    ...prev, focusAreas: prev.focusAreas.includes(f) ? prev.focusAreas.filter(x=>x!==f) : [...prev.focusAreas, f],
+  }));
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setAp("logoUrl", ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRegLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => set("logoUrl", ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const validateAp = () => {
+    const e = {};
+    if (!apForm.name.trim()) e.name = "Required";
+    if (!apForm.type) e.type = "Required";
+    if (!apForm.country) e.country = "Required";
+    if (!apForm.description.trim()) e.description = "Required";
+    setApErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const savePartner = (publish) => {
+    if (!validateAp()) return;
+    const partner = { ...apForm, published: publish, id: editingId || "ap-"+Date.now(), createdAt: new Date().toISOString() };
+    const updated = editingId
+      ? adminPartners.map(p => p.id === editingId ? partner : p)
+      : [partner, ...adminPartners];
+    saveAdminPartners(updated);
+    setAdminPartners(updated);
+    setApForm(BLANK_PARTNER);
+    setEditingId(null);
+    setApSaved(true);
+    setTimeout(() => setApSaved(false), 3000);
+  };
+
+  const deletePartner = (id) => {
+    const updated = adminPartners.filter(p => p.id !== id);
+    saveAdminPartners(updated);
+    setAdminPartners(updated);
+  };
+
+  const togglePublish = (id) => {
+    const updated = adminPartners.map(p => p.id === id ? { ...p, published: !p.published } : p);
+    saveAdminPartners(updated);
+    setAdminPartners(updated);
+  };
+
+  const startEdit = (p) => {
+    setApForm({ ...p });
+    setEditingId(p.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const allPublishedPartners = [...EXISTING_PARTNERS, ...adminPartners.filter(p => p.published).map((p, i) => ({
+    ...p, img: p.logoUrl || "🤝", verified: true, focus: p.focusAreas, cases: Number(p.cases) || 0,
+  }))];
 
   const set = (k, v) => setForm(f => ({ ...f, [k]:v }));
   const toggleFocus = (f) => setForm(prev => ({
@@ -97,6 +199,32 @@ export default function ImpactPartners() {
       const existing = JSON.parse(localStorage.getItem(PARTNER_REG_KEY)||"[]");
       localStorage.setItem(PARTNER_REG_KEY, JSON.stringify([app, ...existing]));
     } catch {}
+    const pendingPartner = {
+      id: app.id,
+      name: form.orgName,
+      type: form.type,
+      country: form.country,
+      website: form.website,
+      focusAreas: form.focusAreas,
+      description: form.description,
+      cases: 0,
+      logoUrl: form.logoUrl || "",
+      color: "#004B96",
+      published: false,
+      status: "pending",
+      contactName: form.contactName,
+      contactEmail: form.contactEmail,
+      contactPhone: form.contactPhone,
+      regNumber: form.regNumber,
+      yearFounded: form.yearFounded,
+      annualBudget: form.annualBudget,
+      staffCount: form.staffCount,
+      operatingRegions: form.operatingRegions,
+      submittedAt: app.submittedAt,
+    };
+    const updatedPartners = [pendingPartner, ...adminPartners];
+    saveAdminPartners(updatedPartners);
+    setAdminPartners(updatedPartners);
     setSubmitted(true);
   };
 
@@ -164,6 +292,7 @@ export default function ImpactPartners() {
             <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
               <button onClick={() => setTab("partners")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="partners" ? C.accent : "rgba(255,255,255,0.15)", color:"#fff" }}>View Partners</button>
               <button onClick={() => setTab("register")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="register" ? C.accent : "rgba(255,255,255,0.15)", color:"#fff" }}>Register as Partner</button>
+              {isAdmin && <button onClick={() => setTab("admin")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="admin" ? "#C0392B" : "rgba(255,255,255,0.15)", color:"#fff" }}>Admin Panel</button>}
             </div>
           </div>
         </div>
@@ -189,15 +318,19 @@ export default function ImpactPartners() {
               <p style={{ fontSize:15, color:C.muted }}>Verified partners delivering aid across the region.</p>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:22 }}>
-              {EXISTING_PARTNERS.map(p => (
+              {allPublishedPartners.map(p => (
                 <div key={p.id} style={{ background:"#fff", borderRadius:18, overflow:"hidden", border:`1px solid ${C.border}`, boxShadow:"0 2px 12px rgba(0,0,0,.06)" }}>
                   <div style={{ background:`linear-gradient(135deg, ${p.color}18, ${p.color}08)`, padding:"28px 24px 22px" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-                      <div style={{ width:56, height:56, borderRadius:14, background:`linear-gradient(135deg,${p.color}30,${p.color}60)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0 }}>{p.img}</div>
+                      <div style={{ width:56, height:56, borderRadius:14, background:`linear-gradient(135deg,${p.color}30,${p.color}60)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0, overflow:"hidden" }}>
+                        {p.logoUrl && p.logoUrl.startsWith("data:")
+                          ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} />
+                          : p.img}
+                      </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:15, fontWeight:800, color:C.text }}>{p.name}</div>
                         <div style={{ fontSize:12, color:p.color, fontWeight:700, marginTop:2 }}>{p.type}</div>
-                        <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>🌍 {p.country}</div>
+                        <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{p.country}</div>
                       </div>
                       {p.verified && <span style={{ background:"#D1FAE5", color:"#065F46", borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:800 }}>✓ Verified</span>}
                     </div>
@@ -206,7 +339,7 @@ export default function ImpactPartners() {
                     <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:14 }}>
                       {p.focus.map(f => <span key={f} style={{ background:p.color+"15", color:p.color, borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:700 }}>{f}</span>)}
                     </div>
-                    <div style={{ fontSize:13, color:C.muted, fontWeight:600 }}>📋 {p.cases} cases supported</div>
+                    <div style={{ fontSize:13, color:C.muted, fontWeight:600 }}>{p.cases} cases supported</div>
                   </div>
                 </div>
               ))}
@@ -268,6 +401,28 @@ export default function ImpactPartners() {
                   {step === 0 && (
                     <div style={{ display:"grid", gap:18 }}>
                       <h3 style={{ margin:"0 0 8px", fontSize:18, fontWeight:800 }}>🏛️ Organisation Information</h3>
+
+                      {/* Logo upload */}
+                      <div>
+                        <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:8, textTransform:"uppercase", letterSpacing:.5 }}>Organisation Logo</label>
+                        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                          <div style={{ width:72, height:72, borderRadius:14, border:`2px dashed ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", background:C.bg, cursor:"pointer", flexShrink:0 }}
+                            onClick={() => regLogoInputRef.current?.click()}>
+                            {form.logoUrl
+                              ? <img src={form.logoUrl} alt="logo" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
+                              : <span style={{ fontSize:28, color:C.muted }}>+</span>}
+                          </div>
+                          <div>
+                            <button type="button" onClick={() => regLogoInputRef.current?.click()} style={{ padding:"9px 18px", borderRadius:9, border:`1.5px solid ${C.border}`, background:"#fff", fontWeight:700, fontSize:13, cursor:"pointer" }}>
+                              Upload Logo
+                            </button>
+                            {form.logoUrl && <button type="button" onClick={() => set("logoUrl","")} style={{ marginLeft:8, padding:"9px 14px", borderRadius:9, border:`1.5px solid ${C.danger}`, background:"#fff", color:C.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}>Remove</button>}
+                            <div style={{ fontSize:11, color:C.muted, marginTop:5 }}>PNG or JPG, max 2MB</div>
+                          </div>
+                          <input ref={regLogoInputRef} type="file" accept="image/*" onChange={handleRegLogoUpload} style={{ display:"none" }} />
+                        </div>
+                      </div>
+
                       {field("orgName", "Organisation Name", "text", "e.g. Al-Khair Foundation")}
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
                         {select("type", "Organisation Type", ORG_TYPES)}
@@ -377,6 +532,193 @@ export default function ImpactPartners() {
                         </button>
                     }
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ── Admin Panel ── */}
+      {tab === "admin" && isAdmin && (
+        <section style={{ padding:"64px 24px 80px", background:C.bg }}>
+          <div style={{ maxWidth:900, margin:"0 auto" }}>
+            <div style={{ textAlign:"center", marginBottom:40 }}>
+              <h2 style={{ fontSize:"clamp(22px,3vw,36px)", fontWeight:900, margin:"0 0 8px" }}>Partner Management</h2>
+              <p style={{ fontSize:14, color:C.muted }}>Create partners and publish them to the public listing.</p>
+            </div>
+
+            {apSaved && (
+              <div style={{ background:"#D1FAE5", border:"1px solid #6EE7B7", borderRadius:12, padding:"14px 20px", marginBottom:24, color:"#065F46", fontWeight:700, fontSize:14 }}>
+                Partner saved successfully!
+              </div>
+            )}
+
+            {/* Create / Edit Form */}
+            <div style={{ background:"#fff", borderRadius:20, padding:"32px", boxShadow:"0 4px 24px rgba(0,0,0,.07)", border:`1px solid ${C.border}`, marginBottom:40 }}>
+              <h3 style={{ margin:"0 0 24px", fontSize:18, fontWeight:800 }}>{editingId ? "Edit Partner" : "Create New Partner"}</h3>
+
+              {/* Logo upload */}
+              <div style={{ marginBottom:20 }}>
+                <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:8, textTransform:"uppercase", letterSpacing:.5 }}>Partner Logo</label>
+                <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                  <div style={{ width:72, height:72, borderRadius:14, border:`2px dashed ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", background:C.bg, cursor:"pointer", flexShrink:0 }}
+                    onClick={() => logoInputRef.current?.click()}>
+                    {apForm.logoUrl
+                      ? <img src={apForm.logoUrl} alt="logo" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
+                      : <span style={{ fontSize:28, color:C.muted }}>+</span>}
+                  </div>
+                  <div>
+                    <button onClick={() => logoInputRef.current?.click()} style={{ padding:"9px 18px", borderRadius:9, border:`1.5px solid ${C.border}`, background:"#fff", fontWeight:700, fontSize:13, cursor:"pointer" }}>
+                      Upload Logo
+                    </button>
+                    {apForm.logoUrl && <button onClick={() => setAp("logoUrl","")} style={{ marginLeft:8, padding:"9px 14px", borderRadius:9, border:`1.5px solid ${C.danger}`, background:"#fff", color:C.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}>Remove</button>}
+                    <div style={{ fontSize:11, color:C.muted, marginTop:5 }}>PNG or JPG, max 2MB</div>
+                  </div>
+                  <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} style={{ display:"none" }} />
+                </div>
+              </div>
+
+              <div style={{ display:"grid", gap:16 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Organisation Name <span style={{color:C.danger}}>*</span></label>
+                    <input value={apForm.name} onChange={e=>setAp("name",e.target.value)} placeholder="e.g. Al-Khair Foundation"
+                      style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${apErrors.name?C.danger:C.border}`, fontSize:14, boxSizing:"border-box" }} />
+                    {apErrors.name && <div style={{ fontSize:11, color:C.danger, marginTop:3 }}>Required</div>}
+                  </div>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Organisation Type <span style={{color:C.danger}}>*</span></label>
+                    <FixedSelect value={apForm.type} onChange={e=>setAp("type",e.target.value)} style={{ width:"100%", borderRadius:10, fontSize:14, border:`1.5px solid ${apErrors.type?C.danger:C.border}` }}>
+                      <option value="">Select…</option>
+                      {ORG_TYPES.map(o=><option key={o} value={o}>{o}</option>)}
+                    </FixedSelect>
+                    {apErrors.type && <div style={{ fontSize:11, color:C.danger, marginTop:3 }}>Required</div>}
+                  </div>
+                </div>
+
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Country <span style={{color:C.danger}}>*</span></label>
+                    <FixedSelect value={apForm.country} onChange={e=>setAp("country",e.target.value)} style={{ width:"100%", borderRadius:10, fontSize:14, border:`1.5px solid ${apErrors.country?C.danger:C.border}` }}>
+                      <option value="">Select…</option>
+                      {ALL_COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}
+                    </FixedSelect>
+                    {apErrors.country && <div style={{ fontSize:11, color:C.danger, marginTop:3 }}>Required</div>}
+                  </div>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Website</label>
+                    <input value={apForm.website} onChange={e=>setAp("website",e.target.value)} placeholder="https://example.org"
+                      style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:14, boxSizing:"border-box" }} />
+                  </div>
+                </div>
+
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Cases Supported</label>
+                    <input type="number" value={apForm.cases} onChange={e=>setAp("cases",e.target.value)} placeholder="0"
+                      style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:14, boxSizing:"border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Brand Color</label>
+                    <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+                      <input type="color" value={apForm.color} onChange={e=>setAp("color",e.target.value)}
+                        style={{ width:44, height:44, borderRadius:8, border:"none", cursor:"pointer", padding:2 }} />
+                      <span style={{ fontSize:13, color:C.muted }}>{apForm.color}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:8, textTransform:"uppercase", letterSpacing:.5 }}>Focus Areas</label>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                    {FOCUS_AREAS.map(f => (
+                      <button key={f} onClick={() => toggleApFocus(f)} style={{
+                        padding:"5px 12px", borderRadius:99, fontSize:11, fontWeight:700, border:"1.5px solid", cursor:"pointer",
+                        background: apForm.focusAreas.includes(f) ? C.primary : "#fff",
+                        color: apForm.focusAreas.includes(f) ? "#fff" : C.muted,
+                        borderColor: apForm.focusAreas.includes(f) ? C.primary : C.border,
+                      }}>{f}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Description <span style={{color:C.danger}}>*</span></label>
+                  <textarea rows={4} value={apForm.description} onChange={e=>setAp("description",e.target.value)} placeholder="Describe this partner organisation…"
+                    style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${apErrors.description?C.danger:C.border}`, fontSize:14, fontFamily:"inherit", boxSizing:"border-box", resize:"vertical", lineHeight:1.6 }} />
+                  {apErrors.description && <div style={{ fontSize:11, color:C.danger, marginTop:3 }}>Required</div>}
+                </div>
+
+                <div style={{ display:"flex", gap:12, justifyContent:"flex-end", flexWrap:"wrap" }}>
+                  {editingId && <button onClick={() => { setApForm(BLANK_PARTNER); setEditingId(null); }} style={{ padding:"11px 22px", borderRadius:10, border:`1.5px solid ${C.border}`, background:"#fff", fontWeight:700, fontSize:14, cursor:"pointer" }}>Cancel</button>}
+                  <button onClick={() => savePartner(false)} style={{ padding:"11px 22px", borderRadius:10, background:C.muted, color:"#fff", border:"none", fontWeight:700, fontSize:14, cursor:"pointer" }}>Save as Draft</button>
+                  <button onClick={() => savePartner(true)} style={{ padding:"11px 24px", borderRadius:10, background:C.secondary, color:"#fff", border:"none", fontWeight:800, fontSize:14, cursor:"pointer" }}>Publish Partner</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Pending registrations */}
+            {adminPartners.filter(p => p.status === "pending").length > 0 && (
+              <div style={{ marginBottom:40 }}>
+                <h3 style={{ fontSize:18, fontWeight:800, marginBottom:6 }}>Pending Registrations ({adminPartners.filter(p=>p.status==="pending").length})</h3>
+                <p style={{ fontSize:13, color:C.muted, marginBottom:18 }}>These organisations registered and are waiting for your approval. Edit their info then publish to make them live.</p>
+                <div style={{ display:"grid", gap:14 }}>
+                  {adminPartners.filter(p => p.status === "pending").map(p => (
+                    <div key={p.id} style={{ background:"#FFFBEB", borderRadius:14, padding:"20px 24px", border:`1.5px solid #FCD34D`, boxShadow:"0 2px 8px rgba(0,0,0,.04)", display:"flex", alignItems:"center", gap:16 }}>
+                      <div style={{ width:52, height:52, borderRadius:12, background:"#FEF3C7", border:`1.5px solid #F59E0B`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0 }}>
+                        {p.logoUrl ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} /> : <span style={{ fontSize:22 }}>🕐</span>}
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:C.text }}>{p.name}</div>
+                        <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>{p.type} · {p.country}</div>
+                        {p.contactEmail && <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>Contact: {p.contactName} · {p.contactEmail}</div>}
+                        <div style={{ fontSize:11, color:"#92400E", marginTop:4, fontWeight:700 }}>Submitted {new Date(p.submittedAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div>
+                      </div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+                        <span style={{ background:"#FEF3C7", color:"#92400E", borderRadius:99, padding:"4px 12px", fontSize:11, fontWeight:800 }}>Pending</span>
+                        <button onClick={() => startEdit(p)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.primary}`, background:C.primary, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer" }}>Edit & Review</button>
+                        <button onClick={() => { const updated = adminPartners.map(x => x.id===p.id ? {...x, status:"approved", published:true} : x); saveAdminPartners(updated); setAdminPartners(updated); }} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.secondary}`, background:C.secondary, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer" }}>Approve & Publish</button>
+                        <button onClick={() => deletePartner(p.id)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.danger}`, background:"#fff", color:C.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}>Reject</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Existing admin-created partners list */}
+            {adminPartners.filter(p => p.status !== "pending").length > 0 && (
+              <div>
+                <h3 style={{ fontSize:18, fontWeight:800, marginBottom:18 }}>Managed Partners ({adminPartners.filter(p=>p.status!=="pending").length})</h3>
+                <div style={{ display:"grid", gap:14 }}>
+                  {adminPartners.filter(p => p.status !== "pending").map(p => (
+                    <div key={p.id} style={{ background:"#fff", borderRadius:14, padding:"20px 24px", border:`1px solid ${C.border}`, boxShadow:"0 2px 8px rgba(0,0,0,.04)", display:"flex", alignItems:"center", gap:16 }}>
+                      <div style={{ width:52, height:52, borderRadius:12, background:`${p.color}20`, border:`1.5px solid ${p.color}40`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0 }}>
+                        {p.logoUrl ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} /> : <span style={{ fontSize:22, color:p.color }}>🤝</span>}
+                      </div>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:C.text }}>{p.name}</div>
+                        <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>{p.type} · {p.country}</div>
+                        {p.focusAreas.length > 0 && (
+                          <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginTop:6 }}>
+                            {p.focusAreas.slice(0,3).map(f=><span key={f} style={{ background:p.color+"15", color:p.color, borderRadius:99, padding:"2px 8px", fontSize:10, fontWeight:700 }}>{f}</span>)}
+                            {p.focusAreas.length > 3 && <span style={{ fontSize:10, color:C.muted }}>+{p.focusAreas.length-3}</span>}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+                        <span style={{ background: p.published ? "#D1FAE5" : "#FEF3C7", color: p.published ? "#065F46" : "#92400E", borderRadius:99, padding:"4px 12px", fontSize:11, fontWeight:800 }}>
+                          {p.published ? "Published" : "Draft"}
+                        </span>
+                        <button onClick={() => togglePublish(p.id)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.border}`, background:"#fff", fontWeight:700, fontSize:12, cursor:"pointer" }}>
+                          {p.published ? "Unpublish" : "Publish"}
+                        </button>
+                        <button onClick={() => startEdit(p)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.primary}`, background:"#fff", color:C.primary, fontWeight:700, fontSize:12, cursor:"pointer" }}>Edit</button>
+                        <button onClick={() => deletePartner(p.id)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.danger}`, background:"#fff", color:C.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}>Delete</button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

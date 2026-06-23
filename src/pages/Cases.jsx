@@ -99,12 +99,14 @@ function CaseCard({ c, P, vis = {} }) {
             style={{ flex: 1, textAlign: "center", background: C.bg, color: C.primary, padding: "8px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: "none", border: `1px solid ${C.border}` }}>
             View Details
           </Link>
-          <Link to={`/donate?caseId=${c.id}`}
-            style={{ flex: 1, textAlign: "center", background: C.primary, color: "#fff", padding: "8px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: "none" }}
-            onMouseOver={e => e.currentTarget.style.background = C.secondary}
-            onMouseOut={e => e.currentTarget.style.background = C.primary}>
-            {P.sponsor}
-          </Link>
+          {!full && (
+            <Link to={`/donate?caseId=${c.id}`}
+              style={{ flex: 1, textAlign: "center", background: C.primary, color: "#fff", padding: "8px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: "none" }}
+              onMouseOver={e => e.currentTarget.style.background = C.secondary}
+              onMouseOut={e => e.currentTarget.style.background = C.primary}>
+              {P.sponsor}
+            </Link>
+          )}
         </div>
       </div>
     </div>
@@ -152,12 +154,20 @@ export default function Cases() {
   const cats = ["all","food","medical","shelter","orphan","disaster","education"];
   const urgs = ["all","critical","high","medium","low"];
 
-  const filtered = items.filter(c => {
-    if (catFilter !== "all" && c.category !== catFilter) return false;
-    if (urgFilter !== "all" && c.emergencyLevel !== urgFilter) return false;
-    if (search && !(c.publicTitle?.toLowerCase().includes(search.toLowerCase()) || c.publicCity?.toLowerCase().includes(search.toLowerCase()))) return false;
-    return true;
-  });
+  const filtered = items
+    .filter(c => {
+      if (catFilter !== "all" && c.category !== catFilter) return false;
+      if (urgFilter !== "all" && c.emergencyLevel !== urgFilter) return false;
+      if (search && !(c.publicTitle?.toLowerCase().includes(search.toLowerCase()) || c.publicCity?.toLowerCase().includes(search.toLowerCase()))) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const pctA = a.targetGoal > 0 ? (a.totalRaised / a.targetGoal) : 0;
+      const pctB = b.targetGoal > 0 ? (b.totalRaised / b.targetGoal) : 0;
+      const fullA = pctA >= 1 ? 1 : 0;
+      const fullB = pctB >= 1 ? 1 : 0;
+      return fullA - fullB;
+    });
 
   const TRUST_BADGES = [
     ["🔍", P.badge_verified],
@@ -169,20 +179,23 @@ export default function Cases() {
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       {/* Hero */}
-      <div style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.secondary})`, color: "#fff", padding: "60px 20px 40px", textAlign: "center" }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: "clamp(28px,5vw,44px)", fontWeight: 800 }}>{P.hero_title}</h1>
-        <p style={{ margin: 0, opacity: 0.85, fontSize: 16, maxWidth: 600, marginInline: "auto" }}>
-          {P.hero_sub}
-        </p>
-        {vis.showTrustBadges && (
-          <div style={{ display: "flex", gap: 24, justifyContent: "center", marginTop: 28, flexWrap: "wrap" }}>
-            {TRUST_BADGES.map(([icon, label]) => (
-              <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", padding: "8px 16px", borderRadius: 20 }}>
-                <span>{icon}</span><span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
-              </div>
-            ))}
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", minHeight: 500, overflow: "hidden" }}>
+        {/* Image side */}
+        <div style={{ flex: "0 0 45%", background: "#111", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          <img src="/cases-hero.png" alt="Child holding HOPE sign"
+            style={{ width: "auto", height: "100%", maxWidth: "100%", objectFit: "contain", display: "block" }} />
+        </div>
+        {/* Text side */}
+        <div style={{ flex: 1, background: `linear-gradient(145deg, ${C.navy} 0%, ${C.primary} 55%, ${C.secondary} 100%)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "48px 28px" : "64px 56px" }}>
+          <div style={{ maxWidth: 480 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.12)", borderRadius: 100, padding: "5px 16px", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginBottom: 20 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
+              Verified Cases
+            </div>
+            <h1 style={{ margin: "0 0 18px", fontSize: "clamp(26px,3vw,42px)", fontWeight: 900, lineHeight: 1.15 }}>{P.hero_title}</h1>
+            <p style={{ margin: 0, opacity: 0.82, fontSize: 16, lineHeight: 1.8 }}>{P.hero_sub}</p>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -234,7 +247,7 @@ export default function Cases() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: C.primary, color: "#fff" }}>
-                  {[P.th_cat, P.th_title, P.th_loc, P.th_urg, P.th_goal, P.th_raised, P.th_status, P.th_action].map(h => (
+                  {[P.th_cat, P.th_title, P.th_loc, P.th_urg, P.th_goal, P.th_status, P.th_action].map(h => (
                     <th key={h} style={{ padding: "14px 16px", textAlign: "left", fontSize: 13, fontWeight: 600 }}>{h}</th>
                   ))}
                 </tr>
@@ -248,11 +261,13 @@ export default function Cases() {
                     <td style={{ padding: "12px 16px", maxWidth: 200, fontSize: 13 }}>{c.publicTitle || "—"}</td>
                     <td style={{ padding: "12px 16px", fontSize: 13 }}>📍 {c.publicCity}</td>
                     <td style={{ padding: "12px 16px" }}><span style={{ color: URGENCY_COLOR[c.emergencyLevel], fontWeight: 700, textTransform: "capitalize" }}>{c.emergencyLevel}</span></td>
-                    <td style={{ padding: "12px 16px", fontSize: 13, color: C.muted }}>{tpct >= 100 ? `$${(c.targetGoal||0).toLocaleString()}` : "—"}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 800, color: tpct >= 100 ? C.secondary : C.primary }}>{tpct}%</td>
+                    <td style={{ padding: "12px 16px", fontSize: 13 }}>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: tpct >= 100 ? C.secondary : C.primary }}>{tpct}%</span>
+                      <span style={{ fontSize: 11, color: C.muted }}> · ${(c.targetGoal||0).toLocaleString()} goal</span>
+                    </td>
                     <td style={{ padding: "12px 16px", fontSize: 12 }}>{STATUS_LABEL[c.status] || c.status}</td>
                     <td style={{ padding: "12px 16px" }}>
-                      <Link to={`/donate?caseId=${c.id}`} style={{ background: C.primary, color: "#fff", padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: "none" }}>{P.sponsor}</Link>
+                      {tpct < 100 && <Link to={`/donate?caseId=${c.id}`} style={{ background: C.primary, color: "#fff", padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, textDecoration: "none" }}>{P.sponsor}</Link>}
                     </td>
                   </tr>
                   );

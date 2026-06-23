@@ -157,15 +157,14 @@ const ProjectCard = ({ p, onContribute }) => {
 
         {/* Funding progress */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.muted, marginBottom: 6 }}>
-            <span>Raised: <strong style={{ color: C.secondary }}>${p.totalRaised.toLocaleString()}</strong></span>
-            <span>Goal: <strong>${p.fundingGoal.toLocaleString()}</strong></span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+            <span style={{ fontSize: 20, fontWeight: 900, color: pct >= 100 ? C.secondary : C.primary }}>
+              {pct}% <span style={{ fontSize: 11, fontWeight: 600, color: C.muted }}>funded</span>
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>Goal: ${p.fundingGoal.toLocaleString()}</span>
           </div>
           <div style={{ background: C.border, borderRadius: 20, height: 8, overflow: "hidden" }}>
             <div style={{ background: pct >= 100 ? C.secondary : C.primary, width: `${pct}%`, height: "100%", borderRadius: 20, transition: "width 0.6s" }} />
-          </div>
-          <div style={{ marginTop: 4, fontSize: 11, color: C.muted }}>
-            {pct}% funded {remaining > 0 && `· $${remaining.toLocaleString()} remaining`}
           </div>
         </div>
 
@@ -523,7 +522,9 @@ export default function Programs() {
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
       {/* Hero */}
-      <div style={{ background: `linear-gradient(145deg, ${C.navy} 0%, ${C.primary} 55%, ${C.secondary} 100%)`, color: "#fff", padding: isMobile ? "60px 20px 48px" : "90px 32px 72px", textAlign: "center" }}>
+      <div style={{ backgroundImage: `url('/programs-hero.png')`, backgroundSize: "cover", backgroundPosition: "center", position: "relative", color: "#fff", padding: isMobile ? "60px 20px 48px" : "90px 32px 72px", textAlign: "center" }}>
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,20,60,0.62)" }} />
+        <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.12)", borderRadius: 100, padding: "6px 18px", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginBottom: 20 }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
           Humanitarian Programs
@@ -550,6 +551,7 @@ export default function Programs() {
             ))}
           </div>
         )}
+        </div>
 
       </div>
 

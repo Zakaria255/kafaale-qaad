@@ -470,7 +470,7 @@ export const PT = {
   // ────────────────────────────────────────────────────────────────────────────
   cases: {
     en: {
-      hero_title:     "🌍 Verified Emergency Cases",
+      hero_title:     "Verified Emergency Cases",
       hero_sub:       "Every case below has been physically verified by our field team and approved by our office. Your sponsorship goes directly to those in need.",
       badge_verified: "Field Verified",
       badge_approved: "Office Approved",
@@ -496,7 +496,7 @@ export const PT = {
       field_verified: "✅ Field Verified",
     },
     so: {
-      hero_title:     "🌍 Xaaladaha Deg-degta Xaqiijisan",
+      hero_title:     "Xaaladaha Deg-degta Xaqiijisan",
       hero_sub:       "Xaaladda hoose waxaa si jireed u xaqiijiyay kooxdeena goobta oo xafiiskayagu ansixiyay. Taageeradaada si toos ah ayay ugu tagaysaa kuwa u baahan.",
       badge_verified: "Goobta Xaqiijisan",
       badge_approved: "Xafiiska u Ansixiyay",
@@ -522,7 +522,7 @@ export const PT = {
       field_verified: "✅ Goobta Xaqiijisan",
     },
     ar: {
-      hero_title:     "🌍 حالات طوارئ موثقة",
+      hero_title:     "حالات طوارئ موثقة",
       hero_sub:       "كل حالة أدناه تم التحقق منها فيزيائيًا من قِبَل فريقنا الميداني واعتمادها من مكتبنا. رعايتك تذهب مباشرة إلى المحتاجين.",
       badge_verified: "تحقق ميداني",
       badge_approved: "اعتماد المكتب",
@@ -548,7 +548,7 @@ export const PT = {
       field_verified: "✅ تحقق ميداني",
     },
     tr: {
-      hero_title:     "🌍 Doğrulanmış Acil Vakalar",
+      hero_title:     "Doğrulanmış Acil Vakalar",
       hero_sub:       "Aşağıdaki her vaka, saha ekibimiz tarafından fiziksel olarak doğrulanmış ve ofisimiz tarafından onaylanmıştır. Sponsorluğunuz doğrudan ihtiyaç sahiplerine gider.",
       badge_verified: "Saha Doğrulaması",
       badge_approved: "Ofis Onayı",
@@ -574,7 +574,7 @@ export const PT = {
       field_verified: "✅ Saha Doğrulaması",
     },
     es: {
-      hero_title:     "🌍 Casos de Emergencia Verificados",
+      hero_title:     "Casos de Emergencia Verificados",
       hero_sub:       "Cada caso a continuación ha sido verificado físicamente por nuestro equipo de campo y aprobado por nuestra oficina. Tu apadrinamiento va directamente a quienes lo necesitan.",
       badge_verified: "Verificado en Campo",
       badge_approved: "Aprobado por Oficina",
@@ -600,7 +600,7 @@ export const PT = {
       field_verified: "✅ Verificado en Campo",
     },
     fr: {
-      hero_title:     "🌍 Cas d'Urgence Vérifiés",
+      hero_title:     "Cas d'Urgence Vérifiés",
       hero_sub:       "Chaque cas ci-dessous a été vérifié physiquement par notre équipe de terrain et approuvé par notre bureau. Votre parrainage va directement aux personnes dans le besoin.",
       badge_verified: "Vérifié sur le Terrain",
       badge_approved: "Approuvé par le Bureau",
