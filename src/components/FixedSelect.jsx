@@ -60,7 +60,7 @@ export default function FixedSelect({ value, onChange, children, disabled, style
   }, [open]);
 
   const baseBtn = {
-    width: "100%", padding: "10px 14px",
+    width: "100%",
     border: `1.5px solid ${open ? C.primary : (style.borderColor || C.border)}`,
     borderRadius: style.borderRadius || 10, fontSize: style.fontSize || 14,
     background: disabled ? "#F9FAFB" : (style.background || "#fff"),

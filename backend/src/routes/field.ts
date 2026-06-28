@@ -116,10 +116,10 @@ async function investigateHandler(req: AuthRequest, res: Response) {
               generatedCategory: fullCase.category,
               generatedCity:     result.generatedCity,
               generatedUrgency:  result.generatedUrgency,
-              safeMediaUrls:     result.safeMediaUrls,
+              safeMediaUrls:     JSON.stringify(result.safeMediaUrls || []),
               piiDetected:       result.piiDetected,
-              piiRemoved:        result.piiRemoved,
-              mediaFlagged:      result.mediaFlagged,   // was missing — caused silent data loss
+              piiRemoved:        JSON.stringify(result.piiRemoved || []),
+              mediaFlagged:      JSON.stringify(result.mediaFlagged || []),   // was missing — caused silent data loss
               confidenceScore:   result.confidenceScore,
               tokensUsed:        result.tokensUsed,
             };

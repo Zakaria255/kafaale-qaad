@@ -3,21 +3,13 @@ generator client {
 }
 
 datasource db {
-  // ── LOCAL DEV:  keep provider = "sqlite"  +  DATABASE_URL="file:./dev.db"
-  // ── PRODUCTION: change provider to "postgresql" + set DATABASE_URL to Supabase URL
-  //    (Prisma doesn't support env() for provider — edit this line before deploying)
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // PRODUCTION on managed PostgreSQL (Supabase/Neon/etc.).
+  //   DATABASE_URL = pooled connection (used by the running app)
+  //   DIRECT_URL   = direct connection (used by prisma migrate/db push)
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
-// ─── NOTE FOR PRODUCTION MIGRATION ───────────────────────────────────────────
-// When switching to PostgreSQL:
-//   1. Change provider to "postgresql"
-//   2. Set DATABASE_URL to your Supabase/Neon/Railway PostgreSQL URL
-//   3. Delete prisma/migrations folder
-//   4. Run: npx prisma migrate dev --name init
-//   5. Run: npx prisma db seed
-// ─────────────────────────────────────────────────────────────────────────────
 
 model User {
   id                String    @id @default(cuid())

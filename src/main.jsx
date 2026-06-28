@@ -34,6 +34,7 @@ import { lazy, Suspense } from 'react';
 import Navbar       from './components/Navbar.jsx';
 import Footer       from './components/Footer.jsx';
 import AiAssistant  from './components/AiAssistant.jsx';
+import ConnectionBanner from './components/ConnectionBanner.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { LanguageProvider } from './context/LanguageContext.jsx';
 // Eager — always needed on first load
@@ -84,25 +85,25 @@ function ShareStoryBanner() {
   const { pathname } = useLocation();
   if (pathname.startsWith('/dashboard') || pathname === '/login') return null;
   return (
+    <div style={{ background: "#F4F7FC", paddingTop: 64 }}>
     <div style={{
       position: "relative", overflow: "hidden",
       minHeight: 260,
       display: "flex", alignItems: "center", justifyContent: "space-between",
       flexWrap: "wrap", gap: 32,
       padding: "64px clamp(24px, 7vw, 96px)",
-      marginTop: 80,
     }}>
-      {/* Solid brand navy base — fills the "side bars" */}
+      {/* Solid brand navy base */}
       <div style={{ position: "absolute", inset: 0, background: "#0D1F3C" }} />
-      {/* Photo centered, full visible */}
+      {/* Photo — full-bleed cover, fills the entire banner edge to edge */}
       <div style={{
         position: "absolute", inset: 0,
-        backgroundImage: `url("/story-bg.jpg")`,
-        backgroundSize: "contain", backgroundPosition: "center center",
+        backgroundImage: `url("/story-bg.png")`,
+        backgroundSize: "cover", backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
       }} />
-      {/* Left panel overlay — dark navy so text is always readable */}
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(13,31,60,0.97) 0%, rgba(13,31,60,0.92) 22%, rgba(13,31,60,0.30) 42%, transparent 58%, rgba(13,31,60,0.30) 72%, rgba(13,31,60,0.92) 88%, rgba(13,31,60,0.97) 100%)" }} />
+      {/* Left-weighted overlay so text stays readable over the photo */}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(13,31,60,0.95) 0%, rgba(13,31,60,0.85) 30%, rgba(13,31,60,0.45) 55%, rgba(13,31,60,0.30) 100%)" }} />
       {/* Subtle top & bottom fade */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(13,31,60,0.4) 0%, transparent 30%, transparent 70%, rgba(13,31,60,0.4) 100%)" }} />
 
@@ -134,12 +135,14 @@ function ShareStoryBanner() {
         Share My Story →
       </a>
     </div>
+    </div>
   );
 }
 
 function Layout({ children }) {
   return (
     <>
+      <ConnectionBanner />
       <Navbar />
       <main>{children}</main>
       <ShareStoryBanner />

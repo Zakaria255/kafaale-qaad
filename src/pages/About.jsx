@@ -39,7 +39,6 @@ function getTeamVisible() {
 
 const IMPACT_STATS = [
   { val:"2,400+", label:"Cases Processed",    color:C.primary },
-  { val:"$1.2M",  label:"Aid Distributed",    color:C.secondary },
   { val:"98.8%",  label:"Verification Rate",  color:C.accent },
   { val:"6",      label:"Regions Covered",    color:"#8B5CF6" },
 ];
@@ -50,10 +49,6 @@ export default function About() {
 
   const [team, setTeam] = useState(getTeam);
   const [teamVisible, setTeamVisible] = useState(getTeamVisible);
-  const [showAidStat] = useState(() => {
-    try { const s = JSON.parse(localStorage.getItem("kf_site_settings") || "{}"); return s.showAidStat !== false; }
-    catch { return true; }
-  });
 
   useEffect(() => {
     const fn = () => { setTeam(getTeam()); setTeamVisible(getTeamVisible()); };
@@ -221,7 +216,7 @@ export default function About() {
       </section>
 
       {/* ── Impact Numbers (replaces Roadmap) ── */}
-      <section style={{ position:"relative", overflow:"hidden", padding:"56px 24px", color:"#fff" }}>
+      <section style={{ position:"relative", overflow:"hidden", padding:"56px 24px", color:"#fff", margin:"0 16px", borderRadius:24, boxShadow:"0 12px 40px rgba(0,38,81,0.18)" }}>
         <div style={{ position:"absolute", inset:0, backgroundImage:"url('/impact-bg.jpg')", backgroundSize:"cover", backgroundPosition:"center center" }} />
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, rgba(0,22,60,0.82) 0%, rgba(0,38,81,0.75) 60%, rgba(0,40,20,0.78) 100%)" }} />
         <div style={{ position:"relative", zIndex:1, maxWidth:1000, margin:"0 auto", textAlign:"center" }}>
@@ -229,7 +224,7 @@ export default function About() {
           <h2 style={{ fontSize:"clamp(26px,3.5vw,42px)", fontWeight:900, margin:"0 0 12px", letterSpacing:-0.5, textShadow:"0 2px 16px rgba(0,0,0,0.5)" }}>Aid That Moves at the Speed of Need</h2>
           <p style={{ fontSize:16, opacity:0.82, maxWidth:520, margin:"0 auto 56px", lineHeight:1.7 }}>Every number below represents a real person whose situation was verified, funded, and delivered with full transparency.</p>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:2 }}>
-            {IMPACT_STATS.filter(s => showAidStat || s.label !== "Aid Distributed").map((s, i) => (
+            {IMPACT_STATS.map((s, i) => (
               <div key={i} style={{
                 padding:"36px 24px", textAlign:"center",
                 borderRight: i < IMPACT_STATS.length-1 ? "1px solid rgba(255,255,255,0.15)" : "none",
@@ -303,7 +298,7 @@ export default function About() {
         }
         .kf-about-slide { position:absolute; inset:0; background-size:cover; background-position:center; animation-duration:24s; animation-timing-function:ease-in-out; animation-iteration-count:infinite; }
       `}</style>
-      <section style={{ position:"relative", overflow:"hidden", padding:"64px 24px", textAlign:"center", color:"#fff", minHeight:360, display:"flex", alignItems:"center", background:"#001A40" }}>
+      <section style={{ position:"relative", overflow:"hidden", padding:"64px 24px", textAlign:"center", color:"#fff", minHeight:360, display:"flex", alignItems:"center", background:"#001A40", margin:"28px 16px 0", borderRadius:24, boxShadow:"0 12px 40px rgba(0,38,81,0.18)" }}>
         {/* Background photo */}
         <div className="kf-about-slide" style={{ backgroundImage:"url('/cta-bg.jpg')", backgroundPosition:"center 35%", animationName:"none", opacity:1 }} />
 

@@ -5,6 +5,8 @@ import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
 import { cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
+import CategoryManager from "./components/CategoryManager.jsx";
+import { CAT_GROUPS, getCat } from "./utils/categories.js";
 import { openPrintWindow } from "./utils/printDoc.js";
 import "./responsive.css";
 
@@ -981,19 +983,8 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
 };
 
 // ─── REPORT CASE MODAL ─────────────────────────────────────────────────────
-const REPORT_CATEGORIES = [
-  // Child & family support
-  { value: "child_support",   label: "👶 Child Support",        type: "child_support",  desc: "Orphan, vulnerable child needing long-term support" },
-  { value: "education",       label: "🎓 Education Support",     type: "child_support",  desc: "Child needing school fees, books, uniforms" },
-  { value: "orphan",          label: "🏠 Orphan Care",           type: "child_support",  desc: "Child with no parents or guardian support" },
-  { value: "medical",         label: "🩺 Medical Support",       type: "child_support",  desc: "Child needing ongoing medical treatment" },
-  { value: "family_support",  label: "👨‍👩‍👧 Family Support",      type: "child_support",  desc: "Vulnerable family needing monthly support" },
-  // Emergency
-  { value: "food",            label: "🍚 Food Emergency",        type: "emergency",      desc: "Urgent food insecurity — immediate help needed" },
-  { value: "shelter",         label: "🏚️ Emergency Shelter",     type: "emergency",      desc: "Displacement, flooding, structural damage" },
-  { value: "disaster",        label: "🌊 Disaster Relief",       type: "emergency",      desc: "Natural disaster, crisis, urgent relief" },
-  { value: "other",           label: "📌 Other",                 type: "emergency",      desc: "Anything not covered above" },
-];
+// Editable in admin → Settings → Categories. Defaults & storage in utils/categories.js.
+const REPORT_CATEGORIES = getCat("report");
 
 const NEEDS_OPTIONS = [
   { value: "education",  label: "🎓 Education / School Fees" },
@@ -1820,12 +1811,7 @@ const EnrollBeneficiaryFromCaseModal = ({ caseItem, onClose, onDone, showToast }
     finally { setLoading(false); }
   };
 
-  const PTYPES = [
-    { value: "child_sponsorship", label: "👶 Child Sponsorship" },
-    { value: "education",         label: "🎓 Education" },
-    { value: "medical",           label: "🩺 Medical" },
-    { value: "family_care",       label: "🏠 Family Care" },
-  ];
+  const PTYPES = getCat("programTypes");
 
   return (
     <Modal title={`🌱 Enroll as Program Beneficiary — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
@@ -4023,12 +4009,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                 <div>
                   <label style={{ fontSize:12, fontWeight:700, color:COLORS.muted, display:"block", marginBottom:5 }}>Program Type</label>
                   <Select value={childForm.programType||"child_sponsorship"} onChange={e => setChildForm(f=>({...f,programType:e.target.value}))} wrapStyle={{ marginBottom:0 }}>
-                    <option value="child_sponsorship">👶 Child Sponsorship</option>
-                    <option value="education">🎓 Education Support</option>
-                    <option value="medical">🩺 Medical Support</option>
-                    <option value="family_care">🏠 Family Care</option>
-                    <option value="nutrition">🍎 Nutrition Program</option>
-                    <option value="emergency_relief">🚨 Emergency Relief</option>
+                    {getCat("programTypes").map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </Select>
                 </div>
                 <div>
@@ -4829,7 +4810,6 @@ const SITE_INFO_DEFAULTS = {
   heroTitle:  "Transforming Compassion Into Verified Impact",
   heroSub:    "Every donation reaches a verified beneficiary — tracked from field to delivery.",
   showStats:   true,
-  showAidStat: true,
 };
 
 const loadPageVis   = () => { try { return { ...Object.fromEntries(Object.keys(PAGE_DEFAULTS).map(k=>[k,true])), ...JSON.parse(localStorage.getItem("kf_page_settings")||"{}") }; } catch { return Object.fromEntries(Object.keys(PAGE_DEFAULTS).map(k=>[k,true])); } };
@@ -4867,7 +4847,7 @@ const loadTeamAdmin = () => {
 const loadUpdatesAdmin = () => { try { return JSON.parse(localStorage.getItem(UPDATES_ADMIN_KEY)||"null")||DEFAULT_UPDATES_ADMIN; } catch { return DEFAULT_UPDATES_ADMIN; } };
 const BLANK_MEMBER = { id:"", name:"", role:"", bio:"", photo:"", linkedin:"", show:true };
 const BLANK_UPDATE = { id:"", type:"General", published:false, title:"", date:"", location:"", severity:"medium", body:"", img:"", needs:[] };
-const UPDATE_TYPES = ["Disaster","Flood","Drought","Emergency","Conflict","Disease","General"];
+const UPDATE_TYPES = getCat("updates");
 
 const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
   const C = COLORS;
@@ -4984,6 +4964,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
     { id: "social",     label: "📱 Social & Contact" },
     { id: "team",       label: "👥 Meet the Team" },
     { id: "updates_mgr",label: "🚨 Updates" },
+    { id: "categories", label: "🏷️ Categories" },
   ];
 
   // ── Cases display settings ───────────────────────────────────────
@@ -5037,6 +5018,23 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
           }}>{st.label}</button>
         ))}
       </div>
+
+      {/* ── CATEGORIES ── */}
+      {settingsTab === "categories" && (
+        <div>
+          <div style={{ background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 12, padding: "14px 18px", marginBottom: 24, display: "flex", gap: 10 }}>
+            <span style={{ fontSize: 18 }}>💡</span>
+            <div style={{ fontSize: 13, color: "#92400E" }}>
+              Add or remove categories used across the site. Removing a category only takes it off the lists — existing cases, stories, and projects already tagged with it keep their tag.
+            </div>
+          </div>
+          <div style={{ display: "grid", gap: 18, maxWidth: 760 }}>
+            {Object.keys(CAT_GROUPS).map(g => (
+              <CategoryManager key={g} group={g} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── PAGE VISIBILITY ── */}
       {settingsTab === "pages" && (
@@ -5151,30 +5149,6 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
               }}>
                 <span style={{
                   position: "absolute", top: 3, left: siteInfo.showStats !== false ? 26 : 3,
-                  width: 22, height: 22, borderRadius: "50%", background: "#fff",
-                  transition: "left .2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
-                }} />
-              </button>
-            </div>
-          </div>
-
-          {/* Aid Distributed stat toggle */}
-          <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: "18px 20px", marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: C.navy }}>$1.2M Aid Distributed Stat</div>
-                <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>Show / hide the "$1.2M Aid Distributed" card on the Home and About pages</div>
-              </div>
-              <button onClick={() => {
-                if (!isSuperAdmin) return;
-                setSiteInfo(v => ({ ...v, showAidStat: v.showAidStat === false ? true : false }));
-              }} style={{
-                width: 52, height: 28, borderRadius: 99, border: "none", cursor: isSuperAdmin ? "pointer" : "default",
-                background: siteInfo.showAidStat !== false ? C.secondary : "#D1D5DB",
-                position: "relative", transition: "background .2s", flexShrink: 0,
-              }}>
-                <span style={{
-                  position: "absolute", top: 3, left: siteInfo.showAidStat !== false ? 26 : 3,
                   width: 22, height: 22, borderRadius: "50%", background: "#fff",
                   transition: "left .2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
                 }} />
@@ -6074,12 +6048,7 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
               <div>
                 <label style={{ display:"block", fontSize:12, fontWeight:700, color:COLORS.muted, marginBottom:6, textTransform:"uppercase" }}>Program Type *</label>
                 <Select value={programType} onChange={e=>setProgramType(e.target.value)} wrapStyle={{ marginBottom:0 }}>
-                  <option value="child_sponsorship">Child Sponsorship</option>
-                  <option value="education">Education</option>
-                  <option value="medical">Medical Support</option>
-                  <option value="family_care">Family Care</option>
-                  <option value="nutrition">Nutrition</option>
-                  <option value="emergency_relief">Emergency Relief</option>
+                  {getCat("programTypes").map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </Select>
               </div>
             </div>
@@ -6999,7 +6968,7 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
     }
   };
 
-  const TYPE_OPTIONS = Object.entries(PROGRAM_TYPE_LABELS).slice(0, 4);
+  const TYPE_OPTIONS = getCat("programTypes");
 
   return (
     <Modal title="👶 Enroll New Beneficiary" onClose={onClose} wide>
@@ -7028,7 +6997,7 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
             {progList.map(p => <option key={p.id} value={p.id}>{p.icon} {p.name}</option>)}
           </Select>
           <Select label="Program Type *" value={form.programType} onChange={e => set("programType", e.target.value)}>
-            {TYPE_OPTIONS.map(([v, t]) => <option key={v} value={v}>{t.icon} {t.label}</option>)}
+            {TYPE_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </Select>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Input label="Age (public)" type="number" value={form.publicAge} onChange={e => set("publicAge", e.target.value)} placeholder="e.g. 10" />

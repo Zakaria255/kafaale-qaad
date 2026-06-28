@@ -22,6 +22,14 @@ export type AppRole = typeof ALL_ROLES[number];
 const OPEN_ROLES = new Set(['reporter','donor','sponsor']);
 // All other roles require admin to set isActive=true before they can login
 
+// Roles a user may self-select at registration. admin/super_admin are NEVER
+// self-registerable (prevents privilege escalation via the approvals queue) —
+// they can only be assigned by a super_admin via the role-change endpoint.
+export const REGISTERABLE_ROLES = [
+  'reporter','donor','sponsor','field_agent','verification_office',
+  'program_manager','project_manager',
+] as const;
+
 const RegisterSchema = z.object({
   name:              z.string().min(2).max(100),
   email:             z.string().email(),
@@ -31,7 +39,7 @@ const RegisterSchema = z.object({
   city:              z.string().max(100).optional(),
   organization:      z.string().max(200).optional(),
   preferredLanguage: z.enum(['en','so','ar','fr','es','tr']).default('en'),
-  role:              z.enum(ALL_ROLES).default('reporter'),
+  role:              z.enum(REGISTERABLE_ROLES).default('reporter'),
 });
 
 async function sendEmail(to: string, subject: string, text: string) {

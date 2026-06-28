@@ -3,6 +3,7 @@ import FixedSelect from "../components/FixedSelect.jsx";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import ContractModal from "../components/ContractModal.jsx";
+import { getCat } from "../utils/categories.js";
 
 const C = { navy:"#002651", primary:"#004B96", secondary:"#4B7D19", accent:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC", border:"#D8E4F0", text:"#0D1F3C", danger:"#C0392B" };
 
@@ -25,25 +26,7 @@ const ALL_COUNTRIES = [
   "United States","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe",
 ];
 
-const ORG_TYPES = [
-  "International NGO",
-  "Local NGO",
-  "Government Agency",
-  "UN Agency / Intergovernmental",
-  "Religious Organization",
-  "Foundation",
-  "Corporate CSR / Business",
-  "Academic / Research Institution",
-  "Healthcare Organization",
-  "Humanitarian Response Network",
-  "Diaspora Organization",
-  "Media Organization",
-  "Community Group / CBO",
-  "Social Enterprise",
-  "Advocacy & Policy Organization",
-  "Red Cross / Red Crescent",
-  "Other",
-];
+const ORG_TYPES = getCat("partnerTypes");
 
 const FOCUS_AREAS = [
   "Emergency Relief","Food Security","Healthcare","Education","Shelter","Water & Sanitation",

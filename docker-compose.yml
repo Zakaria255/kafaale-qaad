@@ -1,0 +1,31 @@
+# Local development Postgres — matches the production engine (Supabase) for dev/prod parity.
+#
+#   docker compose up -d        # start the database
+#   docker compose down         # stop it (data is kept in the named volume)
+#   docker compose down -v      # stop AND wipe the data
+#
+# Then in backend/.env set:
+#   DATABASE_URL="postgresql://kafaale:kafaale@localhost:5432/kafaale"
+#   DIRECT_URL="postgresql://kafaale:kafaale@localhost:5432/kafaale"
+# and run:  cd backend && npx prisma db push && npm run dev
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kafaale-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kafaale
+      POSTGRES_PASSWORD: kafaale
+      POSTGRES_DB: kafaale
+    ports:
+      - "5432:5432"
+    volumes:
+      - kafaale_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kafaale -d kafaale"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  kafaale_pgdata:

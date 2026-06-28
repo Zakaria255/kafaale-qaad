@@ -8,9 +8,21 @@ import http from 'http';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 
-// Load .env only in development — in production Railway injects all env vars directly
+// Load .env only in development — in production the host injects all env vars directly
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
+}
+
+// Fail fast at boot if critical secrets are missing — better a clear crash on
+// startup than every auth request 500-ing or the DB silently misbehaving.
+{
+  const required = ['DATABASE_URL', 'JWT_SECRET'];
+  const missing = required.filter((k) => !process.env[k] || !process.env[k]!.trim());
+  if (missing.length) {
+    // eslint-disable-next-line no-console
+    console.error(`[FATAL] Missing required environment variable(s): ${missing.join(', ')}. Set them and restart.`);
+    process.exit(1);
+  }
 }
 
 // Sentry must init before anything else

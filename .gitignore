@@ -28,3 +28,7 @@ backend/uploads/
 .DS_Store
 Thumbs.db
 .vercel
+
+# Local tooling / scratch (not for sharing)
+.claude/
+backend/prisma/.studio.local.prisma

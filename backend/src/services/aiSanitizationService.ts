@@ -176,6 +176,11 @@ export async function runAiSanitizationForCase(caseId: string): Promise<AiPublic
     }
   }
 
+  // Arrays are persisted as JSON strings (String columns — engine-agnostic).
+  const safeMediaUrls = JSON.stringify(result.safeMediaUrls || []);
+  const piiRemoved    = JSON.stringify(result.piiRemoved || []);
+  const mediaFlagged  = JSON.stringify(result.mediaFlagged || []);
+
   // Upsert AI public data
   const aiData = await prisma.aiPublicData.upsert({
     where: { caseId },
@@ -185,10 +190,10 @@ export async function runAiSanitizationForCase(caseId: string): Promise<AiPublic
       generatedCategory: result.generatedCategory,
       generatedCity:     result.generatedCity,
       generatedUrgency:  result.generatedUrgency,
-      safeMediaUrls:     result.safeMediaUrls,
+      safeMediaUrls,
       piiDetected:       result.piiDetected,
-      piiRemoved:        result.piiRemoved,
-      mediaFlagged:      result.mediaFlagged,
+      piiRemoved,
+      mediaFlagged,
       confidenceScore:   result.confidenceScore,
       tokensUsed:        result.tokensUsed,
       updatedAt:         new Date(),
@@ -200,10 +205,10 @@ export async function runAiSanitizationForCase(caseId: string): Promise<AiPublic
       generatedCategory: result.generatedCategory,
       generatedCity:     result.generatedCity,
       generatedUrgency:  result.generatedUrgency,
-      safeMediaUrls:     result.safeMediaUrls,
+      safeMediaUrls,
       piiDetected:       result.piiDetected,
-      piiRemoved:        result.piiRemoved,
-      mediaFlagged:      result.mediaFlagged,
+      piiRemoved,
+      mediaFlagged,
       confidenceScore:   result.confidenceScore,
       tokensUsed:        result.tokensUsed,
     },
@@ -217,7 +222,7 @@ export async function runAiSanitizationForCase(caseId: string): Promise<AiPublic
       publicTitle:     result.generatedTitle,
       publicStory:     result.generatedStory,
       publicCity:      result.generatedCity,
-      publicMediaUrls: result.safeMediaUrls,
+      publicMediaUrls: safeMediaUrls,
     },
   });
 

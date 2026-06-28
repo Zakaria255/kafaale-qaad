@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { programs as programsApi, projects as projectsApi } from "../api/client.js";
 import { useLang } from "../context/LanguageContext.jsx";
 import ContractModal from "../components/ContractModal.jsx";
+import { getCat } from "../utils/categories.js";
 
 const C = {
   navy: "#002651", primary: "#004B96", secondary: "#4B7D19",
@@ -209,14 +210,7 @@ const SponsorBeneficiaryModal = ({ beneficiary, onClose, onDone }) => {
   const [sponsorName, setSponsorName] = useState("");
   const [sponsorEmail, setSponsorEmail] = useState("");
 
-  const TYPES = [
-    { value: "full",      label: "Full Sponsor", desc: "You cover all needs" },
-    { value: "education", label: "Education",    desc: "School fees & supplies" },
-    { value: "medical",   label: "Medical Care", desc: "Health & treatments" },
-    { value: "food",      label: "Food Support", desc: "Daily nutrition" },
-    { value: "clothing",  label: "Clothing",     desc: "Uniforms & clothes" },
-    { value: "custom",    label: "Custom",       desc: "Set your own amount" },
-  ];
+  const TYPES = getCat("sponsorTypes");
 
   const PRESETS = [10, 20, 50, beneficiary.monthlyNeed].filter((v,i,a) => a.indexOf(v) === i && v > 0).sort((a,b) => a-b);
 
@@ -565,23 +559,9 @@ export default function Programs() {
   const filteredBeneficiaries = filterType ? allBeneficiaries.filter(b => b.programType === filterType) : allBeneficiaries;
   const filteredProjects = filterCat ? projectsList.filter(p => p.category === filterCat) : projectsList;
 
-  const PROGRAM_TYPE_FILTERS = [
-    { value: "", label: "All Programs" },
-    { value: "child_sponsorship", label: "Child Sponsorship" },
-    { value: "education", label: "Education" },
-    { value: "medical", label: "Medical" },
-    { value: "family_care", label: "Family Care" },
-  ];
+  const PROGRAM_TYPE_FILTERS = [{ value: "", label: "All Programs" }, ...getCat("programTypes")];
 
-  const PROJECT_CAT_FILTERS = [
-    { value: "", label: "All Categories" },
-    { value: "water", label: "Water" },
-    { value: "school", label: "Education" },
-    { value: "health", label: "Health" },
-    { value: "agriculture", label: "Agriculture" },
-    { value: "shelter", label: "Shelter" },
-    { value: "energy", label: "Energy" },
-  ];
+  const PROJECT_CAT_FILTERS = [{ value: "", label: "All Categories" }, ...getCat("projectCats")];
 
   if (loading) return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>

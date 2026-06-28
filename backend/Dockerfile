@@ -41,5 +41,5 @@ USER expressjs
 
 EXPOSE 5000
 
-# Run DB migrations then start the server
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/server.js"]
+# Sync schema (fails safe on destructive changes — no --accept-data-loss) then start
+CMD ["sh", "-c", "npx prisma db push && node dist/server.js"]

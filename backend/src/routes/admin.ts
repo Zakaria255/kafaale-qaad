@@ -522,7 +522,7 @@ router.post('/cases/:id/enroll-beneficiary', async (req: AuthRequest, res: Respo
             publicGender: kase.privateVictimGender || undefined,
             publicRegion: kase.publicCity || kase.privateDistrict || undefined,
             publicCity: kase.publicCity || undefined,
-            publicNeedsDesc: publicNeedsDesc || (kase.needsChecklist?.join(', ') || undefined),
+            publicNeedsDesc: publicNeedsDesc || undefined,
             publicStory: publicStory || kase.publicStory || undefined,
             monthlyNeed: monthlyNeed || 0,
             status: 'seeking_sponsor',

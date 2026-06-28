@@ -8,7 +8,7 @@
 |---|---|---|
 | Frontend | React 18 + Vite + React Router | ✅ |
 | Backend | Express 5 + TypeScript + Prisma | ✅ |
-| Database | SQLite (dev) / PostgreSQL (prod) | ✅ |
+| Database | PostgreSQL (Docker dev · Supabase prod) | ✅ |
 | AI | Claude Haiku (assistant) + Sonnet (sanitization) | ✅ |
 | Real-time | Socket.io | ✅ |
 | Auth | JWT + bcrypt (6 roles) | ✅ |
@@ -26,17 +26,27 @@
 
 ## 🏃 Run Locally
 
+Prereqs: Node 20+, and Docker (for the local Postgres — matches production).
+
 ```bash
+# 0. Start a local Postgres (from repo root)
+docker compose up -d
+
 # 1. Backend (Terminal 1)
 cd backend
+cp .env.example .env          # then fill in JWT_SECRET (+ ANTHROPIC_API_KEY for AI)
 npm install
-npx prisma migrate dev
-npm run dev      # → http://localhost:4000
+npx prisma db push            # create tables in the local DB
+npm run dev                   # → http://localhost:4000
 
-# 2. Frontend (Terminal 2)
+# 2. Frontend (Terminal 2, repo root)
+cp .env.example .env.local    # optional — defaults to localhost:4000 in dev
 npm install
-npm run dev      # → http://localhost:5173
+npm run dev                   # → http://localhost:5173
 ```
+
+> No Docker? Use a free Supabase project instead and put its connection URLs in `backend/.env`.
+> See [PILOT_CHECKLIST.md](PILOT_CHECKLIST.md) for the full production deploy + ops runbook.
 
 ### Demo Accounts (password: `Kafaale123!`)
 | Email | Role |
@@ -56,16 +66,14 @@ Add `ANTHROPIC_API_KEY=sk-ant-...` to `backend/.env` to enable AI features.
 
 ## 🚀 Deploy
 
-### Backend → Railway
-1. Connect GitHub repo to Railway
-2. Set root directory: `backend`
-3. Add env vars: `DATABASE_URL`, `JWT_SECRET`, `ANTHROPIC_API_KEY`, `FRONTEND_URL`
-4. Railway will auto-deploy on push
+Host-agnostic. Full step-by-step (env vars, monitoring, DR, go/no-go) is in
+**[PILOT_CHECKLIST.md](PILOT_CHECKLIST.md)**. In short:
 
-### Frontend → Vercel
-1. Connect GitHub repo to Vercel
-2. Set `VITE_API_URL=https://your-railway-app.railway.app/api`
-3. Auto-deploys on push
+- **Backend** → any Node host (Render `render.yaml` / Docker `backend/Dockerfile`). Root dir `backend`.
+  Required env: `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `FRONTEND_URL`, `BASE_URL`,
+  `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `ANTHROPIC_API_KEY` (`SENTRY_DSN` recommended).
+  The server **refuses to boot** without `DATABASE_URL`/`JWT_SECRET`.
+- **Frontend** → Vercel. Set `VITE_API_URL=https://<your-api>/api` and redeploy.
 
 ## 📋 Case Pipeline (11 steps)
 ```

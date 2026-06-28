@@ -152,7 +152,10 @@ function PostCard({ post, currentUser, onLike, onComment, onDelete }) {
   );
 }
 
-const TAGS = ["Update", "Success Story", "News", "Event", "Appeal", "Report", "Community"];
+const TAGS_KEY = "kf_media_tags";
+const DEFAULT_TAGS = ["Update", "Success Story", "News", "Event", "Appeal", "Report", "Community"];
+const loadTags = () => { try { const t = JSON.parse(localStorage.getItem(TAGS_KEY) || "null"); return Array.isArray(t) && t.length ? t : DEFAULT_TAGS; } catch { return DEFAULT_TAGS; } };
+const saveTags = (tags) => { try { localStorage.setItem(TAGS_KEY, JSON.stringify(tags)); } catch {} };
 
 // ─── Main feed ────────────────────────────────────────────────────────────────
 export default function MediaFeed() {
@@ -167,11 +170,28 @@ export default function MediaFeed() {
   const [ytUrl,        setYtUrl]       = useState("");
   const [videoLoading, setVideoLoading] = useState(false);
   const [filter,       setFilter]      = useState("all");
+  const [tags,         setTags]        = useState(loadTags);
+  const [newTag,       setNewTag]      = useState("");
   const imgRef   = useRef(null);
   const videoRef = useRef(null);
 
   const isAdmin = ['admin','super_admin','verification_office'].includes(user?.role);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // ── Category management ───────────────────────────────────────────────────────
+  const addTag = () => {
+    const t = newTag.trim();
+    if (!t) return;
+    if (tags.some(x => x.toLowerCase() === t.toLowerCase())) { setNewTag(""); return; }
+    const updated = [...tags, t];
+    setTags(updated); saveTags(updated); setNewTag("");
+  };
+  const removeTag = (t) => {
+    const updated = tags.filter(x => x !== t);
+    setTags(updated); saveTags(updated);
+    if (filter === t) setFilter("all");
+    if (form.tag === t) set("tag", "");
+  };
 
   // ── Image picker ────────────────────────────────────────────────────────────
   const handleImages = (e) => {
@@ -277,10 +297,15 @@ export default function MediaFeed() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       {/* Hero */}
-      <div style={{ background: `linear-gradient(135deg,${C.primary},${C.secondary})`, padding: "48px 24px 40px", textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>📱</div>
-        <h1 style={{ color: "#fff", fontSize: 32, fontWeight: 900, margin: "0 0 8px" }}>Community Media</h1>
-        <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 16, margin: 0 }}>Stories, updates, and moments from Kafaale Qaad Hope Society</p>
+      <div style={{ position: "relative", overflow: "hidden", padding: "48px 24px 40px", textAlign: "center" }}>
+        {/* Background photo */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `url("/media-hero.png")`, backgroundSize: "cover", backgroundPosition: "center center" }} />
+        {/* Brand gradient overlay for text readability */}
+        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${C.primary}E6, ${C.secondary}CC)` }} />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <h1 style={{ color: "#fff", fontSize: 32, fontWeight: 900, margin: "0 0 8px", textShadow: "0 2px 16px rgba(0,0,0,0.5)" }}>Community Media</h1>
+          <p style={{ color: "rgba(255,255,255,0.9)", fontSize: 16, margin: 0, textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>Stories, updates, and moments from Kafaale Qaad Hope Society</p>
+        </div>
       </div>
 
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px" }}>
@@ -308,7 +333,7 @@ export default function MediaFeed() {
 
             {/* Tags */}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-              {TAGS.map(t => (
+              {tags.map(t => (
                 <button key={t} onClick={() => set("tag", form.tag === t ? "" : t)}
                   style={{ padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `2px solid ${form.tag === t ? C.primary : C.border}`, background: form.tag === t ? C.primary : "#fff", color: form.tag === t ? "#fff" : C.muted, cursor: "pointer" }}>
                   {t}
@@ -426,7 +451,7 @@ export default function MediaFeed() {
 
         {/* ── Tag filter bar ── */}
         <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 20 }}>
-          {["all", ...TAGS].map(t => (
+          {["all", ...tags].map(t => (
             <button key={t} onClick={() => setFilter(t)}
               style={{ padding: "7px 18px", borderRadius: 20, fontSize: 13, fontWeight: 700, border: `2px solid ${filter === t ? C.primary : C.border}`, background: filter === t ? C.primary : "#fff", color: filter === t ? "#fff" : C.muted, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
               {t === "all" ? "All Posts" : t}
@@ -436,6 +461,31 @@ export default function MediaFeed() {
             </button>
           ))}
         </div>
+
+        {/* ── Admin: manage categories ── */}
+        {isAdmin && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 10 }}>Manage Categories</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+              {tags.map(t => (
+                <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 6px 5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1.5px solid ${C.border}`, background: "#F8FAFC", color: C.text }}>
+                  {t}
+                  <button onClick={() => removeTag(t)} title={`Remove "${t}"`}
+                    style={{ width: 20, height: 20, borderRadius: "50%", background: C.danger, color: "#fff", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
+                </span>
+              ))}
+              {tags.length === 0 && <span style={{ fontSize: 12, color: C.muted }}>No categories yet — add one below.</span>}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input value={newTag} onChange={e => setNewTag(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+                placeholder="New category name…"
+                style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: `1.5px solid ${C.border}`, fontSize: 14, boxSizing: "border-box", fontFamily: "inherit" }} />
+              <button onClick={addTag}
+                style={{ padding: "9px 18px", borderRadius: 10, border: "none", background: C.primary, color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer", whiteSpace: "nowrap" }}>+ Add</button>
+            </div>
+          </div>
+        )}
 
         {/* ── Feed ── */}
         {filtered.length === 0 ? (

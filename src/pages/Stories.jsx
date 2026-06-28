@@ -5,11 +5,12 @@ import { useLang } from "../context/LanguageContext.jsx";
 import { useResponsive } from "../hooks/useResponsive.js";
 import { C } from "../theme.js";
 import { STORY_IMGS, getStoryImg } from "../utils/storyImages.js";
+import { getCat } from "../utils/categories.js";
 
 const STORIES_KEY = "kf_impact_stories";
 const SUBMISSIONS_KEY = "kf_story_submissions";
 
-const CATS = ["Medical","Shelter","Education","Food","Water","Orphan","Emergency","Other"];
+const CATS = getCat("stories");
 
 function StorySubmitSection({ isMobile }) {
   const EMPTY = { name:"", anonymous:false, title:"", category:"Medical", location:"", what:"", outcome:"", consent:false };

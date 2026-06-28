@@ -85,7 +85,6 @@ export default function Home() {
 
   const STATS = [
     { val:"2,400+", label:P.stat_cases,  icon:"📋", color:C.primary   },
-    { val:"$1.2M",  label:P.stat_aid,    icon:"💰", color:C.secondary },
     { val:"98.8%",  label:P.stat_verify, icon:"✅", color:"#10B981"   },
     { val:"6",      label:P.stat_cities, icon:"📍", color:C.accent    },
   ];
@@ -100,10 +99,6 @@ export default function Home() {
   // Stats bar visibility from admin settings
   const [showStats] = useState(() => {
     try { const s = JSON.parse(localStorage.getItem("kf_site_settings") || "{}"); return s.showStats !== false; }
-    catch { return true; }
-  });
-  const [showAidStat] = useState(() => {
-    try { const s = JSON.parse(localStorage.getItem("kf_site_settings") || "{}"); return s.showAidStat !== false; }
     catch { return true; }
   });
 
@@ -218,11 +213,11 @@ export default function Home() {
       {showStats && (
         <section style={{ background:"#fff", borderBottom:`1px solid ${C.border}` }}>
           <div style={{ maxWidth:1280, margin:"0 auto", padding: isMobile?"0 20px":"0 32px",
-            display:"grid", gridTemplateColumns: isMobile?"repeat(2,1fr)":"repeat(4,1fr)" }}>
-            {STATS.filter(s => showAidStat || s.label !== P.stat_aid).map((s, i) => (
+            display:"grid", gridTemplateColumns: isMobile?"repeat(2,1fr)":`repeat(${STATS.length},1fr)` }}>
+            {STATS.map((s, i) => (
               <div key={i} style={{
                 padding: isMobile?"28px 16px":"40px 28px", textAlign:"center",
-                borderRight: (!isMobile && i<3) ? `1px solid ${C.border}` : "none",
+                borderRight: (!isMobile && i<STATS.length-1) ? `1px solid ${C.border}` : "none",
                 borderBottom: (isMobile && i<2) ? `1px solid ${C.border}` : "none",
               }}>
                 <div className="kf-stat-num" style={{ color:s.color }}>{s.val}</div>

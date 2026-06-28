@@ -1,7 +1,12 @@
 // ─── Kafaale Qaad — Central API Client ───────────────────────────────────
+// Host-agnostic: set VITE_API_URL at build time to your backend's /api URL.
+// Dev falls back to the local API; prod falls back to same-origin "/api"
+// (works behind a reverse proxy / same domain) — never a hardcoded host.
 const IS_DEV = import.meta.env.DEV;
-const API = import.meta.env.VITE_API_URL
-  || (IS_DEV ? 'http://localhost:4000/api' : 'https://determined-grace-production-e07b.up.railway.app/api');
+const API = import.meta.env.VITE_API_URL || (IS_DEV ? 'http://localhost:4000/api' : '/api');
+if (!IS_DEV && !import.meta.env.VITE_API_URL) {
+  console.warn('[Kafaale] VITE_API_URL is not set — falling back to same-origin "/api". Set it in your Vercel/host env to point at the backend.');
+}
 
 // ── Auth helpers ─────────────────────────────────────────────────
 export const getToken = () => localStorage.getItem('kf_token');
@@ -12,6 +17,11 @@ export const isLoggedIn = () => !!getToken();
 
 const DEMO_TOKEN = 'demo-token-kafaale-qaad';
 
+// True when the current session is the offline demo session (backend unreachable).
+export const isDemoMode = () => getToken() === DEMO_TOKEN;
+
+const emit = (name) => { try { window.dispatchEvent(new CustomEvent(name)); } catch { /* SSR */ } };
+
 // ── Core fetch wrapper ────────────────────────────────────────────
 async function req(path, opts = {}) {
   const token = getToken();
@@ -20,7 +30,14 @@ async function req(path, opts = {}) {
     return demoFallback(path, opts);
   }
   const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(opts.headers || {}) };
-  const res = await fetch(`${API}${path}`, { ...opts, headers });
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, { ...opts, headers });
+    emit('kf-api-online'); // got a response → server reachable
+  } catch (e) {
+    emit('kf-api-offline'); // network/fetch failure → server unreachable
+    throw e;
+  }
   if (res.status === 401) {
     clearAuth();
     throw new Error('Session expired. Please log in again.');
