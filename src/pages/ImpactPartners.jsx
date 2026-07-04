@@ -859,7 +859,7 @@ export default function ImpactPartners() {
                 },
                 {
                   title:"12. Contact",
-                  body:`For questions regarding these Terms, contact: legal@kafaale.so · Kafaale Qaad HOPE Society, Mogadishu, Somalia.`
+                  body:`For questions regarding these Terms, contact: kafaaleqaad@gmail.com · Kafaale Qaad HOPE Society, Juma Tower, Room 403, Howl-wadaag, Mogadishu.`
                 },
               ].map(({ title, body }) => (
                 <div key={title} style={{ marginBottom:24, paddingBottom:24, borderBottom:`1px solid ${C.border}` }}>

@@ -59,7 +59,7 @@ const FAQ_DATA = [
     items: [
       { q:"How is my personal data protected?", a:"All user data is encrypted at rest and in transit (AES-256 + TLS). Personally identifying information about beneficiaries is only accessible to authorized staff. We do not sell or share user data." },
       { q:"How do you prevent duplicate or fraudulent cases?", a:"Our system checks for duplicate descriptions, locations, and reporter patterns. An AI layer scans all submissions for PII and inconsistencies. All cases require physical field verification before publication." },
-      { q:"Can I delete my account?", a:"Yes. Contact support@kafaale.so with your account email to request account deletion. All personal data is removed within 30 days." },
+      { q:"Can I delete my account?", a:"Yes. Contact kafaaleqaad@gmail.com with your account email to request account deletion. All personal data is removed within 30 days." },
     ],
   },
 ];
@@ -165,7 +165,7 @@ export default function FAQ() {
             <p style={{ fontSize:14, color:C.muted, marginBottom:20 }}>Our team responds within 24 hours.</p>
             <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
               <Link to="/contact" style={{ padding:"12px 24px", background:C.primary, color:"#fff", borderRadius:10, fontWeight:700, fontSize:14, textDecoration:"none" }}>📬 Contact Us</Link>
-              <a href="mailto:support@kafaale.so" style={{ padding:"12px 24px", background:"none", border:`1.5px solid ${C.primary}`, color:C.primary, borderRadius:10, fontWeight:600, fontSize:14, textDecoration:"none" }}>✉️ Email Support</a>
+              <a href="mailto:kafaaleqaad@gmail.com" style={{ padding:"12px 24px", background:"none", border:`1.5px solid ${C.primary}`, color:C.primary, borderRadius:10, fontWeight:600, fontSize:14, textDecoration:"none" }}>✉️ Email Support</a>
             </div>
           </div>
         </div>

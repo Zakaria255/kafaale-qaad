@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import { CAT_GROUPS, getCat } from "./utils/categories.js";
@@ -3075,7 +3075,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
     bankName:      "Kafaale Qaad",
     bankIBAN:      "SO00 0000 0000 0000 0000",
     bankBIC:       "CAFGSO1X",
-    mobileNumber:  "+252 61 200 0000",
+    mobileNumber:  "+252 61 502 4050",
     mobileName:    "Kafaale Qaad",
     footerMsg:     "Thank you for your generous support. Please include the invoice number as your payment reference.",
     description:   "Monthly Sponsorship Support",
@@ -4698,10 +4698,160 @@ const ROLE_COLORS = {
   project_manager:     { bg: "#FEF9C3", text: "#713F12" },
 };
 
+const LANG_OPTS = ["en", "so", "ar", "tr", "es", "fr"];
+
+// Super Admin: full edit of any user (profile + role + status + password).
+const EditUserModal = ({ user, onClose, onSaved }) => {
+  const [f, setF] = useState({
+    name:              user.name || user.fullname || "",
+    email:             user.email || "",
+    phone:             user.phone || "",
+    city:              user.city || "",
+    country:           user.country || "",
+    organization:      user.organization || "",
+    preferredLanguage: user.preferredLanguage || "en",
+    role:              user.role || "reporter",
+    isActive:          user.isActive !== false,
+    isApproved:        user.isApproved !== false,
+    newPassword:       "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
+  const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+
+  const save = async () => {
+    setSaving(true); setErr("");
+    try {
+      const payload = {
+        name: f.name, email: f.email, phone: f.phone, city: f.city, country: f.country,
+        organization: f.organization, preferredLanguage: f.preferredLanguage,
+        role: f.role, isActive: f.isActive, isApproved: f.isApproved,
+      };
+      if (f.newPassword) payload.newPassword = f.newPassword;
+      const res = await adminApi.updateUser(user.id, payload);
+      onSaved(res.user || { ...user, ...payload });
+      onClose();
+    } catch (e) {
+      setErr(e.message || "Failed to update user");
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <Modal title={`Edit User — ${user.name || user.email}`} onClose={onClose} wide>
+      {err && <div style={{ background: "#FEE2E2", color: "#991B1B", padding: "10px 14px", borderRadius: 10, marginBottom: 14, fontSize: 13 }}>{err}</div>}
+      <div className="kf-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Input label="Full Name" value={f.name} onChange={e => set("name", e.target.value)} />
+        <Input label="Email" type="email" value={f.email} onChange={e => set("email", e.target.value)} />
+        <Input label="Phone" value={f.phone} onChange={e => set("phone", e.target.value)} />
+        <Input label="Organization" value={f.organization} onChange={e => set("organization", e.target.value)} />
+        <Input label="City" value={f.city} onChange={e => set("city", e.target.value)} />
+        <Input label="Country" value={f.country} onChange={e => set("country", e.target.value)} />
+        <Select label="Role" value={f.role} onChange={e => set("role", e.target.value)}>
+          {ALL_ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+        </Select>
+        <Select label="Preferred Language" value={f.preferredLanguage} onChange={e => set("preferredLanguage", e.target.value)}>
+          {LANG_OPTS.map(l => <option key={l} value={l}>{l.toUpperCase()}</option>)}
+        </Select>
+        <Select label="Account Status" value={f.isActive ? "active" : "inactive"} onChange={e => set("isActive", e.target.value === "active")}>
+          <option value="active">● Active</option>
+          <option value="inactive">● Inactive</option>
+        </Select>
+        <Select label="Approval" value={f.isApproved ? "approved" : "pending"} onChange={e => set("isApproved", e.target.value === "approved")}>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+        </Select>
+        <Input label="Reset Password (optional)" type="password" placeholder="Leave blank to keep" value={f.newPassword} onChange={e => set("newPassword", e.target.value)} />
+      </div>
+      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+        <Btn variant="muted" onClick={onClose} disabled={saving}>Cancel</Btn>
+        <Btn variant="primary" onClick={save} disabled={saving}>{saving ? "Saving…" : "💾 Save Changes"}</Btn>
+      </div>
+    </Modal>
+  );
+};
+
+// Any logged-in user: edit their OWN profile + change their OWN password.
+const ProfileModal = ({ onClose }) => {
+  const { user, updateUser, logout } = useAuth();
+  const navigate = useNavigate();
+  const [f, setF] = useState({
+    name:              user?.name || "",
+    email:             user?.email || "",
+    phone:             user?.phone || "",
+    city:              user?.city || "",
+    country:           user?.country || "",
+    organization:      user?.organization || "",
+    preferredLanguage: user?.preferredLanguage || "en",
+  });
+  const [pw, setPw] = useState({ currentPassword: "", newPassword: "", confirm: "" });
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+  const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+
+  const saveProfile = async () => {
+    setSaving(true); setErr(""); setMsg("");
+    try {
+      const res = await authApi.updateProfile(f);
+      if (res.user) updateUser(res.user);
+      setMsg("Profile updated ✓");
+    } catch (e) { setErr(e.message || "Failed to update profile"); }
+    finally { setSaving(false); }
+  };
+
+  const savePassword = async () => {
+    setErr(""); setMsg("");
+    if (pw.newPassword.length < 8) return setErr("New password must be at least 8 characters");
+    if (pw.newPassword !== pw.confirm) return setErr("New passwords do not match");
+    setSaving(true);
+    try {
+      await authApi.changePassword(pw.currentPassword, pw.newPassword);
+      // Changing the password invalidates the current token → force a fresh login.
+      logout();
+      navigate("/login");
+    } catch (e) { setErr(e.message || "Failed to change password"); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <Modal title="My Profile" onClose={onClose} wide>
+      {err && <div style={{ background: "#FEE2E2", color: "#991B1B", padding: "10px 14px", borderRadius: 10, marginBottom: 14, fontSize: 13 }}>{err}</div>}
+      {msg && <div style={{ background: "#D1FAE5", color: "#065F46", padding: "10px 14px", borderRadius: 10, marginBottom: 14, fontSize: 13 }}>{msg}</div>}
+      <div className="kf-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Input label="Full Name" value={f.name} onChange={e => set("name", e.target.value)} />
+        <Input label="Email" type="email" value={f.email} onChange={e => set("email", e.target.value)} />
+        <Input label="Phone" value={f.phone} onChange={e => set("phone", e.target.value)} />
+        <Input label="Organization" value={f.organization} onChange={e => set("organization", e.target.value)} />
+        <Input label="City" value={f.city} onChange={e => set("city", e.target.value)} />
+        <Input label="Country" value={f.country} onChange={e => set("country", e.target.value)} />
+        <Select label="Preferred Language" value={f.preferredLanguage} onChange={e => set("preferredLanguage", e.target.value)}>
+          {LANG_OPTS.map(l => <option key={l} value={l}>{l.toUpperCase()}</option>)}
+        </Select>
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+        <Btn variant="primary" onClick={saveProfile} disabled={saving}>{saving ? "Saving…" : "💾 Save Profile"}</Btn>
+      </div>
+      <hr style={{ border: "none", borderTop: `1px solid ${COLORS.border}`, margin: "22px 0" }} />
+      <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, color: COLORS.text }}>🔒 Change Password</h3>
+      <div className="kf-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        <Input label="Current Password" type="password" value={pw.currentPassword} onChange={e => setPw(p => ({ ...p, currentPassword: e.target.value }))} />
+        <Input label="New Password" type="password" value={pw.newPassword} onChange={e => setPw(p => ({ ...p, newPassword: e.target.value }))} />
+        <Input label="Confirm New" type="password" value={pw.confirm} onChange={e => setPw(p => ({ ...p, confirm: e.target.value }))} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+        <Btn variant="primary" onClick={savePassword} disabled={saving}>Update Password</Btn>
+      </div>
+    </Modal>
+  );
+};
+
 const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
   const { t } = useLang();
   const [editingId, setEditingId] = useState(null);
   const [savingId,  setSavingId]  = useState(null);
+  const [rows,      setRows]      = useState(users);
+  const [editUser,  setEditUser]  = useState(null);
+  useEffect(() => { setRows(users); }, [users]);
 
   const handleRoleChange = async (u, newRole) => {
     if (newRole === u.role) { setEditingId(null); return; }
@@ -4725,14 +4875,13 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
           </tr>
         </thead>
         <tbody>
-          {users.map((u, i) => {
+          {rows.map((u, i) => {
             const name = u.name || u.fullname || "?";
             const rc = ROLE_COLORS[u.role] || { bg: "#F3F4F6", text: "#374151" };
-            const isSelf = false; // will be guarded on backend
             const isEditing = editingId === u.id;
             const isSaving  = savingId  === u.id;
             return (
-              <tr key={u.id} style={{ borderBottom: i < users.length - 1 ? `1px solid ${COLORS.border}` : "none" }}
+              <tr key={u.id} style={{ borderBottom: i < rows.length - 1 ? `1px solid ${COLORS.border}` : "none" }}
                 onMouseEnter={e => e.currentTarget.style.background = "#F8FAFC"} onMouseLeave={e => e.currentTarget.style.background = ""}>
                 <td style={{ padding: "10px 16px" }}><UserAvatar name={name} size={38} /></td>
                 <td style={{ padding: "10px 16px" }}>
@@ -4764,12 +4913,18 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
                 </td>
                 {isSuperAdmin && (
                   <td style={{ padding: "10px 16px" }}>
-                    {u.role !== "super_admin" && (
-                      <button onClick={() => onDeleteUser && onDeleteUser(u)}
-                        style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#FEE2E2", color: "#DC2626", border: "1px solid #FCA5A5", cursor: "pointer" }}>
-                        {t("deleteUser")}
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button onClick={() => setEditUser(u)}
+                        style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE", cursor: "pointer" }}>
+                        ✏️ Edit
                       </button>
-                    )}
+                      {u.role !== "super_admin" && (
+                        <button onClick={() => onDeleteUser && onDeleteUser(u)}
+                          style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#FEE2E2", color: "#DC2626", border: "1px solid #FCA5A5", cursor: "pointer" }}>
+                          {t("deleteUser")}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>
@@ -4777,6 +4932,10 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
           })}
         </tbody>
       </table>
+      {editUser && (
+        <EditUserModal user={editUser} onClose={() => setEditUser(null)}
+          onSaved={(u) => setRows(rs => rs.map(x => x.id === u.id ? { ...x, ...u } : x))} />
+      )}
     </div>
   );
 };
@@ -4800,9 +4959,9 @@ const PAGE_DEFAULTS = {
 const SITE_INFO_DEFAULTS = {
   orgName:    "Kafaala Qaad HOPE",
   tagline:    "Connecting Verified Need with Compassionate Support",
-  email:      "support@kafaale.so",
-  phone:      "+252 611 000 000",
-  address:    "Mogadishu, Somalia",
+  email:      "kafaaleqaad@gmail.com",
+  phone:      "+252 61 502 4050",
+  address:    "Juma Tower, Room 403, Howl-wadaag, Mogadishu",
   website:    "kafaale.so",
   facebook:   "https://facebook.com/kafaaleqaad",
   twitter:    "https://twitter.com/kafaaleqaad",
@@ -8377,6 +8536,7 @@ export default function KafaaleQaadApp() {
   const [notifs,            setNotifs]           = useState([]);
   const [agents,            setAgents]           = useState([]);
   const [dataLoading,       setDataLoading]      = useState(true);
+  const [showProfile,       setShowProfile]      = useState(false);
   const isMobile = useIsMobile();
   const { t, lang, changeLang, LANGUAGES, currentLang } = useLang();
   const [showLangMenu,      setShowLangMenu]     = useState(false);
@@ -8769,12 +8929,14 @@ export default function KafaaleQaadApp() {
               )}
             </div>
 
-            <div className="kf-hide-mobile" style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 12, fontWeight: 700 }}>{currentUser.fullname}</div>
-              <div style={{ fontSize: 9, opacity: 0.65, letterSpacing: 0.5 }}>{roleInfo.icon} {roleInfo.label}</div>
+            <div onClick={() => setShowProfile(true)} title="My Profile — edit your details"
+              style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <div className="kf-hide-mobile" style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{currentUser.fullname}</div>
+                <div style={{ fontSize: 9, opacity: 0.65, letterSpacing: 0.5 }}>{roleInfo.icon} {roleInfo.label}</div>
+              </div>
+              <UserAvatar name={currentUser.fullname} size={34} />
             </div>
-
-            <UserAvatar name={currentUser.fullname} size={34} />
 
             {/* Language switcher */}
             <div style={{ position: "relative" }}>
@@ -8801,6 +8963,8 @@ export default function KafaaleQaadApp() {
           </div>
         </div>
       </div>
+
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
 
       {/* ── Pipeline Banner (admin/field only) ── */}
       {["admin","verification_office","super_admin","field_team"].includes(internalRole) && (

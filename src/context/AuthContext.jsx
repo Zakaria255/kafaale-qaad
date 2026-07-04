@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from 'react';
-import { auth as authApi, setAuth, clearAuth, getUser } from '../api/client';
+import { auth as authApi, setAuth, clearAuth, getUser, getToken } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -67,8 +67,17 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // Merge fresh profile fields into the current session and persist them.
+  const updateUser = (patch) => {
+    setUser(prev => {
+      const next = { ...(prev || {}), ...patch };
+      setAuth(next, getToken());
+      return next;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isLoggedIn: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, isLoggedIn: !!user }}>
       {children}
     </AuthContext.Provider>
   );

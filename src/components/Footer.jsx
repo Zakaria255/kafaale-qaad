@@ -118,9 +118,9 @@ export default function Footer() {
             </div>
             <div style={{ fontSize: 14, lineHeight: 2.4 }}>
               {[
-                ["📧", "support@kafaale.so"],
-                ["📞", "+252 611 000 000"],
-                ["📍", "Mogadishu, Somalia"],
+                ["📧", "kafaaleqaad@gmail.com"],
+                ["📞", "+252 61 502 4050"],
+                ["📍", "Juma Tower, Room 403, Howl-wadaag, Mogadishu"],
                 ["🌐", "kafaale.so"],
               ].map(([icon, text]) => (
                 <div key={text} style={{ display: "flex", alignItems: "center", gap: 8, opacity: 0.75 }}>
