@@ -177,15 +177,13 @@ AI Sanitization: Before any case goes public, our AI (Claude) automatically read
 ═══════════════════════════════════════════════════════
 SECURITY FEATURES
 ═══════════════════════════════════════════════════════
-- OTP Two-Factor Authentication: Every login requires a one-time code sent to your phone
-- ID Verification: All users verify their identity before full access
-- Face Verification: AWS Rekognition biometric checks for high-trust roles
-- AES-256 Encryption: All data encrypted at rest and in transit via TLS 1.3
-- PCI DSS Level 1: Highest level of payment security certification
-- AI Fraud Detection: Real-time anomaly detection flags duplicate cases, suspicious patterns, and payment irregularities
-- Immutable Audit Log: Every single action is permanently logged with timestamp, user ID, and cryptographic hash — nothing can be deleted or altered
-- GDPR Compliance: Full data privacy compliance, right to erasure supported
-- Secure Escrow: Donations are held in escrow until delivery is confirmed — donors are protected
+- Secure passwords: All passwords are hashed with bcrypt — never stored in plain text
+- Role-based access control (RBAC): Every endpoint enforces what each role may see and do
+- Encryption in transit: All traffic is served over HTTPS/TLS
+- Private data separation: Victim PII (names, phones, exact address, GPS) is stored separately and never shown to donors or the public
+- Input validation & rate limiting on sensitive endpoints
+- Administrative audit logging: Admin actions (approvals, edits, role changes) are recorded
+- Manual payment verification: Donations are confirmed by staff before a case is marked funded
 
 ═══════════════════════════════════════════════════════
 PAYMENT METHODS SUPPORTED
@@ -194,7 +192,7 @@ PAYMENT METHODS SUPPORTED
 - PayPal — international
 - Bank Transfer — SWIFT and local
 - Ama Gateway — local Somali mobile money
-All payments are encrypted, PCI DSS Level 1 certified. Tax certificates issued for all donations.
+All payments are served over HTTPS and verified by our team before a case is marked funded. Tax certificates issued for all donations.
 
 ═══════════════════════════════════════════════════════
 CASE CATEGORIES
@@ -301,7 +299,7 @@ const DEMO_RESPONSES: Record<string, string> = {
 
   roles: `Kafaale Qaad has 6 distinct roles, each with their own dashboard:\n\n👁️ REPORTER — Submits emergency cases, tracks their submissions\n🏛️ VERIFICATION OFFICE — Reviews cases, assigns field teams, approves/rejects\n🗺️ FIELD TEAM — Physically investigates cases and delivers aid on the ground\n❤️ DONOR/SPONSOR — Browses verified cases, makes secure payments, receives impact reports\n🔧 ADMIN — Manages users, views analytics, handles escalations\n🛡️ SUPER ADMIN — Full platform control, fraud monitoring, all financial data\n\nEach role sees only what they need. Donors never see private victim data. Reporters never see each other's submissions. Full role-based access control on every endpoint.`,
 
-  security: `Kafaale Qaad has enterprise-grade security at every layer:\n\n🔑 OTP 2FA — Every login requires a one-time code sent to your phone\n🪪 ID Verification — All users identity-verified before full access\n😶 Face Verification — AWS Rekognition biometric checks for high-trust roles\n🔐 AES-256 Encryption — All data encrypted at rest and in transit via TLS 1.3\n💳 PCI DSS Level 1 — Highest payment security certification\n🤖 AI Fraud Detection — Real-time anomaly detection for duplicate cases and suspicious patterns\n📜 Immutable Audit Log — Every action permanently logged with timestamp, user ID, and cryptographic hash\n🌐 GDPR Compliant — Full privacy compliance, right to erasure\n💰 Secure Escrow — Donations held until delivery confirmed — donors are protected`,
+  security: `Kafaale Qaad protects your data with practical, real controls:\n\n• Passwords hashed with bcrypt — never stored in plain text\n• Role-based access control on every endpoint — each role sees only what it should\n• All traffic served over HTTPS/TLS\n• Victim PII (names, phone, exact address, GPS) stored separately and never shown to donors or the public\n• Input validation and rate limiting on sensitive endpoints\n• Admin actions recorded in an audit log\n• Donations verified by our team before a case is marked funded`,
 
   payment: `Kafaale Qaad accepts the following payment methods:\n\n💳 Stripe — Credit/debit cards (Visa, Mastercard, Amex, etc.) — for international donors\n🅿️ PayPal — For international donors who prefer PayPal\n🏦 Bank Transfer — SWIFT international or local bank transfers\n📱 Ama Gateway — Somali local mobile money (for donors in Somalia)\n\nAll payments are:\n• Encrypted end-to-end\n• PCI DSS Level 1 certified (highest standard)\n• Held in secure escrow until delivery is confirmed\n• Tax certificates issued automatically\n• Anonymous donations supported\n• Any currency accepted (auto-converted)\n\nYour money CANNOT be released to the field until a verified delivery proof is uploaded.`,
 

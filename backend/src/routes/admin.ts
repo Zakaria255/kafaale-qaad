@@ -397,7 +397,7 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
     }
     const { id } = req.params;
     const { role } = req.body;
-    const validRoles = ['reporter','donor','field_agent','verification_office','program_manager','project_manager','admin','super_admin'];
+    const validRoles = ['user','reporter','donor','field_agent','verification_office','program_manager','project_manager','admin','super_admin'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
     }
@@ -436,7 +436,7 @@ router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
       country:           z.string().max(100).optional(),
       organization:      z.string().max(200).optional(),
       preferredLanguage: z.string().max(10).optional(),
-      role:              z.enum(['reporter','donor','field_agent','verification_office','program_manager','project_manager','admin','super_admin']).optional(),
+      role:              z.enum(['user','reporter','donor','field_agent','verification_office','program_manager','project_manager','admin','super_admin']).optional(),
       isActive:          z.boolean().optional(),
       isApproved:        z.boolean().optional(),
       newPassword:       z.string().min(8).optional(),

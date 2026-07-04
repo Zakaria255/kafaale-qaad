@@ -11,6 +11,7 @@ import { sysLog } from '../services/logger';
 const router = Router();
 
 export const ALL_ROLES = [
+  'user',
   'reporter','donor','field_agent','verification_office',
   'program_manager','project_manager','admin','super_admin',
   // backward-compat aliases kept for any legacy data
@@ -19,7 +20,7 @@ export const ALL_ROLES = [
 export type AppRole = typeof ALL_ROLES[number];
 
 // Roles where registration is open (immediate access)
-const OPEN_ROLES = new Set(['reporter','donor','sponsor']);
+const OPEN_ROLES = new Set(['user','reporter','donor','sponsor']);
 // All other roles require admin to set isActive=true before they can login
 
 // Roles a user may self-select at registration. admin/super_admin are NEVER
@@ -39,7 +40,8 @@ const RegisterSchema = z.object({
   city:              z.string().max(100).optional(),
   organization:      z.string().max(200).optional(),
   preferredLanguage: z.enum(['en','so','ar','fr','es','tr']).default('en'),
-  role:              z.enum(REGISTERABLE_ROLES).default('reporter'),
+  // No self-selected role: everyone registers as a normal "user". Elevated
+  // roles are granted only by a super admin afterwards.
 });
 
 async function sendEmail(to: string, subject: string, text: string) {
@@ -68,15 +70,16 @@ router.post('/register', async (req: Request, res: Response) => {
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
-    const isOpenRole = OPEN_ROLES.has(data.role);
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
+    // Everyone registers as a normal "user" — immediate access, can both
+    // report cases and make donations. Elevated roles come only from a super admin.
     const user = await prisma.user.create({
       data: {
-        name: data.name, email: data.email, password: hashedPassword, role: data.role,
+        name: data.name, email: data.email, password: hashedPassword, role: 'user',
         phone: data.phone, country: data.country, city: data.city,
         organization: data.organization, preferredLanguage: data.preferredLanguage,
-        isActive: isOpenRole, // reporters/donors get immediate access; others wait for admin
+        isActive: true,
       },
       select: {
         id: true, name: true, email: true, role: true,
@@ -84,21 +87,9 @@ router.post('/register', async (req: Request, res: Response) => {
       },
     });
 
-    // Open roles (reporter, donor) → issue JWT immediately
-    if (isOpenRole) {
-      const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
-      sysLog.info(`✅ New user registered: ${user.email} [${user.role}]`);
-      return res.status(201).json({ user, token });
-    }
-
-    // Staff/agent/field: account created but isActive=false until admin approves
-    sysLog.info(`✅ New staff registration (pending approval): ${user.email} [${user.role}]`);
-    res.status(201).json({
-      user,
-      token: null,
-      pendingApproval: true,
-      message: 'Account created. An admin will review and approve your account within 24 hours.',
-    });
+    const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
+    sysLog.info(`New user registered: ${user.email}`);
+    return res.status(201).json({ user, token });
   } catch (err: any) {
     if (err instanceof z.ZodError) return res.status(400).json({ error: 'Validation failed', details: err.issues });
     res.status(400).json({ error: err.message });

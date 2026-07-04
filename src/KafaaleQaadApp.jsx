@@ -4678,8 +4678,9 @@ const UserAvatar = ({ name, size = 36 }) => {
 
 // ─── USERS TAB — avatars, inline role change, delete ─────────────────────────
 const ALL_ROLES = [
-  { value: "reporter",            label: "📝 Reporter"              },
-  { value: "donor",               label: "💳 Donor"                  },
+  { value: "user",                label: "User (report + donate)"    },
+  { value: "reporter",            label: "Reporter"                  },
+  { value: "donor",               label: "Donor"                     },
   { value: "field_agent",         label: "🔍 Field Agent"            },
   { value: "verification_office", label: "🏛️ Verification Office"   },
   { value: "program_manager",     label: "🌱 Program Manager"        },
@@ -8608,6 +8609,7 @@ const ProjectManagerDashboard = ({ currentUser, showToast }) => {
 
 // ─── Role → internal dashboard key ─────────────────────────────────────────
 const ROLE_MAP = {
+  user:                "public_user",
   reporter:            "public_user",
   donor:               "public_user",
   admin:               "admin",

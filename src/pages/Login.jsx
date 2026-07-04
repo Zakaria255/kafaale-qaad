@@ -135,7 +135,7 @@ export default function Login() {
     try {
       tab === 'login'
         ? await login(form.email, form.password)
-        : await register({ name:form.name, email:form.email, password:form.password, role:form.role, country:form.country, city:form.city, phone:form.phone });
+        : await register({ name:form.name, email:form.email, password:form.password, country:form.country, city:form.city, phone:form.phone });
       nav('/dashboard');
     } catch (err) {
       const msg = err.message || '';
@@ -279,18 +279,6 @@ export default function Login() {
 
             {tab === 'register' && (
               <>
-                <div>
-                  <PortalSelect
-                    value={form.role}
-                    onChange={v => set('role', v)}
-                    groups={ROLE_GROUPS}
-                  />
-                  {['field_agent','verification_office','program_manager','project_manager','partner'].includes(form.role) && (
-                    <div style={{ marginTop:6, padding:'8px 12px', background:'#FEF3C7', borderRadius:8, fontSize:12, color:'#92400E', display:'flex', gap:6 }}>
-                      ⏳ This role requires admin approval. You will receive access within 24 hours.
-                    </div>
-                  )}
-                </div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                   {inp('country', t('country'))}
                   {inp('city',    t('city'))}
