@@ -49,6 +49,7 @@ import searchRoutes from './routes/search';
 import messagesRoutes from './routes/messages';
 import vaultRoutes from './routes/vault';
 import settingsRoutes from './routes/settings';
+import notesRoutes from './routes/notes';
 import { getSettings } from './routes/settings';
 import cron from 'node-cron';
 import { sysLog } from './services/logger';
@@ -222,6 +223,7 @@ app.use('/api/projects',      projectsRoutes);
 app.use('/api/search',        searchRoutes);
 app.use('/api/vault',         vaultRoutes);
 app.use('/api/settings',     settingsRoutes);
+app.use('/api/notes',        notesRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {

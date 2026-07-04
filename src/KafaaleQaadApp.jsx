@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import { CAT_GROUPS, getCat } from "./utils/categories.js";
@@ -4940,6 +4940,165 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
   );
 };
 
+// ─── NOTEBOOK (admin & super-admin: notes + assignable tasks) ────────────────
+const NOTE_STATUS = {
+  todo:  { label: "To Do",       bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B" },
+  doing: { label: "In Progress", bg: "#DBEAFE", text: "#1E40AF", dot: "#3B82F6" },
+  done:  { label: "Done",        bg: "#D1FAE5", text: "#065F46", dot: "#10B981" },
+};
+const NOTE_PRIORITY = {
+  low:    { label: "Low",    color: "#6B7280" },
+  normal: { label: "Normal", color: "#2563EB" },
+  high:   { label: "High",   color: "#DC2626" },
+};
+
+const NotebookPanel = ({ users = [], showToast }) => {
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ title: "", body: "", assigneeId: "", priority: "normal", status: "todo" });
+  const [saving, setSaving] = useState(false);
+  const [filter, setFilter] = useState("all");
+  const toast = showToast || (() => {});
+
+  useEffect(() => {
+    setLoading(true);
+    notesApi.list().then(r => setNotes(Array.isArray(r.notes) ? r.notes : [])).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const addNote = async () => {
+    if (!form.title.trim()) return toast("Please enter a title", "error");
+    setSaving(true);
+    try {
+      const r = await notesApi.create({
+        title: form.title.trim(), body: form.body.trim(),
+        priority: form.priority, status: form.status,
+        assigneeId: form.assigneeId || null,
+      });
+      setNotes(ns => [r.note, ...ns]);
+      setForm({ title: "", body: "", assigneeId: "", priority: "normal", status: "todo" });
+      toast("Note added ✓", "success");
+    } catch (e) { toast(e.message || "Failed to add note", "error"); }
+    finally { setSaving(false); }
+  };
+
+  const cycleStatus = async (note) => {
+    const order = ["todo", "doing", "done"];
+    const next = order[(order.indexOf(note.status) + 1) % order.length];
+    try {
+      const r = await notesApi.update(note.id, { status: next });
+      setNotes(ns => ns.map(n => n.id === note.id ? r.note : n));
+    } catch (e) { toast(e.message || "Failed", "error"); }
+  };
+
+  const reassign = async (note, assigneeId) => {
+    try {
+      const r = await notesApi.update(note.id, { assigneeId: assigneeId || null });
+      setNotes(ns => ns.map(n => n.id === note.id ? r.note : n));
+      toast("Reassigned ✓", "success");
+    } catch (e) { toast(e.message || "Failed", "error"); }
+  };
+
+  const del = async (note) => {
+    if (!window.confirm(`Delete note "${note.title}"?`)) return;
+    try {
+      await notesApi.remove(note.id);
+      setNotes(ns => ns.filter(n => n.id !== note.id));
+      toast("Deleted", "success");
+    } catch (e) { toast(e.message || "Failed", "error"); }
+  };
+
+  const shown = filter === "all" ? notes : notes.filter(n => n.status === filter);
+  const counts = { all: notes.length, todo: notes.filter(n => n.status === "todo").length, doing: notes.filter(n => n.status === "doing").length, done: notes.filter(n => n.status === "done").length };
+
+  return (
+    <div>
+      {/* Branded header — carries the Kafaale Qaad logo + icon */}
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 20px", borderRadius: 16, marginBottom: 20,
+        background: "linear-gradient(135deg,#002651 0%,#004B96 55%,#B8861A 140%)", color: "#fff" }}>
+        <img src="/assets/brand/kafaala-qaad-hope-icon-192.png" alt="Kafaale Qaad" width={48} height={48}
+          style={{ borderRadius: 12, background: "#fff", padding: 4, flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <Logo size="sm" linked={false} dark />
+            <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: -0.5 }}>📓 Notebook</span>
+          </div>
+          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>Write notes and assign tasks to your team</div>
+        </div>
+      </div>
+
+      {/* Create form */}
+      <div style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: 16, marginBottom: 18 }}>
+        <Input label="Title" value={form.title} onChange={e => set("title", e.target.value)} placeholder="e.g. Follow up on Baidoa delivery" />
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 6 }}>Details</label>
+          <textarea value={form.body} onChange={e => set("body", e.target.value)} rows={3} placeholder="Write what needs to be done…"
+            style={{ width: "100%", padding: "10px 13px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 14, boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
+        </div>
+        <div className="kf-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <Select label="Assign to" value={form.assigneeId} onChange={e => set("assigneeId", e.target.value)}>
+            <option value="">— Unassigned —</option>
+            {users.map(u => <option key={u.id} value={u.id}>{(u.name || u.email)} ({(u.role || "").replace(/_/g, " ")})</option>)}
+          </Select>
+          <Select label="Priority" value={form.priority} onChange={e => set("priority", e.target.value)}>
+            <option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option>
+          </Select>
+          <Select label="Status" value={form.status} onChange={e => set("status", e.target.value)}>
+            <option value="todo">To Do</option><option value="doing">In Progress</option><option value="done">Done</option>
+          </Select>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+          <Btn variant="primary" onClick={addNote} disabled={saving}>{saving ? "Adding…" : "➕ Add Note"}</Btn>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+        {[["all", "All"], ["todo", "To Do"], ["doing", "In Progress"], ["done", "Done"]].map(([k, lbl]) => (
+          <button key={k} onClick={() => setFilter(k)} style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer",
+            border: `1px solid ${filter === k ? COLORS.primary : COLORS.border}`, background: filter === k ? COLORS.primary : "#fff", color: filter === k ? "#fff" : COLORS.muted }}>
+            {lbl} ({counts[k]})
+          </button>
+        ))}
+      </div>
+
+      {/* Notes list */}
+      {loading ? <div style={{ padding: 30, textAlign: "center", color: COLORS.muted }}>Loading…</div> :
+        shown.length === 0 ? <div style={{ padding: 30, textAlign: "center", color: COLORS.muted }}>No notes yet. Add your first above.</div> :
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 14 }}>
+          {shown.map(n => {
+            const st = NOTE_STATUS[n.status] || NOTE_STATUS.todo;
+            const pr = NOTE_PRIORITY[n.priority] || NOTE_PRIORITY.normal;
+            return (
+              <div key={n.id} style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderLeft: `4px solid ${st.dot}`, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.text }}>{n.title}</div>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: pr.color, flexShrink: 0 }}>{pr.label.toUpperCase()}</span>
+                </div>
+                {n.body && <div style={{ fontSize: 13, color: COLORS.muted, whiteSpace: "pre-wrap" }}>{n.body}</div>}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: COLORS.muted }}>
+                  <span>👤 {n.assignee?.name || "Unassigned"}</span><span>·</span>
+                  <span>{n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                  <button onClick={() => cycleStatus(n)} title="Click to advance status" style={{ background: st.bg, color: st.text, border: "none", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>● {st.label}</button>
+                  <select value={n.assigneeId || ""} onChange={e => reassign(n, e.target.value)}
+                    style={{ fontSize: 11, padding: "4px 8px", borderRadius: 8, border: `1px solid ${COLORS.border}`, color: COLORS.text, background: "#fff", maxWidth: 130 }}>
+                    <option value="">Unassigned</option>
+                    {users.map(u => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
+                  </select>
+                  <button onClick={() => del(n)} title="Delete" style={{ marginLeft: "auto", background: "#FEE2E2", color: "#DC2626", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>🗑</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      }
+    </div>
+  );
+};
+
 // ─── SITE SETTINGS PANEL (super admin) ───────────────────────────────────────
 const PAGE_DEFAULTS = {
   about:        { label: "About Us",       path: "/about",        icon: "🏛️", group: "About" },
@@ -6580,6 +6739,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"updates",    icon:"🚨", label:"Updates",         sub:"Alerts & news",                  color:"#D97706", g:"linear-gradient(135deg,#D97706,#F59E0B)", badge: 0 },
     { id:"completed",  icon:"🏁", label:"Completed Ops",   sub:`${completedCases.length} operations`, color:"#065F46", g:"linear-gradient(135deg,#065F46,#10B981)", badge: 0 },
     { id:"history",    icon:"📚", label:"History",         sub:"Records & archive",              color:"#0F766E", g:"linear-gradient(135deg,#0F766E,#14B8A6)", badge: 0 },
+    { id:"notebook",   icon:"📓", label:"Notebook",        sub:"Notes & tasks",                  color:"#B8861A", g:"linear-gradient(135deg,#B8861A,#E0AB21)", badge: 0 },
     { id:"settings",   icon:"⚙️", label:"Settings",        sub:"Site configuration",             color:"#374151", g:"linear-gradient(135deg,#374151,#6B7280)", badge: 0 },
   ];
   const ADMIN_MODULES = SUPER_MODULES.filter(m => !["users","settings"].includes(m.id));
@@ -7039,6 +7199,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
             );
           })()}
           {activeModule === "history"        && <HistoryPanel showToast={showToast} />}
+          {activeModule === "notebook"       && <NotebookPanel users={users} showToast={showToast||(() => {})} />}
           {activeModule === "updates"        && <div style={{ padding:"8px 0" }}><SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} defaultTab="updates_mgr" /></div>}
           {activeModule === "settings"       && isSuperAdmin && <SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} />}
         </div>

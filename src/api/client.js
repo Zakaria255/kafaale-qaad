@@ -126,6 +126,15 @@ export const notifications = {
   readAll: ()   => req('/notifications/read-all', { method: 'PATCH' }),
 };
 
+// ── Notebook (admin/super-admin notes & assignable tasks) ─────────
+export const notes = {
+  list:   ()          => req('/notes'),
+  mine:   ()          => req('/notes/mine'),
+  create: (data)      => req('/notes', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data)  => req(`/notes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  remove: (id)        => req(`/notes/${id}`, { method: 'DELETE' }),
+};
+
 // ── Impact endpoints ──────────────────────────────────────────────
 export const impact = {
   stats: () => req('/impact'),
