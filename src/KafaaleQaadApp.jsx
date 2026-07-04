@@ -4764,7 +4764,7 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
       </div>
       <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
         <Btn variant="muted" onClick={onClose} disabled={saving}>Cancel</Btn>
-        <Btn variant="primary" onClick={save} disabled={saving}>{saving ? "Saving…" : "💾 Save Changes"}</Btn>
+        <Btn variant="primary" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</Btn>
       </div>
     </Modal>
   );
@@ -4829,10 +4829,10 @@ const ProfileModal = ({ onClose }) => {
         </Select>
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-        <Btn variant="primary" onClick={saveProfile} disabled={saving}>{saving ? "Saving…" : "💾 Save Profile"}</Btn>
+        <Btn variant="primary" onClick={saveProfile} disabled={saving}>{saving ? "Saving…" : "Save Profile"}</Btn>
       </div>
       <hr style={{ border: "none", borderTop: `1px solid ${COLORS.border}`, margin: "22px 0" }} />
-      <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, color: COLORS.text }}>🔒 Change Password</h3>
+      <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 800, color: COLORS.text }}>Change Password</h3>
       <div className="kf-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
         <Input label="Current Password" type="password" value={pw.currentPassword} onChange={e => setPw(p => ({ ...p, currentPassword: e.target.value }))} />
         <Input label="New Password" type="password" value={pw.newPassword} onChange={e => setPw(p => ({ ...p, newPassword: e.target.value }))} />
@@ -4916,7 +4916,7 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
                     <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={() => setEditUser(u)}
                         style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE", cursor: "pointer" }}>
-                        ✏️ Edit
+                        Edit
                       </button>
                       {u.role !== "super_admin" && (
                         <button onClick={() => onDeleteUser && onDeleteUser(u)}
@@ -5022,7 +5022,7 @@ const NotebookPanel = ({ users = [], showToast }) => {
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <Logo size="sm" linked={false} dark />
-            <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: -0.5 }}>📓 Notebook</span>
+            <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: -0.5 }}>Notebook</span>
           </div>
           <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>Write notes and assign tasks to your team</div>
         </div>
@@ -5049,7 +5049,7 @@ const NotebookPanel = ({ users = [], showToast }) => {
           </Select>
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-          <Btn variant="primary" onClick={addNote} disabled={saving}>{saving ? "Adding…" : "➕ Add Note"}</Btn>
+          <Btn variant="primary" onClick={addNote} disabled={saving}>{saving ? "Adding…" : "Add Note"}</Btn>
         </div>
       </div>
 
@@ -5078,7 +5078,7 @@ const NotebookPanel = ({ users = [], showToast }) => {
                 </div>
                 {n.body && <div style={{ fontSize: 13, color: COLORS.muted, whiteSpace: "pre-wrap" }}>{n.body}</div>}
                 <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: COLORS.muted }}>
-                  <span>👤 {n.assignee?.name || "Unassigned"}</span><span>·</span>
+                  <span>{n.assignee?.name || "Unassigned"}</span><span>·</span>
                   <span>{n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
@@ -5088,7 +5088,7 @@ const NotebookPanel = ({ users = [], showToast }) => {
                     <option value="">Unassigned</option>
                     {users.map(u => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
                   </select>
-                  <button onClick={() => del(n)} title="Delete" style={{ marginLeft: "auto", background: "#FEE2E2", color: "#DC2626", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>🗑</button>
+                  <button onClick={() => del(n)} title="Delete" style={{ marginLeft: "auto", background: "#FEE2E2", color: "#DC2626", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Delete</button>
                 </div>
               </div>
             );
