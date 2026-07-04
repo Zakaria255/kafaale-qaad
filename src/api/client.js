@@ -71,6 +71,9 @@ export const auth = {
   me:       ()                => req('/auth/me'),
   logout:   ()                => req('/auth/logout', { method: 'POST' }),
   refresh:  ()                => req('/auth/refresh', { method: 'POST' }),
+  // Any logged-in user can edit their own profile + change their own password.
+  updateProfile:  (data)                        => req('/auth/profile', { method: 'PATCH', body: JSON.stringify(data) }),
+  changePassword: (currentPassword, newPassword) => req('/auth/change-password', { method: 'PATCH', body: JSON.stringify({ currentPassword, newPassword }) }),
 };
 
 // ── Cases endpoints ───────────────────────────────────────────────
@@ -92,6 +95,8 @@ export const admin = {
   users:            ()                        => req('/admin/users'),
   deleteUser:       (id)                      => req(`/admin/users/${id}`, { method: 'DELETE' }),
   changeRole:       (id, role)                => req(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
+  // Super Admin: edit any user's full profile (name, email, phone, city, country, org, language, role, status, password).
+  updateUser:       (id, data)                => req(`/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   audit:            ()                        => req('/admin/audit'),
   donations:        ()                        => req('/admin/donations'),
   confirmDonation:  (id)                      => req(`/admin/donations/${id}/confirm`,         { method: 'PATCH' }),

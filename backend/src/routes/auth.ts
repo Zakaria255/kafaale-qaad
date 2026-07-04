@@ -171,20 +171,31 @@ router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to retrieve profile' }); }
 });
 
-// PATCH /api/auth/profile
+// PATCH /api/auth/profile — any logged-in user may edit their OWN profile (all profile fields)
 router.patch('/profile', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const schema = z.object({
-      name:         z.string().min(2).max(100).optional(),
-      phone:        z.string().max(20).optional(),
-      city:         z.string().max(100).optional(),
-      organization: z.string().max(200).optional(),
+      name:              z.string().min(2).max(100).optional(),
+      email:             z.string().email().optional(),
+      phone:             z.string().max(20).optional(),
+      city:              z.string().max(100).optional(),
+      country:           z.string().max(100).optional(),
+      organization:      z.string().max(200).optional(),
+      preferredLanguage: z.string().max(10).optional(),
     });
     const data = schema.parse(req.body);
+    // If the user is changing their email, keep it unique (it's their login identity).
+    if (data.email) {
+      data.email = data.email.toLowerCase().trim();
+      const existing = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existing && existing.id !== req.user!.id) {
+        return res.status(409).json({ error: 'That email is already in use by another account' });
+      }
+    }
     const user = await prisma.user.update({
       where: { id: req.user!.id },
       data,
-      select: { id: true, name: true, email: true, phone: true, role: true, city: true, organization: true, preferredLanguage: true },
+      select: { id: true, name: true, email: true, phone: true, role: true, city: true, country: true, organization: true, preferredLanguage: true },
     });
     res.json({ user });
   } catch (err: any) {

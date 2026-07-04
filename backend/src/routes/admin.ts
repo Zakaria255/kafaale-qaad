@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../prisma/client';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 import { sysLog } from '../services/logger';
@@ -418,6 +419,61 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
     res.json({ message: 'Role updated', user: updated });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to update role' });
+  }
+});
+
+// PATCH /api/admin/users/:id — Super Admin: edit ANY user's full profile (+ role, status, password)
+router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.user!.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Only Super Admin can edit users' });
+    }
+    const schema = z.object({
+      name:              z.string().min(2).max(100).optional(),
+      email:             z.string().email().optional(),
+      phone:             z.string().max(20).optional(),
+      city:              z.string().max(100).optional(),
+      country:           z.string().max(100).optional(),
+      organization:      z.string().max(200).optional(),
+      preferredLanguage: z.string().max(10).optional(),
+      role:              z.enum(['reporter','donor','field_agent','verification_office','program_manager','project_manager','admin','super_admin']).optional(),
+      isActive:          z.boolean().optional(),
+      isApproved:        z.boolean().optional(),
+      newPassword:       z.string().min(8).optional(),
+    });
+    const body = schema.parse(req.body);
+
+    const target = await prisma.user.findUnique({ where: { id: req.params.id } });
+    if (!target) return res.status(404).json({ error: 'User not found' });
+    // Guard against a super_admin locking themselves out of their own account.
+    if (target.id === req.user!.id) {
+      if (body.role && body.role !== 'super_admin') return res.status(400).json({ error: 'You cannot change your own role' });
+      if (body.isActive === false) return res.status(400).json({ error: 'You cannot deactivate your own account' });
+    }
+
+    const { newPassword, email, ...rest } = body;
+    const data: any = { ...rest };
+    if (email) {
+      const em = email.toLowerCase().trim();
+      const dup = await prisma.user.findUnique({ where: { email: em } });
+      if (dup && dup.id !== target.id) return res.status(409).json({ error: 'That email is already in use by another account' });
+      data.email = em;
+    }
+    if (newPassword) data.password = await bcrypt.hash(newPassword, 12);
+
+    const updated = await prisma.user.update({
+      where: { id: req.params.id },
+      data,
+      select: { id: true, name: true, email: true, phone: true, role: true, city: true, country: true, organization: true, preferredLanguage: true, isActive: true, isApproved: true },
+    });
+    await prisma.adminAuditLog.create({
+      data: { adminId: req.user!.id, action: 'edited_user', notes: `Edited ${target.email}${newPassword ? ' (password reset)' : ''}${body.role && body.role !== target.role ? ` (role ${target.role}→${body.role})` : ''}` },
+    });
+    sysLog.info(`Super admin ${req.user!.email} edited user ${target.email}`);
+    res.json({ message: 'User updated', user: updated });
+  } catch (err: any) {
+    if (err instanceof z.ZodError) return res.status(400).json({ error: 'Validation failed', details: err.issues });
+    res.status(500).json({ error: 'Failed to update user' });
   }
 });
 
