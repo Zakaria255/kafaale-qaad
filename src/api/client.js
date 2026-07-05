@@ -71,6 +71,8 @@ export const auth = {
   me:       ()                => req('/auth/me'),
   logout:   ()                => req('/auth/logout', { method: 'POST' }),
   refresh:  ()                => req('/auth/refresh', { method: 'POST' }),
+  // Sign in / sign up with a Google ID token (from Google Identity Services).
+  google:   (credential)      => req('/auth/google', { method: 'POST', body: JSON.stringify({ credential }) }),
   // Any logged-in user can edit their own profile + change their own password.
   updateProfile:  (data)                        => req('/auth/profile', { method: 'PATCH', body: JSON.stringify(data) }),
   changePassword: (currentPassword, newPassword) => req('/auth/change-password', { method: 'PATCH', body: JSON.stringify({ currentPassword, newPassword }) }),

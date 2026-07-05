@@ -4,11 +4,15 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
+import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest, tokenBlacklist } from '../middleware/auth';
 import { sysLog } from '../services/logger';
 
 const router = Router();
+
+// Google Sign-In verifier — only active when GOOGLE_CLIENT_ID is configured.
+const googleClient = process.env.GOOGLE_CLIENT_ID ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID) : null;
 
 export const ALL_ROLES = [
   'user',
@@ -132,6 +136,57 @@ router.post('/login', async (req: Request, res: Response) => {
   } catch (err: any) {
     if (err instanceof z.ZodError) return res.status(400).json({ error: 'Validation failed', details: err.issues });
     res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/google — Sign in / sign up with a Google ID token (from Google Identity Services)
+router.post('/google', async (req: Request, res: Response) => {
+  try {
+    if (!googleClient || !process.env.GOOGLE_CLIENT_ID) {
+      return res.status(503).json({ error: 'Google sign-in is not configured' });
+    }
+    const { credential } = req.body;
+    if (!credential || typeof credential !== 'string') {
+      return res.status(400).json({ error: 'Missing Google credential' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    if (!payload?.email || !payload.email_verified) {
+      return res.status(401).json({ error: 'Google account email not verified' });
+    }
+
+    const email = payload.email.toLowerCase();
+    let user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      // First time → auto-create a normal "user" (can report + donate). No password login;
+      // set a random one so the account can't be password-guessed.
+      const randomPw = await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 12);
+      user = await prisma.user.create({
+        data: {
+          name: payload.name || email.split('@')[0],
+          email,
+          password: randomPw,
+          role: 'user',
+          isActive: true,
+          preferredLanguage: 'en',
+        },
+      });
+      sysLog.info(`New user via Google: ${email}`);
+    }
+
+    if (!user.isActive) return res.status(403).json({ error: 'Your account has been suspended. Contact support.' });
+
+    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
+    res.json({
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, preferredLanguage: user.preferredLanguage },
+      token,
+    });
+  } catch (err: any) {
+    sysLog.warn('Google sign-in failed', { error: err.message });
+    res.status(401).json({ error: 'Google sign-in failed. Please try again or use email/password.' });
   }
 });
 

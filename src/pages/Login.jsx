@@ -108,8 +108,38 @@ const ROLE_GROUPS = [
   },
 ];
 
+// "Continue with Google" — renders only when VITE_GOOGLE_CLIENT_ID is configured.
+function GoogleButton({ onCredential }) {
+  const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!CLIENT_ID) return;
+    const render = () => {
+      if (!window.google?.accounts?.id || !ref.current) return;
+      window.google.accounts.id.initialize({ client_id: CLIENT_ID, callback: (resp) => onCredential(resp.credential) });
+      window.google.accounts.id.renderButton(ref.current, { theme: 'outline', size: 'large', width: 300, text: 'continue_with' });
+    };
+    if (window.google?.accounts?.id) { render(); return; }
+    let s = document.getElementById('gis-script');
+    if (s) { s.addEventListener('load', render); return () => s.removeEventListener('load', render); }
+    s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true; s.defer = true; s.id = 'gis-script'; s.onload = render;
+    document.body.appendChild(s);
+  }, [CLIENT_ID, onCredential]);
+  if (!CLIENT_ID) return null;
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 12px', color: C.muted, fontSize: 12 }}>
+        <div style={{ flex: 1, height: 1, background: C.border }} /> or <div style={{ flex: 1, height: 1, background: C.border }} />
+      </div>
+      <div ref={ref} style={{ display: 'flex', justifyContent: 'center' }} />
+    </div>
+  );
+}
+
 export default function Login() {
-  const { login, register, loading } = useAuth();
+  const { login, register, loginWithGoogle, loading } = useAuth();
   const { t, lang, changeLang, LANGUAGES, currentLang } = useLang();
   const nav = useNavigate();
   const [searchParams] = useSearchParams();
@@ -147,6 +177,16 @@ export default function Login() {
       } else {
         setError(msg);
       }
+    }
+  };
+
+  const handleGoogle = async (credential) => {
+    setError('');
+    try {
+      await loginWithGoogle(credential);
+      nav('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Google sign-in failed');
     }
   };
 
@@ -302,6 +342,8 @@ export default function Login() {
                     ? `${t('signIn')}`
                     : `${t('createAccount')}`}
             </button>
+
+            <GoogleButton onCredential={handleGoogle} />
           </form>
 
           {/* ── Quick demo logins ── */}

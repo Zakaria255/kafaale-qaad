@@ -61,6 +61,18 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Sign in with a Google ID token (credential) obtained from Google Identity Services.
+  const loginWithGoogle = async (credential) => {
+    setLoading(true);
+    try {
+      const data = await authApi.google(credential);
+      if (data.token) { setAuth(data.user, data.token); setUser(data.user); }
+      return data;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     authApi.logout().catch(() => {});
     clearAuth();
@@ -77,7 +89,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, isLoggedIn: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, updateUser, isLoggedIn: !!user }}>
       {children}
     </AuthContext.Provider>
   );
