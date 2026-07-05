@@ -4967,6 +4967,7 @@ const NotebookPanel = ({ users = [], showToast }) => {
   const [scope, setScope] = useState("own");
   const [newCat, setNewCat] = useState("");
   const [showCatMgr, setShowCatMgr] = useState(false);
+  const [view, setView] = useState("board");
   const toast = showToast || (() => {});
 
   useEffect(() => {
@@ -5044,15 +5045,57 @@ const NotebookPanel = ({ users = [], showToast }) => {
   };
 
   const q = search.trim().toLowerCase();
-  const shown = notes.filter(n =>
-    (filter === "all" || n.status === filter) &&
+  const base = notes.filter(n =>
     (catFilter === "all" || (n.category || "General") === catFilter) &&
     (priorityFilter === "all" || n.priority === priorityFilter) &&
     (assignedFilter === "all" || (assignedFilter === "unassigned" ? !n.assigneeId : n.assigneeId === assignedFilter)) &&
     (!q || n.title.toLowerCase().includes(q) || (n.body || "").toLowerCase().includes(q))
   );
+  const shown = filter === "all" ? base : base.filter(n => n.status === filter);
   const counts = { all: notes.length, todo: notes.filter(n => n.status === "todo").length, doing: notes.filter(n => n.status === "doing").length, done: notes.filter(n => n.status === "done").length };
   const selStyle = { padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1px solid ${COLORS.border}`, background: "#fff", color: COLORS.text, cursor: "pointer" };
+
+  const STATUS_ORDER = ["todo", "doing", "done"];
+  const moveStatus = async (note, dir) => {
+    const i = STATUS_ORDER.indexOf(note.status), ni = i + dir;
+    if (ni < 0 || ni >= STATUS_ORDER.length) return;
+    try { const r = await notesApi.update(note.id, { status: STATUS_ORDER[ni] }); setNotes(ns => ns.map(x => x.id === note.id ? r.note : x)); }
+    catch (e) { toast(e.message || "Failed", "error"); }
+  };
+  const moveBtn = (n, dir, glyph, disabled) => (
+    <button onClick={() => moveStatus(n, dir)} disabled={disabled} title={dir < 0 ? "Move back" : "Move forward"}
+      style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, width: 26, height: 26, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.4 : 1, fontWeight: 800, color: COLORS.muted }}>{glyph}</button>
+  );
+
+  const card = (n) => {
+    const st = NOTE_STATUS[n.status] || NOTE_STATUS.todo;
+    const pr = NOTE_PRIORITY[n.priority] || NOTE_PRIORITY.normal;
+    return (
+      <div key={n.id} style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderLeft: `4px solid ${st.dot}`, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.text }}>{n.title}</div>
+          <span style={{ fontSize: 10, fontWeight: 800, color: pr.color, flexShrink: 0 }}>{pr.label.toUpperCase()}</span>
+        </div>
+        {n.body && <div style={{ fontSize: 13, color: COLORS.muted, whiteSpace: "pre-wrap" }}>{n.body}</div>}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: COLORS.muted, flexWrap: "wrap" }}>
+          <span style={{ background: "#F1F5F9", color: "#475569", borderRadius: 6, padding: "1px 7px", fontWeight: 700 }}>{n.category || "General"}</span>
+          <span>{n.assignee?.name || "Unassigned"}</span><span>·</span>
+          <span>{n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+          {moveBtn(n, -1, "‹", n.status === "todo")}
+          <span style={{ background: st.bg, color: st.text, borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700 }}>{st.label}</span>
+          {moveBtn(n, 1, "›", n.status === "done")}
+          <select value={n.assigneeId || ""} onChange={e => reassign(n, e.target.value)}
+            style={{ fontSize: 11, padding: "4px 8px", borderRadius: 8, border: `1px solid ${COLORS.border}`, color: COLORS.text, background: "#fff", maxWidth: 120 }}>
+            <option value="">Unassigned</option>
+            {users.map(u => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
+          </select>
+          <button onClick={() => del(n)} title="Delete" style={{ marginLeft: "auto", background: "#FEE2E2", color: "#DC2626", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Delete</button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -5135,7 +5178,13 @@ const NotebookPanel = ({ users = [], showToast }) => {
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
-        {[["all", "All"], ["todo", "To Do"], ["doing", "In Progress"], ["done", "Done"]].map(([k, lbl]) => (
+        <div style={{ display: "flex", background: "#F3F4F6", borderRadius: 20, padding: 3 }}>
+          {[["board", "Board"], ["list", "List"]].map(([v, lbl]) => (
+            <button key={v} onClick={() => setView(v)} style={{ padding: "5px 14px", borderRadius: 18, fontSize: 12, fontWeight: 700, cursor: "pointer", border: "none",
+              background: view === v ? "#fff" : "transparent", color: view === v ? COLORS.primary : COLORS.muted, boxShadow: view === v ? "0 1px 3px rgba(0,0,0,0.12)" : "none" }}>{lbl}</button>
+          ))}
+        </div>
+        {view === "list" && [["all", "All"], ["todo", "To Do"], ["doing", "In Progress"], ["done", "Done"]].map(([k, lbl]) => (
           <button key={k} onClick={() => setFilter(k)} style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer",
             border: `1px solid ${filter === k ? COLORS.primary : COLORS.border}`, background: filter === k ? COLORS.primary : "#fff", color: filter === k ? "#fff" : COLORS.muted }}>
             {lbl} ({counts[k]})
@@ -5156,37 +5205,30 @@ const NotebookPanel = ({ users = [], showToast }) => {
         </div>
       </div>
 
-      {/* Notes list */}
+      {/* Notes — Board (columns by status) or List */}
       {loading ? <div style={{ padding: 30, textAlign: "center", color: COLORS.muted }}>Loading…</div> :
-        shown.length === 0 ? <div style={{ padding: 30, textAlign: "center", color: COLORS.muted }}>No notes yet. Add your first above.</div> :
+        view === "board" ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 14, alignItems: "start" }}>
+            {[["todo", "To Do"], ["doing", "In Progress"], ["done", "Done"]].map(([s, lbl]) => {
+              const col = base.filter(n => n.status === s);
+              const c = NOTE_STATUS[s];
+              return (
+                <div key={s} style={{ background: "#F8FAFC", border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingLeft: 4 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: c.dot }} />
+                    <span style={{ fontSize: 13, fontWeight: 800, color: COLORS.text }}>{lbl}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: COLORS.muted, background: "#fff", borderRadius: 20, padding: "1px 8px" }}>{col.length}</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {col.length === 0 ? <div style={{ fontSize: 11, color: COLORS.muted, padding: 12, textAlign: "center" }}>No notes</div> : col.map(card)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : shown.length === 0 ? <div style={{ padding: 30, textAlign: "center", color: COLORS.muted }}>No notes match your filters.</div> :
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 14 }}>
-          {shown.map(n => {
-            const st = NOTE_STATUS[n.status] || NOTE_STATUS.todo;
-            const pr = NOTE_PRIORITY[n.priority] || NOTE_PRIORITY.normal;
-            return (
-              <div key={n.id} style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderLeft: `4px solid ${st.dot}`, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.text }}>{n.title}</div>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: pr.color, flexShrink: 0 }}>{pr.label.toUpperCase()}</span>
-                </div>
-                {n.body && <div style={{ fontSize: 13, color: COLORS.muted, whiteSpace: "pre-wrap" }}>{n.body}</div>}
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: COLORS.muted, flexWrap: "wrap" }}>
-                  <span style={{ background: "#F1F5F9", color: "#475569", borderRadius: 6, padding: "1px 7px", fontWeight: 700 }}>{n.category || "General"}</span>
-                  <span>{n.assignee?.name || "Unassigned"}</span><span>·</span>
-                  <span>{n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
-                  <button onClick={() => cycleStatus(n)} title="Click to advance status" style={{ background: st.bg, color: st.text, border: "none", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>● {st.label}</button>
-                  <select value={n.assigneeId || ""} onChange={e => reassign(n, e.target.value)}
-                    style={{ fontSize: 11, padding: "4px 8px", borderRadius: 8, border: `1px solid ${COLORS.border}`, color: COLORS.text, background: "#fff", maxWidth: 130 }}>
-                    <option value="">Unassigned</option>
-                    {users.map(u => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
-                  </select>
-                  <button onClick={() => del(n)} title="Delete" style={{ marginLeft: "auto", background: "#FEE2E2", color: "#DC2626", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Delete</button>
-                </div>
-              </div>
-            );
-          })}
+          {shown.map(card)}
         </div>
       }
     </div>
