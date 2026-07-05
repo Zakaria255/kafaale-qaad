@@ -8958,6 +8958,7 @@ export default function KafaaleQaadApp() {
   const [agents,            setAgents]           = useState([]);
   const [dataLoading,       setDataLoading]      = useState(true);
   const [showProfile,       setShowProfile]      = useState(false);
+  const [showChat,          setShowChat]         = useState(false);
   const isMobile = useIsMobile();
   const { t, lang, changeLang, LANGUAGES, currentLang } = useLang();
   const [showLangMenu,      setShowLangMenu]     = useState(false);
@@ -9334,6 +9335,12 @@ export default function KafaaleQaadApp() {
 
           {/* Right: notifications + user + logout */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            {["admin","super_admin","verification_office","field_team","program_manager","project_manager"].includes(internalRole) && (
+              <button onClick={() => setShowChat(true)} title="Communication Center"
+                style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </button>
+            )}
             <div style={{ position: "relative" }}>
               <button onClick={() => setShowNotifs(v => !v)}
                 style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, width: 36, height: 36, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
@@ -9385,6 +9392,20 @@ export default function KafaaleQaadApp() {
       </div>
 
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
+
+      {showChat && (
+        <div style={{ position: "fixed", inset: 0, background: "#0007", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }} onClick={() => setShowChat(false)}>
+          <div style={{ width: "100%", maxWidth: 1120, height: "88vh", background: "#fff", borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column" }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: `1px solid ${COLORS.border}` }}>
+              <span style={{ fontSize: 16, fontWeight: 800, color: COLORS.text }}>Communication Center</span>
+              <button onClick={() => setShowChat(false)} style={{ background: "#F3F4F6", border: "none", borderRadius: 8, width: 32, height: 32, cursor: "pointer", fontSize: 18, color: COLORS.muted }}>×</button>
+            </div>
+            <div style={{ flex: 1, overflow: "hidden", padding: 12 }}>
+              <CommCenterPanel currentUser={currentUser} showToast={showToast || (() => {})} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Pipeline Banner (admin/field only) ── */}
       {["admin","verification_office","super_admin","field_team"].includes(internalRole) && (
