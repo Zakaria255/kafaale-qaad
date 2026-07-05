@@ -3,6 +3,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { safeError } from '../middleware/errors';
 import { getSettings } from './settings';
 
 const router = Router();
@@ -527,7 +528,7 @@ router.patch('/beneficiaries/:id/release', authenticate, async (req: AuthRequest
     await prisma.sponsorship.updateMany({ where: { beneficiaryId: req.params.id, status: 'active' }, data: { status: 'ended', endDate: new Date() } });
     await prisma.beneficiary.update({ where: { id: req.params.id }, data: { status: 'seeking_sponsor' } });
     res.json({ message: 'Beneficiary released — now seeking a new sponsor' });
-  } catch (e: any) { res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return safeError(res, 500, 'Failed to release beneficiary', e); }
 });
 
 // POST /api/programs/sponsorships/:id/mark-paid — Admin manually marks a month as paid and sends receipt

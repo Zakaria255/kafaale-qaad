@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../prisma/client';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 import { sysLog } from '../services/logger';
+import { safeError } from '../middleware/errors';
 import { fraudDetectionService } from '../services/fraudDetectionService';
 
 const router = Router();
@@ -600,7 +601,7 @@ router.post('/cases/:id/enroll-beneficiary', async (req: AuthRequest, res: Respo
 
     res.status(201).json({ beneficiary, publicId: enrolledPublicId });
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    return safeError(res, 500, 'Failed to enroll beneficiary', e);
   }
 });
 
@@ -668,7 +669,7 @@ router.patch('/cases/:id/fraud-score', async (req: AuthRequest, res: Response) =
     const result = await fraudDetectionService.scoreCaseRisk(req.params.id);
     await prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: req.params.id, action: 'approved', notes: `Fraud analysis run: score=${result.riskScore}, level=${result.riskLevel}` } });
     res.json(result);
-  } catch (e: any) { res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return safeError(res, 500, 'Fraud analysis failed', e); }
 });
 
 // PATCH /api/admin/users/:id/suspend — Suspend/ban a user (blacklist)
