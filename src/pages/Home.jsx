@@ -54,39 +54,39 @@ export default function Home() {
 
   /* ─── data arrays (translations inline) ─────────────────────────────── */
   const WORKFLOW = [
-    { n:1,  icon:"📝", color:"#3B82F6",  label: lang==="so"?"Abuurista Warbixinta"    :lang==="ar"?"إنشاء التقرير"         :lang==="tr"?"Rapor Oluşturma"       :lang==="es"?"Creación del Reporte" :lang==="fr"?"Création du Rapport"   :"Report Creation",     desc: lang==="so"?"Warbixiyuhu wuxuu soo gudbinaayaa xaaladda oo leh faahfaahinta, sawirrada iyo goobta":lang==="ar"?"يقدم المُبلِّغ حالة مع التفاصيل والصور والموقع":lang==="tr"?"Muhabir ayrıntılar, fotoğraflar ve konum ile vaka gönderir":lang==="es"?"El reportero envía un caso con detalles, fotos y ubicación":lang==="fr"?"Le rapporteur soumet un cas avec détails, photos et localisation":"Reporter submits a case with details, photos and location" },
-    { n:2,  icon:"🏛️", color:"#8B5CF6",  label: lang==="so"?"Xafiiska Xaqiijinta"     :lang==="ar"?"مكتب التحقق"           :lang==="tr"?"Doğrulama Ofisi"        :lang==="es"?"Oficina de Verificación":lang==="fr"?"Bureau de Vérification" :"Verification Office", desc: lang==="so"?"Saraakiishu waxay dib u eegayaan warbixinta oo u xilsaarayaan koox goobta":lang==="ar"?"يراجع المسؤولون التقرير ويعيّنون فريقًا ميدانيًا":lang==="tr"?"Yetkililer raporu inceler ve saha ekibi atar":lang==="es"?"Los oficiales revisan el reporte y asignan equipo de campo":lang==="fr"?"Les officiers examinent le rapport et assignent une équipe de terrain":"Officers review the report and assign a field team" },
-    { n:3,  icon:"🔍", color:"#F59E0B",  label: lang==="so"?"Baarista Goobta"          :lang==="ar"?"التحقيق الميداني"      :lang==="tr"?"Saha Soruşturması"      :lang==="es"?"Investigación de Campo":lang==="fr"?"Enquête de Terrain"     :"Field Investigation", desc: lang==="so"?"Wakiilku waxuu booqanayaa, xaqiijinayaa oo dukumeentinaayaa iyada oo leh GPS + caddayn sawir":lang==="ar"?"يزور العملاء الميدانيون ويتحققون ويوثقون بـGPS + دليل صوري":lang==="tr"?"Saha ajanları ziyaret eder, doğrular ve GPS + fotoğraf kanıtıyla belgeler":lang==="es"?"Agentes visitan, verifican y documentan con GPS + prueba fotográfica":lang==="fr"?"Les agents visitent, vérifient et documentent avec GPS + preuve photo":"Field agents visit, verify and document with GPS + photo proof" },
-    { n:4,  icon:"✅", color:"#10B981",  label: lang==="so"?"Xaqiijisan"               :lang==="ar"?"تم التحقق"             :lang==="tr"?"Doğrulandı"             :lang==="es"?"Verificado"           :lang==="fr"?"Vérifié"               :"Verified",            desc: lang==="so"?"Xaaladda waxaa la xaqiijiyay oo la muujiyay deeq-bixiyeyaasha si ay u taageeraan":lang==="ar"?"تم تأكيد الحالة وأصبحت مرئية للمانحين للرعاية":lang==="tr"?"Vaka onaylandı ve sponsorlar için bağışçılara görünür hale getirildi":lang==="es"?"Caso confirmado y visible para donantes para apadrinamiento":lang==="fr"?"Cas confirmé et rendu visible aux donateurs pour parrainage":"Case confirmed and made visible to donors for sponsorship" },
-    { n:5,  icon:"👥", color:"#EC4899",  label: lang==="so"?"Safka Deeq-bixiyeyaasha"  :lang==="ar"?"قائمة انتظار المانحين":lang==="tr"?"Bağışçı Kuyruğu"        :lang==="es"?"Cola de Donantes"     :lang==="fr"?"File des Donateurs"    :"Donor Queue",         desc: lang==="so"?"Xaaladda waxay galaysaa baanka deeq-bixiyeyaasha — deeq-bixiyeyaashu waxay ka baadhi karaan oo dooranayaan":lang==="ar"?"تدخل الحالة تجمع المانحين — يمكن للرعاة التصفح والاختيار":lang==="tr"?"Vaka bağışçı havuzuna girer — sponsorlar göz atabilir ve seçebilir":lang==="es"?"El caso entra al fondo de donantes — patrocinadores pueden explorar y seleccionar":lang==="fr"?"Le cas entre dans le pool des donateurs — les sponsors peuvent parcourir et sélectionner":"Case enters the donor pool — sponsors can browse and select" },
-    { n:6,  icon:"❤️", color:"#C0392B",  label: lang==="so"?"Taageerada"               :lang==="ar"?"الرعاية"               :lang==="tr"?"Sponsorluk"             :lang==="es"?"Apadrinamiento"       :lang==="fr"?"Parrainage"            :"Sponsorship",         desc: lang==="so"?"Deeq-bixiyuhu wuxuu taageeraa xaaladda oo lacagtu si amaahday loo daabacanayaa":lang==="ar"?"يرعى المانح الحالة ويتم معالجة الدفع بأمان":lang==="tr"?"Bağışçı vakayı destekler ve ödeme güvenli şekilde işlenir":lang==="es"?"El donante patrocina el caso y el pago se procesa de forma segura":lang==="fr"?"Le donateur parraine le cas et le paiement est traité en toute sécurité":"Donor sponsors the case and payment is securely processed" },
-    { n:7,  icon:"📦", color:"#06B6D4",  label: lang==="so"?"Gaarsiinta Gargaarka"     :lang==="ar"?"تسليم المساعدة"        :lang==="tr"?"Yardım Teslimatı"       :lang==="es"?"Entrega de Ayuda"     :lang==="fr"?"Livraison de l'Aide"   :"Aid Delivery",        desc: lang==="so"?"Kooxda goobtu waxay gaarsiisaa gargaarka oo soo raraysaa caddaynta gaarsiinta":lang==="ar"?"يسلم الفريق الميداني المساعدة ويرفع دليل التسليم":lang==="tr"?"Saha ekibi yardımı teslim eder ve teslimat kanıtı yükler":lang==="es"?"El equipo de campo entrega la ayuda y sube prueba de entrega":lang==="fr"?"L'équipe de terrain livre l'aide et télécharge la preuve de livraison":"Field team delivers aid and uploads proof of delivery" },
-    { n:8,  icon:"🏁", color:"#5A6E8A",  label: lang==="so"?"La Dhammeeyay"            :lang==="ar"?"مكتملة"                :lang==="tr"?"Tamamlandı"             :lang==="es"?"Completado"           :lang==="fr"?"Terminé"               :"Completed",           desc: lang==="so"?"Xaaladda waxaa lagu kaydiyaa warbixin saameyn leh — xadhkaha buuxa oo ilaalinaya":lang==="ar"?"تُؤرشف الحالة مع تقرير التأثير — يُحفظ سجل التدقيق الكامل":lang==="tr"?"Vaka etki raporu ile arşivlenir — tam denetim izi korunur":lang==="es"?"Caso archivado con informe de impacto — rastro de auditoría completo preservado":lang==="fr"?"Cas archivé avec rapport d'impact — piste d'audit complète préservée":"Case archived with impact report — full audit trail preserved" },
+    { n:1,  icon:"", color:"#3B82F6",  label: lang==="so"?"Abuurista Warbixinta"    :lang==="ar"?"إنشاء التقرير"         :lang==="tr"?"Rapor Oluşturma"       :lang==="es"?"Creación del Reporte" :lang==="fr"?"Création du Rapport"   :"Report Creation",     desc: lang==="so"?"Warbixiyuhu wuxuu soo gudbinaayaa xaaladda oo leh faahfaahinta, sawirrada iyo goobta":lang==="ar"?"يقدم المُبلِّغ حالة مع التفاصيل والصور والموقع":lang==="tr"?"Muhabir ayrıntılar, fotoğraflar ve konum ile vaka gönderir":lang==="es"?"El reportero envía un caso con detalles, fotos y ubicación":lang==="fr"?"Le rapporteur soumet un cas avec détails, photos et localisation":"Reporter submits a case with details, photos and location" },
+    { n:2,  icon:"", color:"#8B5CF6",  label: lang==="so"?"Xafiiska Xaqiijinta"     :lang==="ar"?"مكتب التحقق"           :lang==="tr"?"Doğrulama Ofisi"        :lang==="es"?"Oficina de Verificación":lang==="fr"?"Bureau de Vérification" :"Verification Office", desc: lang==="so"?"Saraakiishu waxay dib u eegayaan warbixinta oo u xilsaarayaan koox goobta":lang==="ar"?"يراجع المسؤولون التقرير ويعيّنون فريقًا ميدانيًا":lang==="tr"?"Yetkililer raporu inceler ve saha ekibi atar":lang==="es"?"Los oficiales revisan el reporte y asignan equipo de campo":lang==="fr"?"Les officiers examinent le rapport et assignent une équipe de terrain":"Officers review the report and assign a field team" },
+    { n:3,  icon:"", color:"#F59E0B",  label: lang==="so"?"Baarista Goobta"          :lang==="ar"?"التحقيق الميداني"      :lang==="tr"?"Saha Soruşturması"      :lang==="es"?"Investigación de Campo":lang==="fr"?"Enquête de Terrain"     :"Field Investigation", desc: lang==="so"?"Wakiilku waxuu booqanayaa, xaqiijinayaa oo dukumeentinaayaa iyada oo leh GPS + caddayn sawir":lang==="ar"?"يزور العملاء الميدانيون ويتحققون ويوثقون بـGPS + دليل صوري":lang==="tr"?"Saha ajanları ziyaret eder, doğrular ve GPS + fotoğraf kanıtıyla belgeler":lang==="es"?"Agentes visitan, verifican y documentan con GPS + prueba fotográfica":lang==="fr"?"Les agents visitent, vérifient et documentent avec GPS + preuve photo":"Field agents visit, verify and document with GPS + photo proof" },
+    { n:4,  icon:"", color:"#10B981",  label: lang==="so"?"Xaqiijisan"               :lang==="ar"?"تم التحقق"             :lang==="tr"?"Doğrulandı"             :lang==="es"?"Verificado"           :lang==="fr"?"Vérifié"               :"Verified",            desc: lang==="so"?"Xaaladda waxaa la xaqiijiyay oo la muujiyay deeq-bixiyeyaasha si ay u taageeraan":lang==="ar"?"تم تأكيد الحالة وأصبحت مرئية للمانحين للرعاية":lang==="tr"?"Vaka onaylandı ve sponsorlar için bağışçılara görünür hale getirildi":lang==="es"?"Caso confirmado y visible para donantes para apadrinamiento":lang==="fr"?"Cas confirmé et rendu visible aux donateurs pour parrainage":"Case confirmed and made visible to donors for sponsorship" },
+    { n:5,  icon:"", color:"#EC4899",  label: lang==="so"?"Safka Deeq-bixiyeyaasha"  :lang==="ar"?"قائمة انتظار المانحين":lang==="tr"?"Bağışçı Kuyruğu"        :lang==="es"?"Cola de Donantes"     :lang==="fr"?"File des Donateurs"    :"Donor Queue",         desc: lang==="so"?"Xaaladda waxay galaysaa baanka deeq-bixiyeyaasha — deeq-bixiyeyaashu waxay ka baadhi karaan oo dooranayaan":lang==="ar"?"تدخل الحالة تجمع المانحين — يمكن للرعاة التصفح والاختيار":lang==="tr"?"Vaka bağışçı havuzuna girer — sponsorlar göz atabilir ve seçebilir":lang==="es"?"El caso entra al fondo de donantes — patrocinadores pueden explorar y seleccionar":lang==="fr"?"Le cas entre dans le pool des donateurs — les sponsors peuvent parcourir et sélectionner":"Case enters the donor pool — sponsors can browse and select" },
+    { n:6,  icon:"", color:"#C0392B",  label: lang==="so"?"Taageerada"               :lang==="ar"?"الرعاية"               :lang==="tr"?"Sponsorluk"             :lang==="es"?"Apadrinamiento"       :lang==="fr"?"Parrainage"            :"Sponsorship",         desc: lang==="so"?"Deeq-bixiyuhu wuxuu taageeraa xaaladda oo lacagtu si amaahday loo daabacanayaa":lang==="ar"?"يرعى المانح الحالة ويتم معالجة الدفع بأمان":lang==="tr"?"Bağışçı vakayı destekler ve ödeme güvenli şekilde işlenir":lang==="es"?"El donante patrocina el caso y el pago se procesa de forma segura":lang==="fr"?"Le donateur parraine le cas et le paiement est traité en toute sécurité":"Donor sponsors the case and payment is securely processed" },
+    { n:7,  icon:"", color:"#06B6D4",  label: lang==="so"?"Gaarsiinta Gargaarka"     :lang==="ar"?"تسليم المساعدة"        :lang==="tr"?"Yardım Teslimatı"       :lang==="es"?"Entrega de Ayuda"     :lang==="fr"?"Livraison de l'Aide"   :"Aid Delivery",        desc: lang==="so"?"Kooxda goobtu waxay gaarsiisaa gargaarka oo soo raraysaa caddaynta gaarsiinta":lang==="ar"?"يسلم الفريق الميداني المساعدة ويرفع دليل التسليم":lang==="tr"?"Saha ekibi yardımı teslim eder ve teslimat kanıtı yükler":lang==="es"?"El equipo de campo entrega la ayuda y sube prueba de entrega":lang==="fr"?"L'équipe de terrain livre l'aide et télécharge la preuve de livraison":"Field team delivers aid and uploads proof of delivery" },
+    { n:8,  icon:"", color:"#5A6E8A",  label: lang==="so"?"La Dhammeeyay"            :lang==="ar"?"مكتملة"                :lang==="tr"?"Tamamlandı"             :lang==="es"?"Completado"           :lang==="fr"?"Terminé"               :"Completed",           desc: lang==="so"?"Xaaladda waxaa lagu kaydiyaa warbixin saameyn leh — xadhkaha buuxa oo ilaalinaya":lang==="ar"?"تُؤرشف الحالة مع تقرير التأثير — يُحفظ سجل التدقيق الكامل":lang==="tr"?"Vaka etki raporu ile arşivlenir — tam denetim izi korunur":lang==="es"?"Caso archivado con informe de impacto — rastro de auditoría completo preservado":lang==="fr"?"Cas archivé avec rapport d'impact — piste d'audit complète préservée":"Case archived with impact report — full audit trail preserved" },
   ];
 
   const ROLES = [
-    { icon:"👁️", color:"#3B82F6", bg:"#EFF6FF", role: lang==="so"?"Warbixiye":lang==="ar"?"مراسل":lang==="tr"?"Muhabir":lang==="es"?"Reportero":lang==="fr"?"Rapporteur":"Reporter", desc: lang==="so"?"Soo gudbi xaaladaha & qaado sawiro GPS ah":"Submit cases & take GPS photos" },
-    { icon:"🏛️", color:"#8B5CF6", bg:"#F5F3FF", role: lang==="so"?"Xafiiska":lang==="ar"?"التحقق":lang==="tr"?"Doğrulama":lang==="es"?"Verificación":lang==="fr"?"Vérification":"Verification", desc: lang==="so"?"Xaqiiji & xilsaar kooxaha goobta":"Verify & assign field teams" },
-    { icon:"🗺️", color:"#F59E0B", bg:"#FFFBEB", role: lang==="so"?"Kooxda Goobta":lang==="ar"?"الفريق الميداني":lang==="tr"?"Saha Ekibi":lang==="es"?"Equipo de Campo":lang==="fr"?"Équipe Terrain":"Field Team", desc: lang==="so"?"Booqo, xaqiiji & soo rar caddaynta":"Visit, verify & upload proof" },
-    { icon:"❤️", color:"#EC4899", bg:"#FDF2F8", role: lang==="so"?"Deeq-bixiye":lang==="ar"?"متبرع":lang==="tr"?"Bağışçı":lang==="es"?"Donante":lang==="fr"?"Donateur":"Donor", desc: lang==="so"?"Taageer xaaladaha xaqiijisan":"Sponsor verified cases securely" },
-    { icon:"🛡️", color:"#C0392B", bg:"#FEF2F2", role: lang==="so"?"Super Admin":lang==="ar"?"المدير العام":lang==="tr"?"Süper Admin":lang==="es"?"Super Admin":lang==="fr"?"Super Admin":"Super Admin", desc: lang==="so"?"Xukumaad buuxda ee platform-ka":"Full platform control & analytics" },
+    { icon:"", color:"#3B82F6", bg:"#EFF6FF", role: lang==="so"?"Warbixiye":lang==="ar"?"مراسل":lang==="tr"?"Muhabir":lang==="es"?"Reportero":lang==="fr"?"Rapporteur":"Reporter", desc: lang==="so"?"Soo gudbi xaaladaha & qaado sawiro GPS ah":"Submit cases & take GPS photos" },
+    { icon:"", color:"#8B5CF6", bg:"#F5F3FF", role: lang==="so"?"Xafiiska":lang==="ar"?"التحقق":lang==="tr"?"Doğrulama":lang==="es"?"Verificación":lang==="fr"?"Vérification":"Verification", desc: lang==="so"?"Xaqiiji & xilsaar kooxaha goobta":"Verify & assign field teams" },
+    { icon:"", color:"#F59E0B", bg:"#FFFBEB", role: lang==="so"?"Kooxda Goobta":lang==="ar"?"الفريق الميداني":lang==="tr"?"Saha Ekibi":lang==="es"?"Equipo de Campo":lang==="fr"?"Équipe Terrain":"Field Team", desc: lang==="so"?"Booqo, xaqiiji & soo rar caddaynta":"Visit, verify & upload proof" },
+    { icon:"", color:"#EC4899", bg:"#FDF2F8", role: lang==="so"?"Deeq-bixiye":lang==="ar"?"متبرع":lang==="tr"?"Bağışçı":lang==="es"?"Donante":lang==="fr"?"Donateur":"Donor", desc: lang==="so"?"Taageer xaaladaha xaqiijisan":"Sponsor verified cases securely" },
+    { icon:"", color:"#C0392B", bg:"#FEF2F2", role: lang==="so"?"Super Admin":lang==="ar"?"المدير العام":lang==="tr"?"Süper Admin":lang==="es"?"Super Admin":lang==="fr"?"Super Admin":"Super Admin", desc: lang==="so"?"Xukumaad buuxda ee platform-ka":"Full platform control & analytics" },
   ];
 
   const FEATURES = [
-    { icon:"🔐", color:"#004B96", title:lang==="so"?"Amni Badan":lang==="ar"?"أمان متعدد الطبقات":lang==="tr"?"Güvenlik":lang==="es"?"Seguridad":lang==="fr"?"Sécurité":"Multi-Layer Security", desc:lang==="so"?"OTP, xaqiijinta wejigu & AES-256":"OTP login, face verify & AES-256 encryption on every account." },
-    { icon:"💰", color:"#4B7D19", title:lang==="so"?"Lacag-bixiyooyin Ammaan":"Secure Payments",                    desc:"Stripe, PayPal, Bank Transfer & Ama Gateway — PCI DSS Level 1." },
-    { icon:"🗺️", color:"#E0AB21", title:lang==="so"?"GPS Goobta":"GPS Field Tracking",                              desc:"Real-time GPS navigation with geofencing to verify on-site presence." },
-    { icon:"📊", color:"#8B5CF6", title:lang==="so"?"Falanqaynta":"Real-Time Analytics",                            desc:"Live dashboards for every role — case pipeline, donations, KPIs." },
-    { icon:"🤖", color:"#06B6D4", title:lang==="so"?"AI Ogaanshaha":"AI Fraud Detection",                           desc:"Anomaly engine flags duplicates, suspicious patterns & irregularities." },
-    { icon:"📱", color:"#EC4899", title:lang==="so"?"App Mobile-ka":"Mobile App",                                   desc:"Offline-capable React Native app — works without internet, syncs on reconnect." },
-    { icon:"📋", color:"#F59E0B", title:lang==="so"?"Diiwaanka Buuxa":"Full Audit Trail",                           desc:"Every action logged — immutable trail with timestamps & transaction hashes." },
+    { icon:"", color:"#004B96", title:lang==="so"?"Amni Badan":lang==="ar"?"أمان متعدد الطبقات":lang==="tr"?"Güvenlik":lang==="es"?"Seguridad":lang==="fr"?"Sécurité":"Multi-Layer Security", desc:lang==="so"?"OTP, xaqiijinta wejigu & AES-256":"OTP login, face verify & AES-256 encryption on every account." },
+    { icon:"", color:"#4B7D19", title:lang==="so"?"Lacag-bixiyooyin Ammaan":"Secure Payments",                    desc:"Stripe, PayPal, Bank Transfer & Ama Gateway — PCI DSS Level 1." },
+    { icon:"", color:"#E0AB21", title:lang==="so"?"GPS Goobta":"GPS Field Tracking",                              desc:"Real-time GPS navigation with geofencing to verify on-site presence." },
+    { icon:"", color:"#8B5CF6", title:lang==="so"?"Falanqaynta":"Real-Time Analytics",                            desc:"Live dashboards for every role — case pipeline, donations, KPIs." },
+    { icon:"", color:"#06B6D4", title:lang==="so"?"AI Ogaanshaha":"AI Fraud Detection",                           desc:"Anomaly engine flags duplicates, suspicious patterns & irregularities." },
+    { icon:"", color:"#EC4899", title:lang==="so"?"App Mobile-ka":"Mobile App",                                   desc:"Offline-capable React Native app — works without internet, syncs on reconnect." },
+    { icon:"", color:"#F59E0B", title:lang==="so"?"Diiwaanka Buuxa":"Full Audit Trail",                           desc:"Every action logged — immutable trail with timestamps & transaction hashes." },
     { icon:"🌍", color:"#10B981", title:lang==="so"?"Luqaddo Badan":"Multi-Language",                              desc:"Somali, Arabic, English, Turkish, Spanish & French across all roles." },
   ];
 
   const STATS = [
-    { val:"2,400+", label:P.stat_cases,  icon:"📋", color:C.primary   },
-    { val:"98.8%",  label:P.stat_verify, icon:"✅", color:"#10B981"   },
-    { val:"6",      label:P.stat_cities, icon:"📍", color:C.accent    },
+    { val:"2,400+", label:P.stat_cases,  icon:"", color:C.primary   },
+    { val:"98.8%",  label:P.stat_verify, icon:"", color:"#10B981"   },
+    { val:"6",      label:P.stat_cities, icon:"", color:C.accent    },
   ];
 
   const TRUST = [
@@ -252,7 +252,7 @@ export default function Home() {
           raw = [...published, ...impact];
         } catch {}
         const STORY_FALLBACK = [
-          { id:"sf1", category:"Medical",   location:"Mogadishu", date:"June 2026",  color:"#3B82F6", icon:"🩺",
+          { id:"sf1", category:"Medical",   location:"Mogadishu", date:"June 2026",  color:"#3B82F6", icon:"",
             title:"Eight-Year-Old Receives Life-Saving Heart Surgery",
             afterDesc:"After a field agent documented the case and donors stepped in within 72 hours, young Fatima underwent successful cardiac surgery. She is now recovering at home with her family.",
             beforeDesc:"Fatima's family had no means to afford the $2,100 procedure. She was deteriorating fast.",
@@ -267,12 +267,12 @@ export default function Home() {
             afterDesc:"School fees, uniforms and books were fully covered. All three children are now enrolled and attending daily.",
             beforeDesc:"After losing both parents the siblings had been out of school for two years.",
             amountDistributed:"$540",   daysToDeliver:"7",  afterImg:null },
-          { id:"sf4", category:"Water",     location:"Kismayo",   date:"April 2026", color:"#06B6D4", icon:"💧",
+          { id:"sf4", category:"Water",     location:"Kismayo",   date:"April 2026", color:"#06B6D4", icon:"",
             title:"Clean Water Reaches 280 Families in Kismayo",
             afterDesc:"A deep borehole was drilled and tested clean. Waterborne disease rates in the area have dropped by an estimated 60%.",
             beforeDesc:"Community members walked 4 km daily for unsafe water. Children were missing school to help collect water.",
             amountDistributed:"$3,200", daysToDeliver:"21", afterImg:null },
-          { id:"sf5", category:"Food",      location:"Beledweyne", date:"May 2026",  color:"#EC4899", icon:"🌾",
+          { id:"sf5", category:"Food",      location:"Beledweyne", date:"May 2026",  color:"#EC4899", icon:"",
             title:"Elderly Widow Receives Monthly Food Support",
             afterDesc:"78-year-old Halima now receives a monthly food basket. Her health has improved significantly over three months.",
             beforeDesc:"Living alone with no income, Halima had gone days without food before a community member filed a case.",
@@ -282,7 +282,7 @@ export default function Home() {
             afterDesc:"14-month-old Ibrahim is now cared for by a verified foster family with monthly sponsorship covering nutrition and health checks.",
             beforeDesc:"Ibrahim's elderly grandmother had no income and could not afford formula or medical visits.",
             amountDistributed:"$360",   daysToDeliver:"5",  afterImg:null },
-          { id:"sf7", category:"Medical",   location:"Mogadishu", date:"March 2026", color:"#C0392B", icon:"🦽",
+          { id:"sf7", category:"Medical",   location:"Mogadishu", date:"March 2026", color:"#C0392B", icon:"",
             title:"Dialysis Lifeline for 68-Year-Old Patient",
             afterDesc:"Sponsorship covers bi-weekly dialysis sessions for six months, giving Rooda a new lease on life.",
             beforeDesc:"Without dialysis twice weekly, Rooda's life was at serious risk. Her family had exhausted every option.",
@@ -312,7 +312,7 @@ export default function Home() {
                 {st.afterImg
                   ? <img src={st.afterImg} alt={st.title} style={{ width:"100%", height:imgH, objectFit:"cover", display:"block" }} />
                   : <div style={{ height:imgH, background:`linear-gradient(145deg,${col}25 0%,${col}60 60%,${col}30 100%)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize: featured ? 72 : 52 }}>
-                      {st.icon || "✨"}
+                      {st.icon || ""}
                     </div>
                 }
                 {/* Category tag — top-left over image */}
@@ -328,8 +328,8 @@ export default function Home() {
               <div style={{ padding: featured ? "20px 22px 18px" : "16px 18px 16px", flex:1, display:"flex", flexDirection:"column" }}>
                 {/* Date + location row */}
                 <div style={{ display:"flex", gap:10, marginBottom:10, fontSize:11, color:C.muted, flexWrap:"wrap" }}>
-                  {st.date && <span>🗓 {st.date}</span>}
-                  {st.location && <span>📍 {st.location}</span>}
+                  {st.date && <span>{st.date}</span>}
+                  {st.location && <span>{st.location}</span>}
                 </div>
                 {/* Title */}
                 <div style={{
@@ -345,8 +345,8 @@ export default function Home() {
                 {/* Stats row */}
                 {(st.amountDistributed || st.daysToDeliver) && (
                   <div style={{ display:"flex", gap:14, marginTop:10, paddingTop:10, borderTop:`1px solid ${C.border}`, fontSize:11 }}>
-                    {st.amountDistributed && <span style={{ color:C.secondary, fontWeight:700 }}>💰 {st.amountDistributed}</span>}
-                    {st.daysToDeliver && <span style={{ color:C.muted }}>⚡ {st.daysToDeliver} days</span>}
+                    {st.amountDistributed && <span style={{ color:C.secondary, fontWeight:700 }}>{st.amountDistributed}</span>}
+                    {st.daysToDeliver && <span style={{ color:C.muted }}>{st.daysToDeliver} days</span>}
                   </div>
                 )}
                 {/* "Read now" link — UNICEF style */}
@@ -436,13 +436,13 @@ export default function Home() {
                     <img src={c.img} alt="" loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
                   ) : (
                     <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg,${URGENCY_COLOR[c.urgency?.toLowerCase()]}22,${URGENCY_COLOR[c.urgency?.toLowerCase()]}44)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:56 }}>
-                      {{ high:"🏥", critical:"🚨", medium:"📚", low:"🏠" }[c.urgency?.toLowerCase()] || "❤️"}
+                      {{ high:"🏥", critical:"🚨", medium:"📚", low:"🏠" }[c.urgency?.toLowerCase()] || ""}
                     </div>
                   )}
                   <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.52) 100%)" }} />
                   <span style={{ position:"absolute", top:10, left:10, background:URGENCY_COLOR[c.urgency?.toLowerCase()], color:"#fff", padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:800 }}>{c.urgency}</span>
-                  <span style={{ position:"absolute", top:10, right:10, background: c.kind==="project" ? "rgba(0,75,150,0.82)" : "rgba(6,95,70,0.75)", backdropFilter:"blur(4px)", color:"#fff", padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:700 }}>{c.kind==="project" ? "🏗 Project" : "✓ Case"}</span>
-                  <div style={{ position:"absolute", bottom:10, left:14, color:"rgba(255,255,255,0.8)", fontSize:12 }}>📍 {c.location}</div>
+                  <span style={{ position:"absolute", top:10, right:10, background: c.kind==="project" ? "rgba(0,75,150,0.82)" : "rgba(6,95,70,0.75)", backdropFilter:"blur(4px)", color:"#fff", padding:"3px 10px", borderRadius:20, fontSize:10, fontWeight:700 }}>{c.kind==="project" ? "Project" : "✓ Case"}</span>
+                  <div style={{ position:"absolute", bottom:10, left:14, color:"rgba(255,255,255,0.8)", fontSize:12 }}>{c.location}</div>
                 </div>
 
                 <div style={{ padding: isMobile?16:20 }}>
@@ -464,7 +464,7 @@ export default function Home() {
                       <div className="kf-prog-fill" style={{ width:`${Math.min(c.funded,100)}%`, background:`linear-gradient(90deg, ${URGENCY_COLOR[c.urgency?.toLowerCase()]}90, ${URGENCY_COLOR[c.urgency?.toLowerCase()]})` }} />
                     </div>
                     {c.funded >= 100 && (
-                      <div style={{ marginTop:4, fontSize:11, color:C.green, fontWeight:700 }}>🎉 Fully Funded</div>
+                      <div style={{ marginTop:4, fontSize:11, color:C.green, fontWeight:700 }}>Fully Funded</div>
                     )}
                   </div>
 
@@ -574,7 +574,7 @@ export default function Home() {
             <div style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
               <button className="kf-btn kf-btn-gold" onClick={() => navigate("/donate")}
                 style={{ padding: isMobile?"15px 32px":"17px 44px", borderRadius:50, fontSize: isMobile?14:16, fontWeight:800, border:"none", boxShadow:"0 8px 32px rgba(224,171,33,0.5)", letterSpacing:0.3 }}>
-                ❤️ {P.cta_donor}
+                {P.cta_donor}
               </button>
               <button className="kf-btn kf-btn-ghost" onClick={() => navigate("/contact")}
                 style={{ padding: isMobile?"15px 32px":"17px 44px", borderRadius:50, fontSize: isMobile?14:16, fontWeight:700, border:"none", backdropFilter:"blur(8px)", background:"rgba(255,255,255,0.15)", letterSpacing:0.3 }}>

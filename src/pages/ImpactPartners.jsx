@@ -35,12 +35,12 @@ const FOCUS_AREAS = [
 ];
 
 const EXISTING_PARTNERS = [
-  { id:1, name:"Al-Khair Foundation",     type:"International NGO",        country:"United Kingdom",   color:"#3B82F6", focus:["Food Aid","Medical","Shelter"],          cases:312, img:"🏛️", verified:true },
+  { id:1, name:"Al-Khair Foundation",     type:"International NGO",        country:"United Kingdom",   color:"#3B82F6", focus:["Food Aid","Medical","Shelter"],          cases:312, img:"", verified:true },
   { id:2, name:"Somali Medical Relief",   type:"Healthcare Organization",  country:"Somalia",          color:"#10B981", focus:["Medical","Emergency Care"],              cases:198, img:"🏥", verified:true },
   { id:3, name:"Horn of Africa NGO",      type:"Local NGO",                country:"Kenya",            color:"#F59E0B", focus:["Education","Child Protection"],          cases:145, img:"🌍", verified:true },
-  { id:4, name:"Gulf Charity Alliance",   type:"Foundation",               country:"Qatar",            color:"#8B5CF6", focus:["Emergency Relief","Water & Sanitation"], cases:421, img:"🤝", verified:true },
+  { id:4, name:"Gulf Charity Alliance",   type:"Foundation",               country:"Qatar",            color:"#8B5CF6", focus:["Emergency Relief","Water & Sanitation"], cases:421, img:"", verified:true },
   { id:5, name:"UK Aid Direct",           type:"Government Agency",        country:"United Kingdom",   color:"#06B6D4", focus:["Livelihoods","Food Security"],           cases:89,  img:"🇬🇧", verified:true },
-  { id:6, name:"Turkish Red Crescent",    type:"International NGO",        country:"Turkey",           color:"#C0392B", focus:["Emergency Relief","Healthcare"],         cases:267, img:"🏅", verified:true },
+  { id:6, name:"Turkish Red Crescent",    type:"International NGO",        country:"Turkey",           color:"#C0392B", focus:["Emergency Relief","Healthcare"],         cases:267, img:"", verified:true },
 ];
 
 const BLANK = {
@@ -143,7 +143,7 @@ export default function ImpactPartners() {
   };
 
   const allPublishedPartners = [...EXISTING_PARTNERS, ...adminPartners.filter(p => p.published).map((p, i) => ({
-    ...p, img: p.logoUrl || "🤝", verified: true, focus: p.focusAreas, cases: Number(p.cases) || 0,
+    ...p, img: p.logoUrl || "", verified: true, focus: p.focusAreas, cases: Number(p.cases) || 0,
   }))];
 
   const set = (k, v) => setForm(f => ({ ...f, [k]:v }));
@@ -225,7 +225,7 @@ export default function ImpactPartners() {
         : <input type={type} value={form[key]} onChange={e=>set(key,e.target.value)} placeholder={placeholder}
             style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${errors[key]?C.danger:C.border}`, fontSize:14, fontFamily:"inherit", boxSizing:"border-box" }} />
       }
-      {errors[key] && <div style={{ fontSize:11, color:C.danger, marginTop:4 }}>⚠ {errors[key]}</div>}
+      {errors[key] && <div style={{ fontSize:11, color:C.danger, marginTop:4 }}>{errors[key]}</div>}
     </div>
   );
 
@@ -238,7 +238,7 @@ export default function ImpactPartners() {
         <option value="">Select…</option>
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </FixedSelect>
-      {errors[key] && <div style={{ fontSize:11, color:C.danger, marginTop:4 }}>⚠ {errors[key]}</div>}
+      {errors[key] && <div style={{ fontSize:11, color:C.danger, marginTop:4 }}>{errors[key]}</div>}
     </div>
   );
 
@@ -332,7 +332,7 @@ export default function ImpactPartners() {
             </div>
             <div style={{ textAlign:"center", marginTop:48 }}>
               <div style={{ background:"#fff", borderRadius:18, border:`2px dashed ${C.border}`, padding:"40px 24px", display:"inline-block", maxWidth:480 }}>
-                <div style={{ fontSize:42, marginBottom:12 }}>🤝</div>
+                <div style={{ fontSize:42, marginBottom:12 }}></div>
                 <h3 style={{ margin:"0 0 8px", fontSize:20, fontWeight:800 }}>Become a Partner</h3>
                 <p style={{ fontSize:14, color:C.muted, marginBottom:20 }}>Join our growing network of verified impact partners.</p>
                 <button onClick={() => setTab("register")} style={{ padding:"12px 28px", background:C.primary, color:"#fff", border:"none", borderRadius:12, cursor:"pointer", fontWeight:800, fontSize:14 }}>Register Your Organisation →</button>
@@ -364,7 +364,7 @@ export default function ImpactPartners() {
 
             {submitted && !showPartnerContract ? (
               <div style={{ background:"#fff", borderRadius:22, padding:"56px 32px", textAlign:"center", boxShadow:"0 4px 24px rgba(0,0,0,0.08)" }}>
-                <div style={{ width:80, height:80, borderRadius:"50%", background:"#D1FAE5", margin:"0 auto 20px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}>✅</div>
+                <div style={{ width:80, height:80, borderRadius:"50%", background:"#D1FAE5", margin:"0 auto 20px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}></div>
                 <h2 style={{ fontSize:28, fontWeight:900, margin:"0 0 12px", color:C.secondary }}>Application Submitted!</h2>
                 <p style={{ fontSize:15, color:C.muted, lineHeight:1.7, maxWidth:440, margin:"0 auto 24px" }}>
                   Thank you, <strong>{form.contactName}</strong>. Your partnership application for <strong>{form.orgName}</strong> is under review. Our team will contact you within 3–5 business days at <strong>{form.contactEmail}</strong>.
@@ -401,7 +401,7 @@ export default function ImpactPartners() {
                       color: i<=step ? "#fff" : C.muted,
                       borderRight: i < STEPS.length-1 ? `1px solid ${C.border}` : "none",
                     }}>
-                      <div style={{ fontSize:16, marginBottom:3 }}>{["🏛️","👤","⚙️","✅"][i]}</div>
+                      <div style={{ fontSize:16, marginBottom:3 }}>{["","","",""][i]}</div>
                       {s}
                     </div>
                   ))}
@@ -412,7 +412,7 @@ export default function ImpactPartners() {
                   {/* Step 0: Organisation */}
                   {step === 0 && (
                     <div style={{ display:"grid", gap:18 }}>
-                      <h3 style={{ margin:"0 0 8px", fontSize:18, fontWeight:800 }}>🏛️ Organisation Information</h3>
+                      <h3 style={{ margin:"0 0 8px", fontSize:18, fontWeight:800 }}>Organisation Information</h3>
 
                       {/* Logo upload */}
                       <div>
@@ -451,7 +451,7 @@ export default function ImpactPartners() {
                   {/* Step 1: Contact */}
                   {step === 1 && (
                     <div style={{ display:"grid", gap:18 }}>
-                      <h3 style={{ margin:"0 0 8px", fontSize:18, fontWeight:800 }}>👤 Primary Contact Person</h3>
+                      <h3 style={{ margin:"0 0 8px", fontSize:18, fontWeight:800 }}>Primary Contact Person</h3>
                       {field("contactName", "Full Name", "text", "e.g. Ahmed Hassan")}
                       {field("contactTitle", "Job Title / Position", "text", "e.g. Country Director")}
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
@@ -464,7 +464,7 @@ export default function ImpactPartners() {
                   {/* Step 2: Operations */}
                   {step === 2 && (
                     <div style={{ display:"grid", gap:18 }}>
-                      <h3 style={{ margin:"0 0 8px", fontSize:18, fontWeight:800 }}>⚙️ Operations & Focus</h3>
+                      <h3 style={{ margin:"0 0 8px", fontSize:18, fontWeight:800 }}>Operations & Focus</h3>
                       <div>
                         <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:8, textTransform:"uppercase", letterSpacing:.5 }}>Focus Areas <span style={{color:C.danger}}>*</span></label>
                         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
@@ -477,7 +477,7 @@ export default function ImpactPartners() {
                             }}>{f}</button>
                           ))}
                         </div>
-                        {errors.focusAreas && <div style={{ fontSize:11, color:C.danger, marginTop:6 }}>⚠ {errors.focusAreas}</div>}
+                        {errors.focusAreas && <div style={{ fontSize:11, color:C.danger, marginTop:6 }}>{errors.focusAreas}</div>}
                       </div>
                       {field("operatingRegions", "Regions You Operate In", "text", "e.g. Mogadishu, Baidoa, Kismayo")}
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
@@ -495,7 +495,7 @@ export default function ImpactPartners() {
                   {/* Step 3: Review */}
                   {step === 3 && (
                     <div>
-                      <h3 style={{ margin:"0 0 18px", fontSize:18, fontWeight:800 }}>✅ Review & Submit</h3>
+                      <h3 style={{ margin:"0 0 18px", fontSize:18, fontWeight:800 }}>Review & Submit</h3>
                       <div style={{ background:C.bg, borderRadius:14, padding:"20px 22px", marginBottom:18 }}>
                         {[
                           ["Organisation", form.orgName],
@@ -524,7 +524,7 @@ export default function ImpactPartners() {
                             I confirm that all information provided is accurate. I accept the <a href="#" onClick={e=>{e.preventDefault();setShowTerms(true);}} style={{ color:C.primary, fontWeight:700, textDecoration:"underline", cursor:"pointer" }}>Partner Terms & Conditions</a> and understand that Kafaale Qaad will review this application before granting access.
                           </div>
                         </label>
-                        {errors.acceptsTerms && <div style={{ fontSize:11, color:C.danger, marginTop:6 }}>⚠ {errors.acceptsTerms}</div>}
+                        {errors.acceptsTerms && <div style={{ fontSize:11, color:C.danger, marginTop:6 }}>{errors.acceptsTerms}</div>}
                       </div>
                     </div>
                   )}
@@ -540,7 +540,7 @@ export default function ImpactPartners() {
                           Continue →
                         </button>
                       : <button onClick={submit} style={{ padding:"12px 32px", borderRadius:11, background:C.secondary, color:"#fff", border:"none", fontWeight:800, fontSize:14, cursor:"pointer" }}>
-                          ✅ Submit Application
+                          Submit Application
                         </button>
                     }
                   </div>
@@ -679,7 +679,7 @@ export default function ImpactPartners() {
                   {adminPartners.filter(p => p.status === "pending").map(p => (
                     <div key={p.id} style={{ background:"#FFFBEB", borderRadius:14, padding:"20px 24px", border:`1.5px solid #FCD34D`, boxShadow:"0 2px 8px rgba(0,0,0,.04)", display:"flex", alignItems:"center", gap:16 }}>
                       <div style={{ width:52, height:52, borderRadius:12, background:"#FEF3C7", border:`1.5px solid #F59E0B`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0 }}>
-                        {p.logoUrl ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} /> : <span style={{ fontSize:22 }}>🕐</span>}
+                        {p.logoUrl ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} /> : <span style={{ fontSize:22 }}></span>}
                       </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:15, fontWeight:800, color:C.text }}>{p.name}</div>
@@ -712,7 +712,7 @@ export default function ImpactPartners() {
                           <div style={{ width:56, height:56, borderRadius:14, background:`linear-gradient(135deg,${p.color}30,${p.color}60)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0, overflow:"hidden" }}>
                             {p.logoUrl
                               ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} />
-                              : <span>🤝</span>}
+                              : <span></span>}
                           </div>
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontSize:15, fontWeight:800, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.name}</div>

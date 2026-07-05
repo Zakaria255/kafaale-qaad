@@ -7,7 +7,7 @@ const VOL_KEY = "kf_volunteer_applications";
 
 const CATEGORIES = [
   {
-    id:"reporter", icon:"📝", color:"#3B82F6", bg:"#EFF6FF",
+    id:"reporter", icon:"", color:"#3B82F6", bg:"#EFF6FF",
     title:"Community Reporter",
     subtitle:"Submit cases from your area",
     desc:"Use your smartphone to document and submit emergency cases from your community. No experience needed — just the will to help.",
@@ -17,7 +17,7 @@ const CATEGORIES = [
     img:"https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=500&q=75",
   },
   {
-    id:"field", icon:"🗺️", color:"#F59E0B", bg:"#FFFBEB",
+    id:"field", icon:"", color:"#F59E0B", bg:"#FFFBEB",
     title:"Field Verification Agent",
     subtitle:"Visit & verify cases on the ground",
     desc:"Travel to reported cases, verify facts on the ground, collect GPS-tagged photo evidence, and upload field reports. This is a paid position.",
@@ -37,7 +37,7 @@ const CATEGORIES = [
     img:"https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=500&q=75",
   },
   {
-    id:"education", icon:"🎓", color:"#8B5CF6", bg:"#F5F3FF",
+    id:"education", icon:"", color:"#8B5CF6", bg:"#F5F3FF",
     title:"Education Support",
     subtitle:"Help children access education",
     desc:"Help children access schooling — verify enrollment, liaise with schools, follow up on education cases, and ensure children stay in school.",
@@ -47,7 +47,7 @@ const CATEGORIES = [
     img:"https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=500&q=75",
   },
   {
-    id:"legal", icon:"⚖️", color:"#10B981", bg:"#ECFDF5",
+    id:"legal", icon:"", color:"#10B981", bg:"#ECFDF5",
     title:"Legal Aid Volunteer",
     subtitle:"Support vulnerable families legally",
     desc:"Assist families with documentation, property rights, inheritance issues, and access to legal protections — especially women and orphans.",
@@ -57,7 +57,7 @@ const CATEGORIES = [
     img:"https://images.unsplash.com/photo-1598928636135-d146006ff4be?w=500&q=75",
   },
   {
-    id:"translator", icon:"🌐", color:"#06B6D4", bg:"#ECFEFF",
+    id:"translator", icon:"", color:"#06B6D4", bg:"#ECFEFF",
     title:"Platform Translator",
     subtitle:"Make aid multilingual",
     desc:"Help translate case descriptions and platform content into Somali, Arabic, Turkish, French, or other languages used by donors and communities.",
@@ -67,7 +67,7 @@ const CATEGORIES = [
     img:"https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=500&q=75",
   },
   {
-    id:"tech", icon:"💻", color:"#7C3AED", bg:"#EDE9FE",
+    id:"tech", icon:"", color:"#7C3AED", bg:"#EDE9FE",
     title:"Tech Volunteer",
     subtitle:"Build humanitarian technology",
     desc:"Contribute to our platform — front-end, back-end, data analysis, or cybersecurity. Help us scale our impact through better technology.",
@@ -77,7 +77,7 @@ const CATEGORIES = [
     img:"https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&q=75",
   },
   {
-    id:"coordinator", icon:"🤝", color:"#EC4899", bg:"#FDF2F8",
+    id:"coordinator", icon:"", color:"#EC4899", bg:"#FDF2F8",
     title:"District Coordinator",
     subtitle:"Lead a network of volunteers",
     desc:"Coordinate reporters and agents in your district. Recruit new volunteers, hold local training sessions, and act as the local Kafaale Qaad point of contact.",
@@ -154,7 +154,7 @@ export default function Volunteer() {
         : <input type={type} value={form[key]} onChange={ev=>set(key,ev.target.value)} placeholder={placeholder}
             style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${errors[key]?C.danger:C.border}`, fontSize:14, fontFamily:"inherit", boxSizing:"border-box" }} />
       }
-      {errors[key] && <div style={{ fontSize:11, color:C.danger, marginTop:4 }}>⚠ {errors[key]}</div>}
+      {errors[key] && <div style={{ fontSize:11, color:C.danger, marginTop:4 }}>{errors[key]}</div>}
     </div>
   );
 
@@ -177,7 +177,7 @@ export default function Volunteer() {
       {/* ── Process steps ── */}
       <div style={{ background:"#fff", borderBottom:`1px solid ${C.border}`, padding:"28px 24px" }}>
         <div style={{ maxWidth:900, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:0 }}>
-          {[["1","Choose Role","📋"],["2","Apply Online","📝"],["3","We Contact You","📞"],["4","Start Helping","🌍"]].map(([n,l,ic],i) => (
+          {[["1","Choose Role",""],["2","Apply Online",""],["3","We Contact You",""],["4","Start Helping","🌍"]].map(([n,l,ic],i) => (
             <div key={n} style={{ textAlign:"center", padding:"0 12px", borderRight: i<3 ? `1px solid ${C.border}` : "none" }}>
               <div style={{ fontSize:22, marginBottom:6 }}>{ic}</div>
               <div style={{ fontSize:11, fontWeight:800, color:C.primary, textTransform:"uppercase", letterSpacing:1 }}>Step {n}</div>
@@ -257,7 +257,7 @@ export default function Volunteer() {
           <div style={{ maxWidth:680, margin:"0 auto" }}>
             {submitted ? (
               <div style={{ textAlign:"center", padding:"48px 24px" }}>
-                <div style={{ width:80, height:80, borderRadius:"50%", background:"#D1FAE5", margin:"0 auto 20px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}>✅</div>
+                <div style={{ width:80, height:80, borderRadius:"50%", background:"#D1FAE5", margin:"0 auto 20px", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36 }}></div>
                 <h2 style={{ fontSize:26, fontWeight:900, margin:"0 0 12px", color:C.secondary }}>Application Received!</h2>
                 <p style={{ fontSize:15, color:C.muted, lineHeight:1.7, maxWidth:400, margin:"0 auto 24px" }}>
                   Thank you, <strong>{form.name}</strong>! Your application to volunteer as a <strong style={{color:selected.color}}>{selected.title}</strong> has been submitted. We'll contact you at <strong>{form.email}</strong> within 3 business days.
@@ -279,7 +279,7 @@ export default function Volunteer() {
                 </div>
 
                 <div style={{ display:"grid", gap:18 }}>
-                  <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>📝 Your Details</h3>
+                  <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>Your Details</h3>
                   {inp("name", "Full Name", "text", "e.g. Ahmed Hassan")}
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
                     {inp("email", "Email Address", "email", "you@example.com")}
@@ -317,11 +317,11 @@ export default function Volunteer() {
                         I agree to the volunteer terms and understand that my application will be reviewed before I receive access to the platform.
                       </span>
                     </label>
-                    {errors.acceptsTerms && <div style={{ fontSize:11, color:C.danger }}>⚠ {errors.acceptsTerms}</div>}
+                    {errors.acceptsTerms && <div style={{ fontSize:11, color:C.danger }}>{errors.acceptsTerms}</div>}
                   </div>
 
                   <button type="submit" style={{ padding:"14px", background:`linear-gradient(135deg, ${selected.color}, ${selected.color}cc)`, color:"#fff", border:"none", borderRadius:12, cursor:"pointer", fontWeight:800, fontSize:15, boxShadow:`0 6px 20px ${selected.color}40` }}>
-                    ✅ Submit Volunteer Application
+                    Submit Volunteer Application
                   </button>
                 </div>
               </form>

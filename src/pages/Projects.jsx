@@ -9,7 +9,7 @@ const B = {
 
 const PROJECTS = [
   {
-    id: "p1", icon: "💧", type: "Water",
+    id: "p1", icon: "", type: "Water",
     title: "Baidoa District Water Well",
     location: "Baidoa, Bay Region",
     goal: 8000, raised: 6400,
@@ -19,7 +19,7 @@ const PROJECTS = [
     updates: ["Foundation dug — 18 June 2026", "Pump equipment delivered — 5 June 2026"],
   },
   {
-    id: "p2", icon: "🏫", type: "Education",
+    id: "p2", icon: "", type: "Education",
     title: "Garowe Primary School Renovation",
     location: "Garowe, Nugaal Region",
     goal: 15000, raised: 9300,
@@ -39,7 +39,7 @@ const PROJECTS = [
     updates: ["Month 6 completed — 1 June 2026", "Fully funded — April 2026"],
   },
   {
-    id: "p4", icon: "🕌", type: "Community",
+    id: "p4", icon: "", type: "Community",
     title: "Beledweyne Community Centre",
     location: "Beledweyne, Hiran",
     goal: 6500, raised: 1950,
@@ -49,7 +49,7 @@ const PROJECTS = [
     updates: ["Land identified and cleared — 10 June 2026"],
   },
   {
-    id: "p5", icon: "🌾", type: "Agriculture",
+    id: "p5", icon: "", type: "Agriculture",
     title: "Afgooye Irrigation Scheme",
     location: "Afgooye, Lower Shabelle",
     goal: 20000, raised: 4000,
@@ -59,7 +59,7 @@ const PROJECTS = [
     updates: ["Survey complete — 14 June 2026"],
   },
   {
-    id: "p6", icon: "🔆", type: "Energy",
+    id: "p6", icon: "", type: "Energy",
     title: "Mogadishu IDP Camp Solar",
     location: "Mogadishu, Benadir",
     goal: 9500, raised: 9500,
@@ -117,7 +117,7 @@ export default function Projects() {
 
         {/* Content */}
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🏗️</div>
+          <div style={{ fontSize: 48, marginBottom: 16 }}></div>
           <h1 style={{ fontSize: "clamp(26px, 5vw, 44px)", fontWeight: 900, margin: "0 0 16px" }}>Community Projects</h1>
           <p style={{ fontSize: 18, opacity: 0.88, maxWidth: 580, margin: "0 auto 32px", lineHeight: 1.7 }}>
             Infrastructure that lifts entire communities — water, schools, clinics, and more. Every project is verified, tracked, and publicly reported.
@@ -179,7 +179,7 @@ export default function Projects() {
                   </div>
                   <div style={{ position: "absolute", bottom: 10, left: 14, right: 14 }}>
                     <h3 style={{ fontSize: 15, fontWeight: 800, margin: 0, color: "#fff", lineHeight: 1.35, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>{p.title}</h3>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>📍 {p.location}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>{p.location}</div>
                   </div>
                 </div>
 
@@ -195,8 +195,8 @@ export default function Projects() {
                     </span>
                   </div>
                   <ProgressBar pct={pct} color={pct >= 100 ? B.green : B.blue} />
-                  {pct >= 100 && <div style={{ fontSize: 11, color: B.green, fontWeight: 700, marginTop: 5 }}>🎉 Fully Funded</div>}
-                  <div style={{ marginTop: 10, fontSize: 12, color: B.muted }}>👥 {p.beneficiaries.toLocaleString()} beneficiaries</div>
+                  {pct >= 100 && <div style={{ fontSize: 11, color: B.green, fontWeight: 700, marginTop: 5 }}>Fully Funded</div>}
+                  <div style={{ marginTop: 10, fontSize: 12, color: B.muted }}>{p.beneficiaries.toLocaleString()} beneficiaries</div>
                   {p.status !== "completed" && (
                     <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                       <button
@@ -208,7 +208,7 @@ export default function Projects() {
                         to={`/donate?projectId=${p.id}&title=${encodeURIComponent(p.title)}&goal=${p.goal}&location=${encodeURIComponent(p.location)}`}
                         onClick={e => e.stopPropagation()}
                         style={{ flex: 1, padding: "9px 0", background: B.gold, borderRadius: 10, fontSize: 13, fontWeight: 800, color: "#fff", textDecoration: "none", textAlign: "center" }}>
-                        ❤️ Sponsor
+                        Sponsor
                       </Link>
                     </div>
                   )}
@@ -245,7 +245,7 @@ export default function Projects() {
                 <span style={{ background: STATUS_LABELS[proj.status].bg, color: STATUS_LABELS[proj.status].color, borderRadius: 8, padding: "3px 12px", fontSize: 12, fontWeight: 700 }}>{STATUS_LABELS[proj.status].label}</span>
               </div>
               <h2 style={{ fontSize: 22, fontWeight: 900, margin: "0 0 6px" }}>{proj.title}</h2>
-              <div style={{ fontSize: 13, color: B.muted, marginBottom: 18 }}>📍 {proj.location}</div>
+              <div style={{ fontSize: 13, color: B.muted, marginBottom: 18 }}>{proj.location}</div>
               <p style={{ fontSize: 14, lineHeight: 1.8, color: B.text, marginBottom: 24 }}>{proj.desc}</p>
               {/* Progress — % main, goal $ only at 100% */}
               <div style={{ background: B.bg, borderRadius: 12, padding: "16px 18px", marginBottom: 24 }}>
@@ -256,7 +256,7 @@ export default function Projects() {
                   </div>
                   <ProgressBar pct={mp} color={mp >= 100 ? B.green : B.blue} />
                   <div style={{ marginTop: 8, fontSize: 12, color: B.muted, textAlign: "right" }}>
-                    {mp >= 100 ? "🎉 Fully Funded · " : ""} 👥 {proj.beneficiaries.toLocaleString()} beneficiaries
+                    {mp >= 100 ? "Fully Funded · " : ""} {proj.beneficiaries.toLocaleString()} beneficiaries
                   </div>
                 </>); })()}
               </div>
@@ -273,7 +273,7 @@ export default function Projects() {
                   to={`/donate?projectId=${proj.id}&title=${encodeURIComponent(proj.title)}&goal=${proj.goal}&location=${encodeURIComponent(proj.location)}`}
                   onClick={() => setSelected(null)}
                   style={{ flex: 1, padding: "13px", background: B.gold, color: "#fff", borderRadius: 12, textDecoration: "none", textAlign: "center", fontWeight: 800, fontSize: 15 }}>
-                  ❤️ Sponsor This Project
+                  Sponsor This Project
                 </Link>
                 <button onClick={() => setSelected(null)} style={{
                   padding: "13px 24px", background: B.bg, border: `1px solid ${B.border}`,

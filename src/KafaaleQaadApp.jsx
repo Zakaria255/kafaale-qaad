@@ -44,32 +44,32 @@ const COLORS = {
 };
 
 const STATUS_MAP = {
-  "Pending Verification": { color: "#F59E0B", bg: "#FEF3C7", icon: "⏳" },
-  "Under Review":         { color: "#3B82F6", bg: "#DBEAFE", icon: "🔍" },
-  "Investigating":        { color: "#8B5CF6", bg: "#EDE9FE", icon: "🕵️" },
-  "Awaiting Approval":    { color: "#EC4899", bg: "#FCE7F3", icon: "📋" },
-  "Verified":             { color: "#10B981", bg: "#D1FAE5", icon: "✅" },
-  "Waiting Sponsor":      { color: "#F59E0B", bg: "#FEF3C7", icon: "🤝" },
-  "Sponsored":            { color: "#EF4444", bg: "#FEE2E2", icon: "❤️" },
-  "Aid Delivered":        { color: "#06B6D4", bg: "#CFFAFE", icon: "📦" },
-  "Delivering":           { color: "#0891B2", bg: "#CFFAFE", icon: "🚚" },
-  "Proof Submitted":      { color: "#10B981", bg: "#D1FAE5", icon: "📤" },
-  "Completed":            { color: "#5A6E8A", bg: "#F3F4F6", icon: "🏁" },
-  "Archived":             { color: "#374151", bg: "#E5E7EB", icon: "📁" },
+  "Pending Verification": { color: "#F59E0B", bg: "#FEF3C7", icon: "" },
+  "Under Review":         { color: "#3B82F6", bg: "#DBEAFE", icon: "" },
+  "Investigating":        { color: "#8B5CF6", bg: "#EDE9FE", icon: "" },
+  "Awaiting Approval":    { color: "#EC4899", bg: "#FCE7F3", icon: "" },
+  "Verified":             { color: "#10B981", bg: "#D1FAE5", icon: "" },
+  "Waiting Sponsor":      { color: "#F59E0B", bg: "#FEF3C7", icon: "" },
+  "Sponsored":            { color: "#EF4444", bg: "#FEE2E2", icon: "" },
+  "Aid Delivered":        { color: "#06B6D4", bg: "#CFFAFE", icon: "" },
+  "Delivering":           { color: "#0891B2", bg: "#CFFAFE", icon: "" },
+  "Proof Submitted":      { color: "#10B981", bg: "#D1FAE5", icon: "" },
+  "Completed":            { color: "#5A6E8A", bg: "#F3F4F6", icon: "" },
+  "Archived":             { color: "#374151", bg: "#E5E7EB", icon: "" },
 };
 
 const URGENCY = { Low: "#10B981", Medium: "#F59E0B", High: "#EF4444", Critical: "#7C3AED" };
 
 // ─── WORKFLOW STEPS ────────────────────────────────────────────────────────
 const WORKFLOW_STEPS = [
-  { num: 1, label: "Report Creation",    status: "Pending Verification", color: "#3B82F6", icon: "📝" },
-  { num: 2, label: "Verification Office",status: "Under Review",         color: "#8B5CF6", icon: "🏛️" },
-  { num: 3, label: "Field Investigation",status: "Investigating",        color: "#F59E0B", icon: "🔍" },
-  { num: 4, label: "Verified",           status: "Verified",             color: "#10B981", icon: "✅" },
-  { num: 5, label: "Donor Queue",        status: "Waiting Sponsor",      color: "#EC4899", icon: "👥" },
-  { num: 6, label: "Sponsorship",        status: "Sponsored",            color: "#EF4444", icon: "❤️" },
-  { num: 7, label: "Aid Delivery",       status: "Aid Delivered",        color: "#06B6D4", icon: "📦" },
-  { num: 8, label: "Completed",          status: "Completed",            color: "#5A6E8A", icon: "🏁" },
+  { num: 1, label: "Report Creation",    status: "Pending Verification", color: "#3B82F6", icon: "" },
+  { num: 2, label: "Verification Office",status: "Under Review",         color: "#8B5CF6", icon: "" },
+  { num: 3, label: "Field Investigation",status: "Investigating",        color: "#F59E0B", icon: "" },
+  { num: 4, label: "Verified",           status: "Verified",             color: "#10B981", icon: "" },
+  { num: 5, label: "Donor Queue",        status: "Waiting Sponsor",      color: "#EC4899", icon: "" },
+  { num: 6, label: "Sponsorship",        status: "Sponsored",            color: "#EF4444", icon: "" },
+  { num: 7, label: "Aid Delivery",       status: "Aid Delivered",        color: "#06B6D4", icon: "" },
+  { num: 8, label: "Completed",          status: "Completed",            color: "#5A6E8A", icon: "" },
 ];
 
 // ─── HELPER COMPONENTS ─────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ const DatePicker = ({ label, value, onChange, min, max, style }) => {
       <button type="button" onClick={() => setOpen(o => !o)}
         style={{ width:"100%", padding:"10px 14px", border:`1.5px solid ${open ? C.primary : C.border}`, borderRadius:10, fontSize:14, background:"#fff", cursor:"pointer", textAlign:"left", display:"flex", justifyContent:"space-between", alignItems:"center", color: value ? C.text : C.muted, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }}>
         <span>{display}</span>
-        <span style={{ fontSize:16 }}>📅</span>
+        <span style={{ fontSize:16 }}></span>
       </button>
       {open && (
         <div style={{ position:"absolute", zIndex:9999, top:"calc(100% + 4px)", left:0, background:"#fff", border:`1.5px solid ${C.border}`, borderRadius:14, boxShadow:"0 8px 32px rgba(0,0,0,0.18)", padding:16, minWidth:280 }}>
@@ -360,11 +360,11 @@ const FileUploadZone = ({ label, accept, multiple = true, files, onAdd, onRemove
 
   const getIcon = (f) => {
     if (f.preview) return null;
-    if (f.name.match(/\.(mp4|mov|avi|webm|mkv)$/i)) return "🎥";
-    if (f.name.match(/\.pdf$/i)) return "📄";
-    if (f.name.match(/\.(doc|docx)$/i)) return "📝";
-    if (f.name.match(/\.(jpg|jpeg|png|gif|webp|heic)$/i)) return "🖼️";
-    return "📎";
+    if (f.name.match(/\.(mp4|mov|avi|webm|mkv)$/i)) return "";
+    if (f.name.match(/\.pdf$/i)) return "";
+    if (f.name.match(/\.(doc|docx)$/i)) return "";
+    if (f.name.match(/\.(jpg|jpeg|png|gif|webp|heic)$/i)) return "";
+    return "";
   };
 
   const formatSize = (b) => b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : (b / 1024).toFixed(0) + " KB";
@@ -399,7 +399,7 @@ const FileUploadZone = ({ label, accept, multiple = true, files, onAdd, onRemove
         style={{ border: `2px dashed ${files.length > 0 ? color + "60" : COLORS.border}`, borderRadius: 12, padding: "18px", textAlign: "center", cursor: "pointer", background: files.length > 0 ? color + "06" : "#FAFAFA", transition: "all .15s" }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = color + "08"; }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = files.length > 0 ? color + "60" : COLORS.border; e.currentTarget.style.background = files.length > 0 ? color + "06" : "#FAFAFA"; }}>
-        <div style={{ fontSize: 26, marginBottom: 6 }}>📁</div>
+        <div style={{ fontSize: 26, marginBottom: 6 }}></div>
         <div style={{ fontSize: 13, color, fontWeight: 700 }}>Click to upload {multiple ? "files" : "file"}</div>
         <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 3 }}>{note || "Photos · Videos · Documents"}</div>
       </div>
@@ -444,27 +444,27 @@ const FileUploadZone = ({ label, accept, multiple = true, files, onAdd, onRemove
 // ─── CASE TIMELINE ───────────────────────────────────────────────────────────
 const CaseTimeline = ({ c }) => {
   const events = [
-    { time: c.created_at,         action: "📝 Report Created",      by: "Reporter",   done: true },
+    { time: c.created_at,         action: "Report Created",      by: "Reporter",   done: true },
     c.investigation_date
-      ? { time: c.investigation_date, action: "🕵️ Investigation Started",by: "Field Team", done: true }
-      : { time: "—",               action: "🕵️ Investigation Pending", by: "Field Team", done: false },
+      ? { time: c.investigation_date, action: "Investigation Started",by: "Field Team", done: true }
+      : { time: "—",               action: "Investigation Pending", by: "Field Team", done: false },
     c.findings
-      ? { time: c.investigation_date, action: "✅ Case Verified",       by: "Field Team", done: true }
-      : { time: "—",               action: "✅ Verification Pending",   by: "Field Team", done: false },
+      ? { time: c.investigation_date, action: "Case Verified",       by: "Field Team", done: true }
+      : { time: "—",               action: "Verification Pending",   by: "Field Team", done: false },
     c.sponsor_id
-      ? { time: new Date().toISOString().split("T")[0], action: "❤️ Case Sponsored", by: "Donor", done: true }
-      : { time: "—",               action: "❤️ Awaiting Sponsorship",  by: "Donor",      done: false },
+      ? { time: new Date().toISOString().split("T")[0], action: "Case Sponsored", by: "Donor", done: true }
+      : { time: "—",               action: "Awaiting Sponsorship",  by: "Donor",      done: false },
     c.status === "Aid Delivered" || c.status === "Completed"
-      ? { time: "—",               action: "📦 Aid Delivered",          by: "Field Team", done: true }
-      : { time: "—",               action: "📦 Aid Delivery Pending",   by: "Field Team", done: false },
+      ? { time: "—",               action: "Aid Delivered",          by: "Field Team", done: true }
+      : { time: "—",               action: "Aid Delivery Pending",   by: "Field Team", done: false },
     c.status === "Completed"
-      ? { time: "—",               action: "🏁 Case Completed",         by: "System",     done: true }
-      : { time: "—",               action: "🏁 Completion Pending",     by: "System",     done: false },
+      ? { time: "—",               action: "Case Completed",         by: "System",     done: true }
+      : { time: "—",               action: "Completion Pending",     by: "System",     done: false },
   ];
 
   return (
     <div style={{ marginTop: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 12 }}>📋 Case Timeline</div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 12 }}>Case Timeline</div>
       <div style={{ position: "relative", paddingLeft: 28 }}>
         {events.map((e, i) => (
           <div key={i} style={{ marginBottom: i < events.length - 1 ? 16 : 0, position: "relative" }}>
@@ -541,10 +541,10 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
   const totalProof = c.proof_files.length + proofPhotos.length + proofVideos.length + proofReceipts.length;
 
   const tabs = [
-    { id: "details",  label: "📋 Details"  },
-    { id: "timeline", label: "🕐 Timeline" },
-    { id: "media",    label: `📎 Media (${totalMedia})` },
-    ...(totalProof > 0 ? [{ id: "proof", label: `✅ Proof (${totalProof})` }] : []),
+    { id: "details",  label: "Details"  },
+    { id: "timeline", label: "Timeline" },
+    { id: "media",    label: `Media (${totalMedia})` },
+    ...(totalProof > 0 ? [{ id: "proof", label: `Proof (${totalProof})` }] : []),
   ];
 
   return (
@@ -568,7 +568,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
         <Badge status={c.status} />
         <UrgencyBadge level={c.urgency_level} />
-        {c.donation_amount > 0 && <span style={{ background: "#D1FAE5", color: "#065F46", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>💰 ${c.donation_amount}</span>}
+        {c.donation_amount > 0 && <span style={{ background: "#D1FAE5", color: "#065F46", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>${c.donation_amount}</span>}
       </div>
 
       {/* Tabs */}
@@ -627,15 +627,15 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                 <div style={{ background: fi ? "linear-gradient(135deg,#065F46,#10B981)" : "linear-gradient(135deg,#374151,#6B7280)", padding: "10px 18px", display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#fff" }}>2</span>
                   <span style={{ fontWeight: 800, fontSize: 14, color: "#fff" }}>Field Team Report</span>
-                  {fi && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.2)", borderRadius: 10, padding: "2px 8px", color: "#fff", marginLeft: 4 }}>✅ Submitted</span>}
-                  {!fi && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.2)", borderRadius: 10, padding: "2px 8px", color: "#fff", marginLeft: 4 }}>🔍 In Progress</span>}
+                  {fi && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.2)", borderRadius: 10, padding: "2px 8px", color: "#fff", marginLeft: 4 }}>Submitted</span>}
+                  {!fi && <span style={{ fontSize: 11, background: "rgba(255,255,255,0.2)", borderRadius: 10, padding: "2px 8px", color: "#fff", marginLeft: 4 }}>In Progress</span>}
                 </div>
                 <div style={{ padding: 16, background: fi ? "#F0FDF4" : "#F9FAFB" }}>
                   {(agent || assigned) && (
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, marginBottom: fi ? 12 : 0 }}>
                       {agent && <div style={{ background: "#fff", borderRadius: 8, padding: "8px 12px", border: "1px solid #D1FAE5" }}>
                         <div style={{ fontSize: 10, color: "#065F46", fontWeight: 700, textTransform: "uppercase" }}>Team / Agent</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, marginTop: 1 }}>🗺️ {agent.name}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginTop: 1 }}>{agent.name}</div>
                       </div>}
                       {assigned && <div style={{ background: "#fff", borderRadius: 8, padding: "8px 12px", border: "1px solid #D1FAE5" }}>
                         <div style={{ fontSize: 10, color: "#065F46", fontWeight: 700, textTransform: "uppercase" }}>Assigned</div>
@@ -650,9 +650,9 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                       <>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8, marginBottom: 10 }}>
                           {[
-                            ["Victim Verified",    fi.victimVerified    ? "✅ Yes" : "❌ No"],
-                            ["Situation Accurate", fi.situationAccurate ? "✅ Yes" : "❌ No"],
-                            ["Delivery Feasible",  fi.deliveryFeasible  ? "✅ Yes" : "❌ No"],
+                            ["Victim Verified",    fi.victimVerified    ? "Yes" : "No"],
+                            ["Situation Accurate", fi.situationAccurate ? "Yes" : "No"],
+                            ["Delivery Feasible",  fi.deliveryFeasible  ? "Yes" : "No"],
                             ["Urgency",            fi.urgencyConfirmed?.toUpperCase()],
                             ["Estimated Need",     fi.estimatedAmountNeeded ? `$${fi.estimatedAmountNeeded.toLocaleString()}` : "—"],
                             ["Verification",       fi.verificationStatus?.replace(/_/g," ")],
@@ -677,14 +677,14 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                         )}
                         {fi.fraudRiskLevel && (
                           <div style={{ background: riskBg, borderRadius: 8, padding: "8px 12px", border: `1px solid ${riskColor}30` }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: riskColor }}>🛡️ Fraud Risk: {fi.fraudRiskLevel?.toUpperCase()} ({fi.fraudRiskScore ?? 0}/100)</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: riskColor }}>Fraud Risk: {fi.fraudRiskLevel?.toUpperCase()} ({fi.fraudRiskScore ?? 0}/100)</span>
                             {fi.fraudRiskNotes && <span style={{ fontSize: 12, color: riskColor, marginLeft: 8 }}>{fi.fraudRiskNotes}</span>}
                           </div>
                         )}
                       </>
                     );
                   })()}
-                  {!fi && <div style={{ fontSize: 13, color: COLORS.muted, textAlign: "center", padding: "12px 0" }}>⏳ Field agent has not submitted their report yet</div>}
+                  {!fi && <div style={{ fontSize: 13, color: COLORS.muted, textAlign: "center", padding: "12px 0" }}>Field agent has not submitted their report yet</div>}
                 </div>
               </div>
             );
@@ -714,11 +714,11 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
           {/* ── FIELD INVESTIGATION SECTION ── */}
           {isInvestigating && (
             <div style={{ background: "#FFFBEB", border: "2px solid #FCD34D", borderRadius: 14, padding: 20, marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#92400E", marginBottom: 4 }}>🔍 Field Investigation Report</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#92400E", marginBottom: 4 }}>Field Investigation Report</div>
               <div style={{ fontSize: 12, color: "#B45309", marginBottom: 16 }}>Document your findings. At least 1 photo + written findings required before submitting.</div>
               <Textarea label="Investigation Findings *" value={findings} onChange={e => setFindings(e.target.value)} placeholder="Describe what you found on site — confirm or deny the case details, note any important observations..." style={{ minHeight: 90 }} />
               <FileUploadZone
-                label="📸 Photos (Required — min. 1)"
+                label="Photos (Required — min. 1)"
                 accept="image/*"
                 files={evidencePhotos}
                 onAdd={f => setEvidencePhotos(p => [...p, ...f])}
@@ -728,7 +728,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                 color="#F59E0B"
               />
               <FileUploadZone
-                label="🎥 Videos (Optional)"
+                label="Videos (Optional)"
                 accept="video/*"
                 files={evidenceVideos}
                 onAdd={f => setEvidenceVideos(p => [...p, ...f])}
@@ -737,7 +737,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                 color="#8B5CF6"
               />
               <FileUploadZone
-                label="📄 Documents (Optional)"
+                label="Documents (Optional)"
                 accept=".pdf,.doc,.docx,image/*"
                 files={evidenceDocs}
                 onAdd={f => setEvidenceDocs(p => [...p, ...f])}
@@ -747,7 +747,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
               />
               {!canSubmitInvestigation && (
                 <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: 12, fontSize: 12, color: "#991B1B" }}>
-                  ⚠️ You must add <strong>written findings</strong> and at least <strong>1 photo</strong> before submitting.
+                  You must add <strong>written findings</strong> and at least <strong>1 photo</strong> before submitting.
                 </div>
               )}
             </div>
@@ -756,10 +756,10 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
           {/* ── AID DELIVERY SECTION ── */}
           {isDelivering && (
             <div style={{ background: "#F0FDF4", border: "2px solid #86EFAC", borderRadius: 14, padding: 20, marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#065F46", marginBottom: 4 }}>📦 Aid Delivery Proof</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#065F46", marginBottom: 4 }}>Aid Delivery Proof</div>
               <div style={{ fontSize: 12, color: "#047857", marginBottom: 16 }}>Upload proof that aid was delivered. At least 1 photo is required. Receipts and videos are optional but encouraged.</div>
               <FileUploadZone
-                label="📸 Delivery Photos (Required — min. 1)"
+                label="Delivery Photos (Required — min. 1)"
                 accept="image/*"
                 files={proofPhotos}
                 onAdd={f => setProofPhotos(p => [...p, ...f])}
@@ -769,7 +769,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                 color="#10B981"
               />
               <FileUploadZone
-                label="🎥 Delivery Video (Optional)"
+                label="Delivery Video (Optional)"
                 accept="video/*"
                 files={proofVideos}
                 onAdd={f => setProofVideos(p => [...p, ...f])}
@@ -778,7 +778,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                 color="#06B6D4"
               />
               <FileUploadZone
-                label="🧾 Receipt / Document (Optional)"
+                label="Receipt / Document (Optional)"
                 accept=".pdf,.doc,.docx,image/*"
                 files={proofReceipts}
                 onAdd={f => setProofReceipts(p => [...p, ...f])}
@@ -788,7 +788,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
               />
               {!canSubmitDelivery && (
                 <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: 12, fontSize: 12, color: "#991B1B" }}>
-                  ⚠️ At least <strong>1 delivery photo</strong> is required before marking as Aid Delivered.
+                  At least <strong>1 delivery photo</strong> is required before marking as Aid Delivered.
                 </div>
               )}
             </div>
@@ -801,12 +801,12 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
             const riskBg    = { low: "#ECFDF5", medium: "#FFFBEB", high: "#FEF2F2" }[fi.fraudRiskLevel] || "#F8FAFC";
             return (
               <div style={{ background: "#EFF6FF", border: "2px solid #BFDBFE", borderRadius: 14, padding: 20, marginBottom: 16 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#1E40AF", marginBottom: 14 }}>📋 Field Investigation Report</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#1E40AF", marginBottom: 14 }}>Field Investigation Report</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 14 }}>
                   {[
-                    ["Victim Verified",    fi.victimVerified    ? "✅ Yes" : "❌ No"],
-                    ["Situation Accurate", fi.situationAccurate ? "✅ Yes" : "❌ No"],
-                    ["Delivery Feasible",  fi.deliveryFeasible  ? "✅ Yes" : "❌ No"],
+                    ["Victim Verified",    fi.victimVerified    ? "Yes" : "No"],
+                    ["Situation Accurate", fi.situationAccurate ? "Yes" : "No"],
+                    ["Delivery Feasible",  fi.deliveryFeasible  ? "Yes" : "No"],
                     ["Urgency Confirmed",  fi.urgencyConfirmed?.toUpperCase()],
                     ["Estimated Need",     fi.estimatedAmountNeeded ? `$${fi.estimatedAmountNeeded.toLocaleString()}` : "—"],
                     ["Verification",       fi.verificationStatus?.replace(/_/g," ")],
@@ -831,7 +831,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                 )}
                 {fi.fraudRiskLevel && (
                   <div style={{ background: riskBg, borderRadius: 8, padding: "10px 14px", border: `1px solid ${riskColor}30`, display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: riskColor }}>🛡️ Fraud Risk: {fi.fraudRiskLevel?.toUpperCase()} ({fi.fraudRiskScore ?? 0}/100)</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: riskColor }}>Fraud Risk: {fi.fraudRiskLevel?.toUpperCase()} ({fi.fraudRiskScore ?? 0}/100)</div>
                     {fi.fraudRiskNotes && <div style={{ fontSize: 12, color: riskColor, flex: 1 }}>{fi.fraudRiskNotes}</div>}
                   </div>
                 )}
@@ -842,7 +842,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
           {/* Existing findings fallback (text-only) */}
           {c.findings && !isInvestigating && !c._raw?.fieldInvestigation && (
             <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: 10, padding: 16, marginBottom: 16 }}>
-              <div style={{ fontSize: 12, color: COLORS.secondary, fontWeight: 700, marginBottom: 6 }}>✅ FIELD FINDINGS</div>
+              <div style={{ fontSize: 12, color: COLORS.secondary, fontWeight: 700, marginBottom: 6 }}>FIELD FINDINGS</div>
               <p style={{ margin: 0, fontSize: 14, color: COLORS.text }}>{c.findings}</p>
             </div>
           )}
@@ -857,7 +857,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
         <div>
           {c.media_files.length === 0 && evidencePhotos.length === 0 && evidenceVideos.length === 0 && evidenceDocs.length === 0 ? (
             <div style={{ padding: 32, textAlign: "center", color: COLORS.muted }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>📭</div>
+              <div style={{ fontSize: 40, marginBottom: 8 }}></div>
               No media files attached to this case yet.
             </div>
           ) : (
@@ -873,7 +873,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                           ? <video src={f.url} controls style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} />
                           : f.type === 'document' || f.url?.match(/\.(pdf|doc|docx)$/i)
                             ? <a href={f.url} target="_blank" rel="noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 100, textDecoration: 'none', color: COLORS.primary }}>
-                                <span style={{ fontSize: 32 }}>📄</span>
+                                <span style={{ fontSize: 32 }}></span>
                                 <span style={{ fontSize: 10, textAlign: 'center', padding: '0 4px', wordBreak: 'break-all' }}>View Doc</span>
                               </a>
                             : <a href={f.url} target="_blank" rel="noreferrer"><img src={f.url} alt="media" style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} /></a>
@@ -886,13 +886,13 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
               {/* Newly added files preview */}
               {(evidencePhotos.length > 0 || evidenceVideos.length > 0 || evidenceDocs.length > 0) && (
                 <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: 12, padding: 16 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#92400E", marginBottom: 10 }}>🆕 NEW UPLOADS (not saved yet)</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#92400E", marginBottom: 10 }}>NEW UPLOADS (not saved yet)</div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {[...evidencePhotos, ...evidenceVideos, ...evidenceDocs].map((f, i) => (
                       <div key={i} style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #FCD34D" }}>
                         {f.preview ? <img src={f.preview} alt={f.name} style={{ width: 64, height: 64, objectFit: "cover", display: "block" }} /> :
                           <div style={{ width: 64, height: 64, background: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
-                            {f.name.match(/\.(mp4|mov)$/i) ? "🎥" : f.name.endsWith(".pdf") ? "📄" : "📎"}
+                            {f.name.match(/\.(mp4|mov)$/i) ? "" : f.name.endsWith(".pdf") ? "" : ""}
                           </div>
                         }
                       </div>
@@ -910,7 +910,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
         <div>
           {c.proof_files.length > 0 && (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.secondary, marginBottom: 10 }}>✅ DELIVERY PROOF</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.secondary, marginBottom: 10 }}>DELIVERY PROOF</div>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {c.proof_files.map((f, i) => (
                   <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1.5px solid #A7F3D0', background: '#ECFDF5', width: 100, flexShrink: 0 }}>
@@ -918,7 +918,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
                       ? <video src={f.url} controls style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} />
                       : f.type === 'document' || f.url?.match(/\.(pdf|doc|docx)$/i)
                         ? <a href={f.url} target="_blank" rel="noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 100, textDecoration: 'none', color: COLORS.secondary }}>
-                            <span style={{ fontSize: 32 }}>📄</span>
+                            <span style={{ fontSize: 32 }}></span>
                             <span style={{ fontSize: 10, textAlign: 'center', padding: '0 4px', wordBreak: 'break-all' }}>View Doc</span>
                           </a>
                         : <a href={f.url} target="_blank" rel="noreferrer"><img src={f.url} alt="proof" style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} /></a>
@@ -930,13 +930,13 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
           )}
           {(proofPhotos.length > 0 || proofVideos.length > 0 || proofReceipts.length > 0) && (
             <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: 12, padding: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#065F46", marginBottom: 10 }}>🆕 NEW PROOF (not saved yet)</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#065F46", marginBottom: 10 }}>NEW PROOF (not saved yet)</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {[...proofPhotos, ...proofVideos, ...proofReceipts].map((f, i) => (
                   <div key={i} style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #86EFAC" }}>
                     {f.preview ? <img src={f.preview} alt={f.name} style={{ width: 64, height: 64, objectFit: "cover", display: "block" }} /> :
                       <div style={{ width: 64, height: 64, background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
-                        {f.name.match(/\.(mp4|mov)$/i) ? "🎥" : f.name.endsWith(".pdf") ? "🧾" : "📎"}
+                        {f.name.match(/\.(mp4|mov)$/i) ? "" : f.name.endsWith(".pdf") ? "" : ""}
                       </div>
                     }
                   </div>
@@ -955,17 +955,17 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
         {isInvestigating && (
           <Btn variant="success" onClick={handleAdvance} style={{ opacity: canSubmitInvestigation ? 1 : 0.4, cursor: canSubmitInvestigation ? "pointer" : "not-allowed" }}
             {...(!canSubmitInvestigation ? { onClick: () => alert("Add written findings + at least 1 photo before submitting.") } : {})}>
-            ✅ Submit Investigation → Verified
+            Submit Investigation → Verified
           </Btn>
         )}
         {isDelivering && (
           <Btn variant="teal" onClick={handleAdvance} style={{ opacity: canSubmitDelivery ? 1 : 0.4, cursor: canSubmitDelivery ? "pointer" : "not-allowed" }}
             {...(!canSubmitDelivery ? { onClick: () => alert("Add at least 1 delivery photo before submitting.") } : {})}>
-            📦 Confirm Aid Delivered
+            Confirm Aid Delivered
           </Btn>
         )}
         {c.status === "Waiting Sponsor" && ["donor"].includes(currentUser.role) && (
-          <Btn variant="accent" onClick={() => { onSponsor(c); onClose(); }}>❤️ Sponsor This Case</Btn>
+          <Btn variant="accent" onClick={() => { onSponsor(c); onClose(); }}>Sponsor This Case</Btn>
         )}
         {c.status === "Pending Verification" && ["admin","super_admin","verification_office"].includes(currentUser.role) && (
           <Btn variant="danger" onClick={() => { onUpdateCase(c.id, { status: "Archived" }); onClose(); }}>✕ Reject Case</Btn>
@@ -974,7 +974,7 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
           <Btn variant="primary" onClick={() => { onUpdateCase(c.id, { status: "Investigating", team_id: "T01" }); onClose(); }}>Assign Field Team</Btn>
         )}
         {["admin","super_admin","verification_office"].includes(currentUser.role) && c.status === "Aid Delivered" && (
-          <Btn variant="success" onClick={handleAdvance}>🏁 Mark as Completed</Btn>
+          <Btn variant="success" onClick={handleAdvance}>Mark as Completed</Btn>
         )}
         <Btn variant="muted" onClick={onClose}>Close</Btn>
       </div>
@@ -987,12 +987,12 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
 const REPORT_CATEGORIES = getCat("report");
 
 const NEEDS_OPTIONS = [
-  { value: "education",  label: "🎓 Education / School Fees" },
+  { value: "education",  label: "Education / School Fees" },
   { value: "food",       label: "🍚 Food Support" },
-  { value: "medical",    label: "🩺 Medical Care" },
+  { value: "medical",    label: "Medical Care" },
   { value: "shelter",    label: "🏠 Shelter / Housing" },
-  { value: "clothing",   label: "👗 Clothing / Uniform" },
-  { value: "disability", label: "♿ Disability Support" },
+  { value: "clothing",   label: "Clothing / Uniform" },
+  { value: "disability", label: "Disability Support" },
 ];
 
 const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
@@ -1068,12 +1068,12 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
 
   // ── Step 0: Choose report mode ───────────────────────────────────────────
   if (!reportMode) return (
-    <Modal title="📝 New Report" onClose={onClose} wide>
+    <Modal title="New Report" onClose={onClose} wide>
       <p style={{ color: COLORS.muted, fontSize: 14, marginBottom: 24 }}>What type of report are you submitting?</p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         <button onClick={() => setReportMode("individual")}
           style={{ background: "#fff", border: `2px solid ${COLORS.primary}`, borderRadius: 16, padding: "24px 20px", cursor: "pointer", textAlign: "left" }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>👤</div>
+          <div style={{ fontSize: 36, marginBottom: 10 }}></div>
           <div style={{ fontSize: 16, fontWeight: 800, color: COLORS.primary, marginBottom: 6 }}>Individual Report</div>
           <div style={{ fontSize: 13, color: COLORS.muted, lineHeight: 1.6 }}>
             One child, one person, or one family needing support.
@@ -1083,7 +1083,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
         </button>
         <button onClick={() => setReportMode("community")}
           style={{ background: "#fff", border: `2px solid ${COLORS.secondary}`, borderRadius: 16, padding: "24px 20px", cursor: "pointer", textAlign: "left" }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>🏘️</div>
+          <div style={{ fontSize: 36, marginBottom: 10 }}></div>
           <div style={{ fontSize: 16, fontWeight: 800, color: COLORS.secondary, marginBottom: 6 }}>Community Report</div>
           <div style={{ fontSize: 13, color: COLORS.muted, lineHeight: 1.6 }}>
             Many children or families in one village or area.
@@ -1096,10 +1096,10 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
   );
 
   return (
-    <Modal title={isCommunity ? "🏘️ Community Report" : "👤 Individual Report"} onClose={onClose} wide>
+    <Modal title={isCommunity ? "Community Report" : "Individual Report"} onClose={onClose} wide>
       {/* Privacy note */}
       <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#065F46" }}>
-        🔐 All personal information is <strong>private</strong>. Only admins and field agents see it. Sponsors never see names, phones, or exact addresses.
+        All personal information is <strong>private</strong>. Only admins and field agents see it. Sponsors never see names, phones, or exact addresses.
       </div>
 
       {/* Category selector */}
@@ -1124,7 +1124,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
             {NEEDS_OPTIONS.map(n => (
               <label key={n.value} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, border: `2px solid ${form.needsChecklist.includes(n.value) ? COLORS.secondary : COLORS.border}`, background: form.needsChecklist.includes(n.value) ? COLORS.secondary + "12" : "#fff", cursor: "pointer", fontSize: 12, fontWeight: 700, color: form.needsChecklist.includes(n.value) ? COLORS.secondary : COLORS.muted }}>
                 <input type="checkbox" checked={form.needsChecklist.includes(n.value)} onChange={() => toggleNeed(n.value)} style={{ display: "none" }} />
-                {form.needsChecklist.includes(n.value) ? "✅" : "○"} {n.label}
+                {form.needsChecklist.includes(n.value) ? "" : "○"} {n.label}
               </label>
             ))}
           </div>
@@ -1136,7 +1136,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
         <div>
           {isCommunity ? (
             <>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.secondary, textTransform: "uppercase", marginBottom: 12 }}>🏘️ Community Information</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.secondary, textTransform: "uppercase", marginBottom: 12 }}>Community Information</div>
               <Input label="Village / Community Name *" value={form.communityVillageName}
                 onChange={e => set("communityVillageName", e.target.value)} placeholder="e.g. Daryeel Village" />
               <Input label="Number of Children *" type="number" value={form.communityChildCount}
@@ -1146,7 +1146,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
             </>
           ) : (
             <>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12 }}>🔐 Private Information</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12 }}>Private Information</div>
               <Input label="Full Name *" value={form.privateVictimName}
                 onChange={e => set("privateVictimName", e.target.value)} placeholder={isChildType ? "Child's full name" : "Person's full name"} />
               {isChildType && (
@@ -1176,7 +1176,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
 
         {/* Right: situation */}
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12 }}>📋 Situation Details</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12 }}>Situation Details</div>
 
           <Select label="Urgency *" value={form.emergencyLevel} onChange={e => set("emergencyLevel", e.target.value)}>
             <option value="critical">🚨 Critical — Immediate action needed</option>
@@ -1204,19 +1204,19 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
 
       {error && (
         <div style={{ background: "#FEF2F2", color: COLORS.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginTop: 8 }}>
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
       <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#92400E", marginTop: 16 }}>
-        📋 After submission: status → <strong>Pending Review</strong>. The {isCommunity ? "community" : "child/person"} will not be visible to sponsors until a field team investigates and admin approves.
+        After submission: status → <strong>Pending Review</strong>. The {isCommunity ? "community" : "child/person"} will not be visible to sponsors until a field team investigates and admin approves.
       </div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
         <Btn variant="muted" onClick={() => setReportMode("")} disabled={loading}>← Back</Btn>
         <Btn variant="muted" onClick={onClose} disabled={loading}>Cancel</Btn>
         <Btn variant="primary" onClick={handleSubmit} disabled={loading} style={{ flex: 1 }}>
-          {loading ? "Submitting…" : isCommunity ? "🏘️ Submit Community Report" : "📤 Submit Report"}
+          {loading ? "Submitting…" : isCommunity ? "Submit Community Report" : "Submit Report"}
         </Btn>
       </div>
     </Modal>
@@ -1231,17 +1231,17 @@ const SponsorModal = ({ c, onClose, onConfirm, currentUser }) => {
   const pct         = targetGoal > 0 ? Math.min(100, Math.round((totalRaised / targetGoal) * 100)) : 0;
 
   const METHODS = [
-    { value: "mobile_money",  label: "📱 Mobile Money (EVC / Zaad / Sahal)" },
-    { value: "bank_transfer", label: "🏦 Bank Transfer" },
-    { value: "card",          label: "💳 Debit / Credit Card" },
-    { value: "wallet",        label: "💰 Digital Wallet" },
+    { value: "mobile_money",  label: "Mobile Money (EVC / Zaad / Sahal)" },
+    { value: "bank_transfer", label: "Bank Transfer" },
+    { value: "card",          label: "Debit / Credit Card" },
+    { value: "wallet",        label: "Digital Wallet" },
   ];
 
   // Tier presets based on actual remaining amount
   const tiers = [
-    { label: "Full Sponsor 🏆",   amount: remaining || targetGoal,           desc: "Cover the entire remaining need" },
-    { label: "Half Support 🤝",   amount: Math.round((remaining || targetGoal) / 2), desc: "Cover half of what's still needed" },
-    { label: "Quick Help ❤️",     amount: Math.min(100, Math.round((remaining || targetGoal) / 4) || 50), desc: "Any help makes a difference" },
+    { label: "Full Sponsor ",   amount: remaining || targetGoal,           desc: "Cover the entire remaining need" },
+    { label: "Half Support ",   amount: Math.round((remaining || targetGoal) / 2), desc: "Cover half of what's still needed" },
+    { label: "Quick Help ",     amount: Math.min(100, Math.round((remaining || targetGoal) / 4) || 50), desc: "Any help makes a difference" },
   ].filter(t => t.amount > 0);
 
   const [selectedTier, setSelectedTier] = useState(0);
@@ -1284,9 +1284,9 @@ const SponsorModal = ({ c, onClose, onConfirm, currentUser }) => {
   // ── Success screen ──
   if (done) {
     return (
-      <Modal title="❤️ Thank You!" onClose={onClose}>
+      <Modal title="Thank You!" onClose={onClose}>
         <div style={{ textAlign: "center", padding: "20px 0 32px" }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
+          <div style={{ fontSize: 64, marginBottom: 16 }}></div>
           <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: COLORS.secondary }}>Donation Received!</h3>
           <p style={{ color: COLORS.muted, fontSize: 14, lineHeight: 1.6, maxWidth: 360, margin: "0 auto 24px" }}>
             Your donation of <strong style={{ color: COLORS.secondary }}>${parseFloat(amount).toLocaleString()}</strong> has been submitted.
@@ -1305,13 +1305,13 @@ const SponsorModal = ({ c, onClose, onConfirm, currentUser }) => {
   }
 
   return (
-    <Modal title={`❤️ Sponsor This Case`} onClose={onClose} wide>
+    <Modal title={`Sponsor This Case`} onClose={onClose} wide>
       {/* Case summary card */}
       <div style={{ background: "linear-gradient(135deg, #004B96 0%, #4B7D19 100%)", borderRadius: 16, padding: 20, marginBottom: 24, color: "#fff" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{c.victim_name}</div>
-            <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 10 }}>📍 {c.location}</div>
+            <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 10 }}>{c.location}</div>
             <p style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5, margin: 0, maxWidth: 420 }}>
               {(c.description || "").slice(0, 140)}{c.description?.length > 140 ? "…" : ""}
             </p>
@@ -1323,8 +1323,8 @@ const SponsorModal = ({ c, onClose, onConfirm, currentUser }) => {
         {targetGoal > 0 && (
           <div style={{ marginTop: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, opacity: 0.85, marginBottom: 6 }}>
-              <span>💰 Raised: <strong>${totalRaised.toLocaleString()}</strong></span>
-              <span>🎯 Goal: <strong>${targetGoal.toLocaleString()}</strong></span>
+              <span>Raised: <strong>${totalRaised.toLocaleString()}</strong></span>
+              <span>Goal: <strong>${targetGoal.toLocaleString()}</strong></span>
             </div>
             <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 20, height: 10, overflow: "hidden" }}>
               <div style={{ background: pct >= 100 ? "#10B981" : "#FCD34D", borderRadius: 20, height: "100%", width: `${pct}%`, transition: "width 0.5s" }} />
@@ -1383,14 +1383,14 @@ const SponsorModal = ({ c, onClose, onConfirm, currentUser }) => {
 
       {error && (
         <div style={{ background: "#FEF2F2", color: COLORS.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginBottom: 12 }}>
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
       <div style={{ display: "flex", gap: 10 }}>
         <Btn variant="muted" onClick={onClose} style={{ flex: 1 }} disabled={loading}>Cancel</Btn>
         <Btn variant="accent" onClick={handleConfirm} disabled={loading || !amount} style={{ flex: 2 }}>
-          {loading ? "Processing…" : `❤️ Confirm $${parseFloat(amount || 0).toLocaleString()} Donation`}
+          {loading ? "Processing…" : `Confirm $${parseFloat(amount || 0).toLocaleString()} Donation`}
         </Btn>
       </div>
     </Modal>
@@ -1407,7 +1407,7 @@ const AddUserModal = ({ onClose, onAdd }) => {
     onClose();
   };
   return (
-    <Modal title="➕ Add New User" onClose={onClose}>
+    <Modal title="Add New User" onClose={onClose}>
       <Input label="Full Name *" value={form.fullname} onChange={e => set("fullname", e.target.value)} />
       <Input label="Email *" type="email" value={form.email} onChange={e => set("email", e.target.value)} />
       <Input label="Phone" value={form.phone} onChange={e => set("phone", e.target.value)} />
@@ -1489,17 +1489,17 @@ const ExportModal = ({ cases, onClose }) => {
 
   const filtered = getFiltered();
   const RANGE_OPTIONS = [
-    { value: "year",    label: "📅 Full Year" },
-    { value: "quarter", label: "📆 Quarter" },
-    { value: "months",  label: "🗓️ Last N Months" },
-    { value: "custom",  label: "✏️ Custom Range" },
+    { value: "year",    label: "Full Year" },
+    { value: "quarter", label: "Quarter" },
+    { value: "months",  label: "Last N Months" },
+    { value: "custom",  label: "Custom Range" },
   ];
   const YEARS = Array.from({ length: 5 }, (_, i) => String(currentYear - 1 + i));
 
   return (
-    <Modal title="📥 Export Data" onClose={onClose} wide>
+    <Modal title="Export Data" onClose={onClose} wide>
       <div style={{ background: "#EFF6FF", borderRadius: 10, padding: "10px 14px", marginBottom: 20, fontSize: 13, color: COLORS.primary }}>
-        🔐 Export is restricted to Super Admin only. All exported files contain private case data.
+        Export is restricted to Super Admin only. All exported files contain private case data.
       </div>
 
       {/* Range type selector */}
@@ -1562,7 +1562,7 @@ const ExportModal = ({ cases, onClose }) => {
       {/* Format + preview */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center", flexWrap: "wrap" }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted }}>FORMAT:</div>
-        {[["csv","📊 CSV (Excel)"],["json","📋 JSON"]].map(([v, l]) => (
+        {[["csv","CSV (Excel)"],["json","JSON"]].map(([v, l]) => (
           <button key={v} onClick={() => setFmt(v)}
             style={{ padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 700, border: `2px solid ${fmt === v ? COLORS.secondary : COLORS.border}`, background: fmt === v ? COLORS.secondary : "#fff", color: fmt === v ? "#fff" : COLORS.muted, cursor: "pointer" }}>
             {l}
@@ -1576,7 +1576,7 @@ const ExportModal = ({ cases, onClose }) => {
       <div style={{ display: "flex", gap: 10 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="primary" onClick={doExport} disabled={filtered.length === 0} style={{ flex: 2 }}>
-          {filtered.length === 0 ? "No data in range" : `📥 Export ${filtered.length} cases`}
+          {filtered.length === 0 ? "No data in range" : `Export ${filtered.length} cases`}
         </Btn>
       </div>
     </Modal>
@@ -1587,29 +1587,29 @@ const ExportModal = ({ cases, onClose }) => {
 const NotificationsDropdown = ({ notifs, onClose, onMarkAll, onOpenCase }) => {
   const unread = notifs.filter(n => !(n.read || n.isRead)).length;
   const TYPE_ICON = {
-    case_submitted:         "📝",
-    case_assigned:          "🗂️",
-    investigation_completed:"📋",
-    case_published:         "✅",
-    case_rejected:          "❌",
-    new_donation:           "❤️",
+    case_submitted:         "",
+    case_assigned:          "",
+    investigation_completed:"",
+    case_published:         "",
+    case_rejected:          "",
+    new_donation:           "",
   };
   return (
     <div className="kf-notif-dropdown" style={{ position: "absolute", top: 56, right: 0, background: "#fff", borderRadius: 16, width: 340, maxHeight: 480, overflowY: "auto", boxShadow: "0 16px 48px #0003", zIndex: 500, border: `1px solid ${COLORS.border}` }}>
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${COLORS.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, background: "#fff" }}>
-        <div style={{ fontWeight: 800, fontSize: 15 }}>🔔 Notifications</div>
+        <div style={{ fontWeight: 800, fontSize: 15 }}>Notifications</div>
         {unread > 0 && <span style={{ background: "#EF4444", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>{unread}</span>}
       </div>
       {notifs.length === 0 && (
         <div style={{ padding: 32, textAlign: "center", color: COLORS.muted }}>
-          <div style={{ fontSize: 32 }}>🔕</div>
+          <div style={{ fontSize: 32 }}></div>
           <div style={{ marginTop: 8, fontSize: 13 }}>No notifications yet</div>
         </div>
       )}
       {notifs.map((n, i) => (
         <div key={n.id} onClick={() => n.caseId && onOpenCase && onOpenCase(n.caseId)}
           style={{ padding: "12px 20px", borderBottom: i < notifs.length - 1 ? `1px solid ${COLORS.border}` : "none", display: "flex", gap: 12, background: (n.read || n.isRead) ? "#fff" : "#EFF6FF", cursor: n.caseId ? "pointer" : "default" }}>
-          <div style={{ fontSize: 20, flexShrink: 0 }}>{TYPE_ICON[n.type] || "🔔"}</div>
+          <div style={{ fontSize: 20, flexShrink: 0 }}>{TYPE_ICON[n.type] || ""}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: (n.read || n.isRead) ? 500 : 700, color: COLORS.text }}>{n.title || n.msg}</div>
             <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{n.message || n.time}</div>
@@ -1639,7 +1639,7 @@ const AssignAgentModal = ({ caseItem, agents, onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await adminApi.assign(caseItem.id, selectedAgent, deadline || undefined, priority || undefined);
-      showToast(`🗺️ Agent assigned to ${caseItem.ref || caseItem.id} ✓`);
+      showToast(`Agent assigned to ${caseItem.ref || caseItem.id} ✓`);
       onDone(caseItem.id, "Under Review");
       onClose();
     } catch (e) { showToast(e.message || "Failed to assign", "error"); }
@@ -1647,10 +1647,10 @@ const AssignAgentModal = ({ caseItem, agents, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title={`🗺️ Assign Field Agent — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
+    <Modal title={`Assign Field Agent — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       <div style={{ marginBottom: 16, background: "#FFF7ED", borderRadius: 12, padding: "14px 18px", border: "1px solid #FED7AA" }}>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{caseItem.victim_name}</div>
-        <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>📍 {caseItem.location} · {caseItem.urgency_level} Priority · {caseItem.category || caseItem.status}</div>
+        <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>{caseItem.location} · {caseItem.urgency_level} Priority · {caseItem.category || caseItem.status}</div>
         <div style={{ fontSize: 12, color: COLORS.text, marginTop: 8, lineHeight: 1.5 }}>{caseItem.description?.slice(0, 150)}…</div>
       </div>
 
@@ -1663,7 +1663,7 @@ const AssignAgentModal = ({ caseItem, agents, onClose, onDone, showToast }) => {
 
       {agents.length === 0 && (
         <div style={{ background: "#FEF2F2", color: COLORS.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>
-          ⚠️ No field agents found. Register a field_agent account first.
+          No field agents found. Register a field_agent account first.
         </div>
       )}
 
@@ -1683,7 +1683,7 @@ const AssignAgentModal = ({ caseItem, agents, onClose, onDone, showToast }) => {
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="primary" onClick={handle} disabled={!selectedAgent || loading} style={{ flex: 2 }}>
-          {loading ? "Assigning…" : "🗺️ Assign Agent & Notify"}
+          {loading ? "Assigning…" : "Assign Agent & Notify"}
         </Btn>
       </div>
     </Modal>
@@ -1700,7 +1700,7 @@ const AssignDeliveryModal = ({ caseItem, agents, onClose, onDone, showToast }) =
     setLoading(true);
     try {
       await adminApi.assignDelivery(caseItem.id, selectedAgent);
-      showToast(`🚚 Delivery agent assigned to ${caseItem.ref || caseItem.id} — they've been notified!`);
+      showToast(`Delivery agent assigned to ${caseItem.ref || caseItem.id} — they've been notified!`);
       onDone();
       onClose();
     } catch (e) { showToast(e.message || "Failed to assign", "error"); }
@@ -1708,11 +1708,11 @@ const AssignDeliveryModal = ({ caseItem, agents, onClose, onDone, showToast }) =
   };
 
   return (
-    <Modal title={`🚚 Assign Delivery Agent — ${caseItem.ref || caseItem.id || caseItem._caseId}`} onClose={onClose}>
+    <Modal title={`Assign Delivery Agent — ${caseItem.ref || caseItem.id || caseItem._caseId}`} onClose={onClose}>
       <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "14px 18px", marginBottom: 16, border: "1px solid #BBF7D0" }}>
-        <div style={{ fontWeight: 800, fontSize: 14, color: "#166534" }}>💰 Donation Confirmed — Ready for Delivery</div>
+        <div style={{ fontWeight: 800, fontSize: 14, color: "#166534" }}>Donation Confirmed — Ready for Delivery</div>
         <div style={{ fontSize: 13, color: COLORS.text, marginTop: 6 }}>{caseItem.victim_name || caseItem._caseTitle}</div>
-        <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>📍 {caseItem.location || caseItem._caseCity}</div>
+        <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>{caseItem.location || caseItem._caseCity}</div>
         <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.secondary, marginTop: 6 }}>
           Amount to deliver: ${(caseItem.donation_amount || caseItem._amount || 0).toLocaleString()}
         </div>
@@ -1728,13 +1728,13 @@ const AssignDeliveryModal = ({ caseItem, agents, onClose, onDone, showToast }) =
       </Select>
       {agents.length === 0 && (
         <div style={{ background: "#FEF2F2", color: COLORS.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 16 }}>
-          ⚠️ No field agents available. Please register a field_agent account first.
+          No field agents available. Please register a field_agent account first.
         </div>
       )}
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="teal" onClick={handle} disabled={!selectedAgent || loading} style={{ flex: 2 }}>
-          {loading ? "Assigning…" : "🚚 Start Delivery & Notify Agent"}
+          {loading ? "Assigning…" : "Start Delivery & Notify Agent"}
         </Btn>
       </div>
     </Modal>
@@ -1751,7 +1751,7 @@ const RequestMoreInfoModal = ({ caseItem, onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await adminApi.requestMoreInfo(caseItem.id, message.trim());
-      showToast("📋 Info request sent to reporter");
+      showToast("Info request sent to reporter");
       onDone && onDone();
       onClose();
     } catch (e) { showToast(e.message || "Failed", "error"); }
@@ -1759,7 +1759,7 @@ const RequestMoreInfoModal = ({ caseItem, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title={`📋 Request More Information — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
+    <Modal title={`Request More Information — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       <div style={{ background: "#EFF6FF", borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: COLORS.primary }}>
         The reporter will receive a notification asking them to provide additional information before verification can proceed.
       </div>
@@ -1769,7 +1769,7 @@ const RequestMoreInfoModal = ({ caseItem, onClose, onDone, showToast }) => {
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="primary" onClick={handle} disabled={!message.trim() || loading} style={{ flex: 2 }}>
-          {loading ? "Sending…" : "📋 Send Request to Reporter"}
+          {loading ? "Sending…" : "Send Request to Reporter"}
         </Btn>
       </div>
     </Modal>
@@ -1804,7 +1804,7 @@ const EnrollBeneficiaryFromCaseModal = ({ caseItem, onClose, onDone, showToast }
         ...form,
         monthlyNeed: parseFloat(form.monthlyNeed),
       });
-      showToast(`✅ Enrolled as ${result.publicId} — now seeking sponsor!`);
+      showToast(`Enrolled as ${result.publicId} — now seeking sponsor!`);
       onDone && onDone();
       onClose();
     } catch (e) { showToast(e.message || "Failed to enroll", "error"); }
@@ -1814,18 +1814,18 @@ const EnrollBeneficiaryFromCaseModal = ({ caseItem, onClose, onDone, showToast }
   const PTYPES = getCat("programTypes");
 
   return (
-    <Modal title={`🌱 Enroll as Program Beneficiary — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`Enroll as Program Beneficiary — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       {/* Case summary */}
       <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "14px 18px", marginBottom: 20, border: "1px solid #BBF7D0" }}>
         <div style={{ fontSize: 14, fontWeight: 800, color: "#166534" }}>
-          {caseItem.victim_name} · 📍 {caseItem.location}
+          {caseItem.victim_name} · {caseItem.location}
         </div>
         {needsDesc && (
           <div style={{ fontSize: 12, color: "#047857", marginTop: 4 }}>Reported needs: {needsDesc}</div>
         )}
         {caseItem._raw?.programRecommendation && (
           <div style={{ marginTop: 6, fontSize: 12, fontWeight: 700, color: "#065F46", background: "#D1FAE5", display: "inline-block", borderRadius: 20, padding: "2px 10px" }}>
-            🔍 Field team recommendation: {caseItem._raw.programRecommendation.replace(/_/g, " ")}
+            Field team recommendation: {caseItem._raw.programRecommendation.replace(/_/g, " ")}
           </div>
         )}
       </div>
@@ -1854,13 +1854,13 @@ const EnrollBeneficiaryFromCaseModal = ({ caseItem, onClose, onDone, showToast }
       </div>
 
       <div style={{ background: "#EFF6FF", borderRadius: 10, padding: "10px 14px", marginTop: 12, fontSize: 12, color: COLORS.primary }}>
-        ℹ️ The case will be marked as <strong>Completed</strong> and the beneficiary will be enrolled with status <strong>Seeking Sponsor</strong>. Private data (name, address, phone) remains hidden from the public profile.
+        The case will be marked as <strong>Completed</strong> and the beneficiary will be enrolled with status <strong>Seeking Sponsor</strong>. Private data (name, address, phone) remains hidden from the public profile.
       </div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="success" onClick={handle} disabled={!form.programId || !form.monthlyNeed || loading} style={{ flex: 2 }}>
-          {loading ? "Enrolling…" : "🌱 Enroll as Beneficiary"}
+          {loading ? "Enrolling…" : "Enroll as Beneficiary"}
         </Btn>
       </div>
     </Modal>
@@ -1877,7 +1877,7 @@ const RejectCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await adminApi.updateStatus(caseItem.id, "rejected", "Rejected by admin", reason);
-      showToast(`❌ Case ${caseItem.ref || caseItem.id} rejected`);
+      showToast(`Case ${caseItem.ref || caseItem.id} rejected`);
       onDone(caseItem.id, "Archived");
       onClose();
     } catch (e) { showToast(e.message || "Failed", "error"); }
@@ -1885,7 +1885,7 @@ const RejectCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title={`❌ Reject Case — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
+    <Modal title={`Reject Case — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       <div style={{ marginBottom: 16, background: "#FEF2F2", borderRadius: 12, padding: "14px 18px", border: "1px solid #FECACA" }}>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{caseItem.victim_name}</div>
         <div style={{ fontSize: 12, color: COLORS.muted }}>{caseItem.location} · {caseItem.status}</div>
@@ -1895,7 +1895,7 @@ const RejectCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="danger" onClick={handle} disabled={!reason.trim() || loading} style={{ flex: 2 }}>
-          {loading ? "Rejecting…" : "❌ Confirm Rejection"}
+          {loading ? "Rejecting…" : "Confirm Rejection"}
         </Btn>
       </div>
     </Modal>
@@ -1941,7 +1941,7 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
           localStorage.setItem("kf_case_cover_imgs", JSON.stringify(imgs));
         } catch {}
       }
-      showToast(`✅ Case ${caseItem.ref || caseItem.id} published to donor portal!`);
+      showToast(`Case ${caseItem.ref || caseItem.id} published to donor portal!`);
       onDone(caseItem.id, "Waiting Sponsor");
       onClose();
     } catch (e) { showToast(e.message || "Failed to publish", "error"); }
@@ -1949,14 +1949,14 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title={`📢 Publish to Donor Portal — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`Publish to Donor Portal — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "12px 16px", marginBottom: 20, border: "1px solid #BBF7D0", fontSize: 13, color: "#065F46" }}>
-        ✅ Victim's private data (name, phone, GPS) will <strong>never</strong> be shown publicly.
+        Victim's private data (name, phone, GPS) will <strong>never</strong> be shown publicly.
       </div>
 
       {ai.generatedTitle && (
         <div style={{ background: "#EDE9FE", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#6B21A8" }}>
-          🤖 AI-generated content loaded. Review and edit before publishing.
+          AI-generated content loaded. Review and edit before publishing.
         </div>
       )}
 
@@ -1983,18 +1983,18 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
               onMouseEnter={e => e.currentTarget.style.opacity = 1}
               onMouseLeave={e => e.currentTarget.style.opacity = 0}>
               <button onClick={() => imgInputRef.current?.click()}
-                style={{ background: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>🔄 Change</button>
+                style={{ background: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Change</button>
               <button onClick={() => { setCoverDataUrl(null); setCoverFileName(""); }}
                 style={{ background: "#EF4444", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✕ Remove</button>
             </div>
-            <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>📎 {coverFileName}</div>
+            <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>{coverFileName}</div>
           </div>
         ) : (
           <div onClick={() => imgInputRef.current?.click()}
             style={{ border: `2px dashed ${COLORS.border}`, borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: "#FAFAFA", transition: "border-color 0.2s" }}
             onMouseEnter={e => e.currentTarget.style.borderColor = COLORS.primary}
             onMouseLeave={e => e.currentTarget.style.borderColor = COLORS.border}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>📷</div>
+            <div style={{ fontSize: 36, marginBottom: 8 }}></div>
             <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.text }}>Click to upload cover photo</div>
             <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>JPG, PNG, WEBP · Max 5 MB · From your device</div>
           </div>
@@ -2004,7 +2004,7 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="success" onClick={handle} disabled={!form.publicTitle || !form.publicStory || !form.targetGoal || loading} style={{ flex: 2 }}>
-          {loading ? "Publishing…" : "📢 Publish to Donors"}
+          {loading ? "Publishing…" : "Publish to Donors"}
         </Btn>
       </div>
     </Modal>
@@ -2042,7 +2042,7 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
         estimatedAmountNeeded: parseFloat(form.estimatedAmountNeeded),
         fraudRiskScore: parseInt(form.fraudRiskScore),
       });
-      showToast(`📋 Investigation report submitted for ${caseItem.ref || caseItem.id} ✓`);
+      showToast(`Investigation report submitted for ${caseItem.ref || caseItem.id} ✓`);
       onDone(caseItem.id, "Awaiting Approval");
       onClose();
     } catch (e) { showToast(e.message || "Failed to submit", "error"); }
@@ -2058,7 +2058,7 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
   );
 
   return (
-    <Modal title={`📋 Submit Investigation Report — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`Submit Investigation Report — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       {/* Case summary */}
       <div style={{ background: "#EFF6FF", borderRadius: 12, padding: "14px 18px", marginBottom: 20, border: "1px solid #BFDBFE" }}>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{caseItem.victim_name} · {caseItem.location}</div>
@@ -2069,14 +2069,14 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
         {/* Left column */}
         <div>
           <div style={{ fontWeight: 700, fontSize: 13, color: COLORS.primary, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>Verification Checks</div>
-          <Chk label="✅ Victim identity verified on-site" k="victimVerified" />
-          <Chk label="✅ Situation description is accurate" k="situationAccurate" />
-          <Chk label="✅ Aid delivery is feasible" k="deliveryFeasible" />
+          <Chk label="Victim identity verified on-site" k="victimVerified" />
+          <Chk label="Situation description is accurate" k="situationAccurate" />
+          <Chk label="Aid delivery is feasible" k="deliveryFeasible" />
 
           <Select label="Overall Verification Status *" value={form.verificationStatus} onChange={e => set("verificationStatus", e.target.value)}>
-            <option value="verified">✅ Verified — Case is legitimate</option>
-            <option value="needs_review">⚠️ Needs Further Review</option>
-            <option value="rejected">❌ Rejected — Case is invalid</option>
+            <option value="verified">Verified — Case is legitimate</option>
+            <option value="needs_review">Needs Further Review</option>
+            <option value="rejected">Rejected — Case is invalid</option>
           </Select>
 
           <Select label="Confirmed Urgency Level" value={form.urgencyConfirmed} onChange={e => set("urgencyConfirmed", e.target.value)}>
@@ -2095,18 +2095,18 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
           <div style={{ fontWeight: 700, fontSize: 13, color: COLORS.primary, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>Delivery & Risk</div>
 
           <Select label="Delivery Method" value={form.deliveryMethod} onChange={e => set("deliveryMethod", e.target.value)}>
-            <option value="direct_cash">💵 Direct Cash</option>
-            <option value="bank_transfer">🏦 Bank Transfer</option>
-            <option value="mobile_money">📱 Mobile Money (EVC/Zaad)</option>
-            <option value="goods_in_kind">📦 Goods in Kind</option>
+            <option value="direct_cash">Direct Cash</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="mobile_money">Mobile Money (EVC/Zaad)</option>
+            <option value="goods_in_kind">Goods in Kind</option>
             <option value="medical_services">🏥 Medical Services</option>
           </Select>
 
           <Select label="Program Recommendation" value={form.programRecommendation} onChange={e => set("programRecommendation", e.target.value)}>
             <option value="emergency">🚨 Emergency Response (one-time aid)</option>
             <option value="child_sponsorship">👶 Child Sponsorship (monthly)</option>
-            <option value="education">🎓 Education Program (monthly)</option>
-            <option value="medical">🩺 Medical Continuity (monthly)</option>
+            <option value="education">Education Program (monthly)</option>
+            <option value="medical">Medical Continuity (monthly)</option>
             <option value="family_care">🏠 Family Care Program (monthly)</option>
           </Select>
 
@@ -2132,7 +2132,7 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="success" onClick={handle} disabled={!form.estimatedAmountNeeded || !form.officialNotes || loading} style={{ flex: 2 }}>
-          {loading ? "Submitting…" : "📤 Submit Investigation Report"}
+          {loading ? "Submitting…" : "Submit Investigation Report"}
         </Btn>
       </div>
     </Modal>
@@ -2143,21 +2143,21 @@ const InvestigationModal = ({ caseItem, onClose, onDone, showToast }) => {
 const FieldReportModal = ({ caseItem, onClose }) => {
   const fi = caseItem._raw?.fieldInvestigation || caseItem.fieldInvestigation;
   if (!fi) return (
-    <Modal title={`📋 Field Report — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
+    <Modal title={`Field Report — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       <div style={{ textAlign: "center", padding: 40, color: COLORS.muted }}>
-        <div style={{ fontSize: 40 }}>📋</div>
+        <div style={{ fontSize: 40 }}></div>
         <p>No field investigation report yet.</p>
       </div>
     </Modal>
   );
   const riskColor = { low: COLORS.secondary, medium: "#F59E0B", high: COLORS.danger };
   return (
-    <Modal title={`📋 Field Investigation Report — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`Field Investigation Report — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 20 }}>
         {[
-          { label: "Victim Verified",    val: fi.victimVerified     ? "✅ Yes" : "❌ No",  bg: fi.victimVerified     ? "#D1FAE5" : "#FEE2E2" },
-          { label: "Situation Accurate", val: fi.situationAccurate  ? "✅ Yes" : "❌ No",  bg: fi.situationAccurate  ? "#D1FAE5" : "#FEE2E2" },
-          { label: "Delivery Feasible",  val: fi.deliveryFeasible   ? "✅ Yes" : "❌ No",  bg: fi.deliveryFeasible   ? "#D1FAE5" : "#FEE2E2" },
+          { label: "Victim Verified",    val: fi.victimVerified     ? "Yes" : "No",  bg: fi.victimVerified     ? "#D1FAE5" : "#FEE2E2" },
+          { label: "Situation Accurate", val: fi.situationAccurate  ? "Yes" : "No",  bg: fi.situationAccurate  ? "#D1FAE5" : "#FEE2E2" },
+          { label: "Delivery Feasible",  val: fi.deliveryFeasible   ? "Yes" : "No",  bg: fi.deliveryFeasible   ? "#D1FAE5" : "#FEE2E2" },
           { label: "Status",             val: fi.verificationStatus, bg: fi.verificationStatus === "verified" ? "#D1FAE5" : "#FEE2E2" },
           { label: "Urgency",            val: fi.urgencyConfirmed,   bg: "#DBEAFE" },
           { label: "Est. Amount",        val: fi.estimatedAmountNeeded ? `$${fi.estimatedAmountNeeded}` : "—", bg: "#EDE9FE" },
@@ -2178,13 +2178,13 @@ const FieldReportModal = ({ caseItem, onClose }) => {
       )}
       {fi.officialNotes && (
         <div style={{ background: "#EFF6FF", borderRadius: 10, padding: "14px 16px", marginBottom: 14, border: "1px solid #BFDBFE" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, marginBottom: 6 }}>📄 OFFICIAL REPORT</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, marginBottom: 6 }}>OFFICIAL REPORT</div>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>{fi.officialNotes}</p>
         </div>
       )}
       {fi.fraudRiskNotes && (
         <div style={{ background: "#FEF2F2", borderRadius: 10, padding: "14px 16px", border: "1px solid #FECACA" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.danger, marginBottom: 6 }}>⚠️ RISK NOTES</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.danger, marginBottom: 6 }}>RISK NOTES</div>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>{fi.fraudRiskNotes}</p>
         </div>
       )}
@@ -2233,7 +2233,7 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
         deliveryNotes:   form.deliveryNotes,
         deliveryDate:    new Date(form.deliveryDate).toISOString(),
       }, photoFiles, videoFiles);
-      showToast("✅ Delivery proof submitted! Admin will verify and close the case.", "success");
+      showToast("Delivery proof submitted! Admin will verify and close the case.", "success");
       onDone();
       onClose();
     } catch (e) {
@@ -2244,20 +2244,20 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
   };
 
   const METHOD_OPTIONS = [
-    { val: "cash",              label: "💵 Cash handover" },
-    { val: "food_package",      label: "🍱 Food package" },
-    { val: "medical_supplies",  label: "💊 Medical supplies" },
-    { val: "clothing",          label: "👗 Clothing / blankets" },
-    { val: "goods",             label: "📦 General goods" },
-    { val: "mixed",             label: "🎁 Mixed (cash + items)" },
+    { val: "cash",              label: "Cash handover" },
+    { val: "food_package",      label: "Food package" },
+    { val: "medical_supplies",  label: "Medical supplies" },
+    { val: "clothing",          label: "Clothing / blankets" },
+    { val: "goods",             label: "General goods" },
+    { val: "mixed",             label: "Mixed (cash + items)" },
   ];
 
   return (
-    <Modal title={`📦 Submit Delivery Proof — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
+    <Modal title={`Submit Delivery Proof — ${caseItem.ref || caseItem.id}`} onClose={onClose}>
       {/* Case summary */}
       <div style={{ background: "#F0F9FF", borderRadius: 10, padding: "12px 16px", marginBottom: 20, border: "1px solid #BAE6FD" }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.primary }}>
-          {caseItem.victim_name} · 📍 {caseItem.location}
+          {caseItem.victim_name} · {caseItem.location}
         </div>
         <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>
           Donation confirmed: <strong>${(caseItem.donation_amount || 0).toLocaleString()}</strong> of goal <strong>${(caseItem.target_goal || 0).toLocaleString()}</strong>
@@ -2265,12 +2265,12 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
       </div>
 
       {/* Delivery date */}
-      <DatePicker label="📅 DELIVERY DATE" value={form.deliveryDate} onChange={e => set("deliveryDate", e.target.value)}
+      <DatePicker label="DELIVERY DATE" value={form.deliveryDate} onChange={e => set("deliveryDate", e.target.value)}
         max={new Date().toISOString().slice(0,10)} />
 
       {/* Delivery method */}
       <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>📦 WHAT WAS DELIVERED</label>
+        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>WHAT WAS DELIVERED</label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
           {METHOD_OPTIONS.map(opt => (
             <button key={opt.val} onClick={() => set("deliveryMethod", opt.val)}
@@ -2283,26 +2283,26 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
 
       {/* Amount delivered */}
       <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>💵 AMOUNT / VALUE DELIVERED ($)</label>
+        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>AMOUNT / VALUE DELIVERED ($)</label>
         <input type="number" min="0" step="0.01" value={form.amountDelivered} onChange={e => set("amountDelivered", e.target.value)}
           style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 14, boxSizing: "border-box" }} />
       </div>
 
       {/* Recipient name */}
       <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>👤 RECIPIENT NAME (who signed / received)</label>
+        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>RECIPIENT NAME (who signed / received)</label>
         <input type="text" placeholder="e.g. Amina Hassan or family member name" value={form.recipientName} onChange={e => set("recipientName", e.target.value)}
           style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 14, boxSizing: "border-box" }} />
       </div>
 
       {/* Delivery notes */}
       <div style={{ marginBottom: 20 }}>
-        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>📝 DELIVERY NOTES <span style={{ color: COLORS.danger }}>*</span></label>
+        <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>DELIVERY NOTES <span style={{ color: COLORS.danger }}>*</span></label>
         <textarea rows={4} placeholder="Describe the delivery: what happened, how the family reacted, any challenges, family's current condition after receiving aid…"
           value={form.deliveryNotes} onChange={e => set("deliveryNotes", e.target.value)}
           style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${form.deliveryNotes.length < 10 && form.deliveryNotes.length > 0 ? COLORS.danger : COLORS.border}`, fontSize: 14, resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" }} />
         {form.deliveryNotes.length < 10 && form.deliveryNotes.length > 0 && (
-          <div style={{ fontSize: 11, color: COLORS.danger, marginTop: 4 }}>⚠️ Please write at least 10 characters</div>
+          <div style={{ fontSize: 11, color: COLORS.danger, marginTop: 4 }}>Please write at least 10 characters</div>
         )}
       </div>
 
@@ -2311,16 +2311,16 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
       <input ref={videoRef} type="file" accept="video/*" multiple style={{ display: "none" }} onChange={e => addFiles(setVideos, e.target.files)} />
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
-          📷 Photos & 🎥 Videos <span style={{ fontWeight: 400, color: COLORS.secondary }}>(optional but recommended)</span>
+          Photos & Videos <span style={{ fontWeight: 400, color: COLORS.secondary }}>(optional but recommended)</span>
         </div>
         <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
           <button onClick={() => photoRef.current?.click()}
             style={{ flex: 1, padding: "10px", borderRadius: 10, border: `2px dashed ${COLORS.border}`, background: "#FAFAFA", cursor: "pointer", fontSize: 13, fontWeight: 700, color: COLORS.primary }}>
-            📷 Add Photos
+            Add Photos
           </button>
           <button onClick={() => videoRef.current?.click()}
             style={{ flex: 1, padding: "10px", borderRadius: 10, border: `2px dashed ${COLORS.border}`, background: "#FAFAFA", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#8B5CF6" }}>
-            🎥 Add Videos
+            Add Videos
           </button>
         </div>
         {(photos.length > 0 || videos.length > 0) && (
@@ -2329,7 +2329,7 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
               <div key={i} style={{ position: "relative" }}>
                 {f.preview
                   ? <img src={f.preview} alt="" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, border: "2px solid #10B981" }} />
-                  : <div style={{ width: 64, height: 64, borderRadius: 8, background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>📷</div>
+                  : <div style={{ width: 64, height: 64, borderRadius: 8, background: "#D1FAE5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}></div>
                 }
                 <button onClick={() => setPhotos(p => p.filter((_, idx) => idx !== i))}
                   style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#EF4444", color: "#fff", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
@@ -2337,7 +2337,7 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
             ))}
             {videos.map((f, i) => (
               <div key={i} style={{ position: "relative" }}>
-                <div style={{ width: 64, height: 64, borderRadius: 8, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, border: "2px solid #8B5CF6" }}>🎥</div>
+                <div style={{ width: 64, height: 64, borderRadius: 8, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, border: "2px solid #8B5CF6" }}></div>
                 <div style={{ fontSize: 9, color: COLORS.muted, textAlign: "center", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</div>
                 <button onClick={() => setVideos(p => p.filter((_, idx) => idx !== i))}
                   style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#EF4444", color: "#fff", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
@@ -2349,13 +2349,13 @@ const DeliveryProofModal = ({ caseItem, onClose, onDone, showToast }) => {
 
       {/* Info banner */}
       <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 12, color: "#166534" }}>
-        ℹ️ After submission, the case moves to <strong>"Proof Submitted"</strong>. Admin reviews → marks complete → donor and reporter notified automatically.
+        After submission, the case moves to <strong>"Proof Submitted"</strong>. Admin reviews → marks complete → donor and reporter notified automatically.
       </div>
 
       <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
         <Btn variant="ghost" onClick={onClose}>Cancel</Btn>
         <Btn variant="teal" onClick={handleSubmit} disabled={!canSubmit || loading}>
-          {loading ? "Submitting…" : "📤 Submit Delivery Proof"}
+          {loading ? "Submitting…" : "Submit Delivery Proof"}
         </Btn>
       </div>
     </Modal>
@@ -2383,7 +2383,7 @@ const CompleteCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     setCompleting(true);
     try {
       await adminApi.completeCase(caseItem.id, adminNotes);
-      showToast("🏁 Case completed! Donor and reporter have been notified.", "success");
+      showToast("Case completed! Donor and reporter have been notified.", "success");
       onDone();
       onClose();
     } catch (e) {
@@ -2401,13 +2401,13 @@ const CompleteCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   );
 
   return (
-    <Modal title={`🏁 Review & Complete — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
+    <Modal title={`Review & Complete — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
 
       {/* Case header */}
       <div style={{ background: "#F8FAFC", borderRadius: 10, padding: "12px 16px", marginBottom: 20, display: "flex", gap: 16, flexWrap: "wrap" }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 800 }}>{caseItem.victim_name}</div>
-          <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 3 }}>📍 {caseItem.location} · {caseItem.urgency_level} Priority</div>
+          <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 3 }}>{caseItem.location} · {caseItem.urgency_level} Priority</div>
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.secondary }}>${(caseItem.donation_amount || 0).toLocaleString()}</div>
@@ -2418,13 +2418,13 @@ const CompleteCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
       {/* Delivery proof block */}
       {fetching ? (
         <div style={{ background: "#F8FAFC", borderRadius: 12, padding: "28px 16px", marginBottom: 20, textAlign: "center", color: COLORS.muted }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>⏳</div>
+          <div style={{ fontSize: 28, marginBottom: 8 }}></div>
           Loading delivery proof…
         </div>
       ) : proof ? (
         <div style={{ background: "#F0FDF4", borderRadius: 14, padding: 18, marginBottom: 20, border: "1px solid #BBF7D0" }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: "#166534", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
-            📦 Delivery Proof
+            Delivery Proof
             <span style={{ fontSize: 11, background: "#D1FAE5", color: "#065F46", borderRadius: 20, padding: "2px 10px", fontWeight: 700 }}>Submitted by Field Agent</span>
           </div>
 
@@ -2446,7 +2446,7 @@ const CompleteCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
                 </div>
                 {parts[1] && (
                   <div style={{ background: "#EFF6FF", borderRadius: 8, padding: "12px 14px", border: "1px solid #BFDBFE" }}>
-                    <div style={{ fontSize: 10, color: COLORS.primary, fontWeight: 700, marginBottom: 6 }}>📎 ADDITIONAL PROOF / OBSERVATIONS</div>
+                    <div style={{ fontSize: 10, color: COLORS.primary, fontWeight: 700, marginBottom: 6 }}>ADDITIONAL PROOF / OBSERVATIONS</div>
                     <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, color: COLORS.text, whiteSpace: "pre-wrap" }}>{parts[1]}</p>
                   </div>
                 )}
@@ -2456,7 +2456,7 @@ const CompleteCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
         </div>
       ) : (
         <div style={{ background: "#FEF3C7", borderRadius: 12, padding: "18px 20px", marginBottom: 20, border: "1px solid #FDE68A" }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#92400E", marginBottom: 6 }}>⚠️ No Delivery Proof Yet</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#92400E", marginBottom: 6 }}>No Delivery Proof Yet</div>
           <div style={{ fontSize: 13, color: "#92400E", lineHeight: 1.6 }}>
             The field agent has not submitted a delivery proof document yet.<br />
             You can still mark the case complete if you have confirmed delivery through other means — use the notes below to document it.
@@ -2467,7 +2467,7 @@ const CompleteCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
       {/* Admin closing notes */}
       <div style={{ marginBottom: 18 }}>
         <label style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, display: "block", marginBottom: 6 }}>
-          📝 YOUR CONFIRMATION NOTES {!proof && <span style={{ color: COLORS.danger }}>*</span>}
+          YOUR CONFIRMATION NOTES {!proof && <span style={{ color: COLORS.danger }}>*</span>}
         </label>
         <textarea rows={4}
           placeholder={proof
@@ -2476,19 +2476,19 @@ const CompleteCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
           value={adminNotes} onChange={e => setAdminNotes(e.target.value)}
           style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1px solid ${!proof && !adminNotes.trim() ? "#FCA5A5" : COLORS.border}`, fontSize: 14, resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" }} />
         {!proof && !adminNotes.trim() && (
-          <div style={{ fontSize: 11, color: COLORS.danger, marginTop: 4 }}>⚠️ Please describe how you confirmed delivery before completing</div>
+          <div style={{ fontSize: 11, color: COLORS.danger, marginTop: 4 }}>Please describe how you confirmed delivery before completing</div>
         )}
       </div>
 
       <div style={{ background: "#EFF6FF", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 12, color: COLORS.primary }}>
-        ℹ️ Marking complete notifies the <strong>reporter</strong> and all <strong>donors</strong> automatically. This action cannot be undone.
+        Marking complete notifies the <strong>reporter</strong> and all <strong>donors</strong> automatically. This action cannot be undone.
       </div>
 
       <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
         <Btn variant="ghost" onClick={onClose}>Cancel</Btn>
         <Btn variant="success" onClick={handleComplete}
           disabled={completing || fetching || (!proof && !adminNotes.trim())}>
-          {completing ? "Completing…" : "🏁 Mark Case Complete"}
+          {completing ? "Completing…" : "Mark Case Complete"}
         </Btn>
       </div>
     </Modal>
@@ -2561,18 +2561,18 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
   };
 
   if (loading) return (
-    <Modal title="📄 Full Case Report" onClose={onClose} wide>
+    <Modal title="Full Case Report" onClose={onClose} wide>
       <div style={{ padding: "60px 0", textAlign: "center", color: COLORS.muted }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
+        <div style={{ fontSize: 40, marginBottom: 12 }}></div>
         Loading full case data…
       </div>
     </Modal>
   );
 
   if (error || !data) return (
-    <Modal title="📄 Full Case Report" onClose={onClose} wide>
+    <Modal title="Full Case Report" onClose={onClose} wide>
       <div style={{ padding: "40px 0", textAlign: "center", color: COLORS.danger }}>
-        <div style={{ fontSize: 36, marginBottom: 10 }}>❌</div>
+        <div style={{ fontSize: 36, marginBottom: 10 }}></div>
         Failed to load case: {error}
       </div>
     </Modal>
@@ -2591,24 +2591,24 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
 
   // Build timeline from audit + key dates
   const timeline = [
-    data.createdAt            && { time: data.createdAt,              event: "📝 Case submitted by reporter" },
-    data.teamAssignedAt       && { time: data.teamAssignedAt,         event: "🗺️ Field team assigned" },
-    data.investigationCompletedAt && { time: data.investigationCompletedAt, event: "🔍 Field investigation completed" },
-    data.adminPublishedAt     && { time: data.adminPublishedAt,       event: "✅ Case approved & published for sponsorship" },
-    dons[0]?.createdAt        && { time: dons[0].createdAt,           event: `❤️ First donation received (${money(dons[0].amount)})` },
-    dp?.deliveryDate          && { time: dp.deliveryDate,             event: "📦 Aid delivered by field agent" },
-    data.completedAt          && { time: data.completedAt,            event: "🏁 Case completed & closed by admin" },
+    data.createdAt            && { time: data.createdAt,              event: "Case submitted by reporter" },
+    data.teamAssignedAt       && { time: data.teamAssignedAt,         event: "Field team assigned" },
+    data.investigationCompletedAt && { time: data.investigationCompletedAt, event: "Field investigation completed" },
+    data.adminPublishedAt     && { time: data.adminPublishedAt,       event: "Case approved & published for sponsorship" },
+    dons[0]?.createdAt        && { time: dons[0].createdAt,           event: `First donation received (${money(dons[0].amount)})` },
+    dp?.deliveryDate          && { time: dp.deliveryDate,             event: "Aid delivered by field agent" },
+    data.completedAt          && { time: data.completedAt,            event: "Case completed & closed by admin" },
   ].filter(Boolean).sort((a, b) => new Date(a.time) - new Date(b.time));
 
   return (
-    <Modal title={`📄 Full Case Report — ${data.id}`} onClose={onClose} wide>
+    <Modal title={`Full Case Report — ${data.id}`} onClose={onClose} wide>
       {/* Toolbar */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ background: "#D1FAE5", color: "#065F46", borderRadius: 20, padding: "4px 14px", fontSize: 12, fontWeight: 700 }}>🏁 {data.status?.replace(/_/g," ").toUpperCase()}</span>
-          <span style={{ background: COLORS.primary + "15", color: COLORS.primary, borderRadius: 20, padding: "4px 14px", fontSize: 12, fontWeight: 700 }}>🔐 SUPER ADMIN ONLY</span>
+          <span style={{ background: "#D1FAE5", color: "#065F46", borderRadius: 20, padding: "4px 14px", fontSize: 12, fontWeight: 700 }}>{data.status?.replace(/_/g," ").toUpperCase()}</span>
+          <span style={{ background: COLORS.primary + "15", color: COLORS.primary, borderRadius: 20, padding: "4px 14px", fontSize: 12, fontWeight: 700 }}>SUPER ADMIN ONLY</span>
         </div>
-        <Btn variant="primary" onClick={handlePrint}>🖨️ Print / Export PDF</Btn>
+        <Btn variant="primary" onClick={handlePrint}>Print / Export PDF</Btn>
       </div>
 
       <div id="kf-full-report" style={{ position: "relative" }}>
@@ -2629,7 +2629,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
         <div style={{ marginBottom: 24, borderBottom: `3px solid ${COLORS.primary}`, paddingBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: COLORS.primary }}>🤝 KAFAALE QAAD — Humanitarian Case Report</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: COLORS.primary }}>KAFAALE QAAD — Humanitarian Case Report</div>
               <div style={{ fontSize: 13, color: COLORS.muted, marginTop: 4 }}>Case ID: <strong>{data.id}</strong> · Generated: {fmt(new Date().toISOString())} · CONFIDENTIAL — Super Admin Only</div>
             </div>
             <div style={{ textAlign: "right" }}>
@@ -2684,9 +2684,9 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
               <Row label="Agent Email"       val={data.assignedAgent?.email || "—"} />
               <Row label="Agent Phone"       val={data.assignedAgent?.phone || "—"} />
               <Row label="Completed At"      val={fmt(data.investigationCompletedAt)} />
-              <Row label="Victim Verified"   val={fi.victimVerified    ? "✅ YES" : "❌ NO"} success={fi.victimVerified}    danger={!fi.victimVerified} />
-              <Row label="Situation Accurate"val={fi.situationAccurate ? "✅ YES" : "❌ NO"} success={fi.situationAccurate} danger={!fi.situationAccurate} />
-              <Row label="Delivery Feasible" val={fi.deliveryFeasible  ? "✅ YES" : "❌ NO"} success={fi.deliveryFeasible}  danger={!fi.deliveryFeasible} />
+              <Row label="Victim Verified"   val={fi.victimVerified    ? "YES" : "NO"} success={fi.victimVerified}    danger={!fi.victimVerified} />
+              <Row label="Situation Accurate"val={fi.situationAccurate ? "YES" : "NO"} success={fi.situationAccurate} danger={!fi.situationAccurate} />
+              <Row label="Delivery Feasible" val={fi.deliveryFeasible  ? "YES" : "NO"} success={fi.deliveryFeasible}  danger={!fi.deliveryFeasible} />
               <Row label="Verification"      val={fi.verificationStatus?.toUpperCase()} success={fi.verificationStatus === "verified"} danger={fi.verificationStatus === "rejected"} />
               <Row label="Urgency Confirmed" val={fi.urgencyConfirmed?.toUpperCase()} />
               <Row label="Est. Amount Needed"val={money(fi.estimatedAmountNeeded)} />
@@ -2701,7 +2701,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
                 <div style={{ background: "#EFF6FF", borderRadius: 8, padding: "12px 14px", fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-wrap", border: "1px solid #BFDBFE" }}>{fi.officialNotes}</div>
               </>}
               {fi.fraudRiskNotes && <>
-                <div style={{ fontSize: 11, color: COLORS.danger, fontWeight: 700, marginTop: 10, marginBottom: 4 }}>⚠️ FRAUD RISK NOTES</div>
+                <div style={{ fontSize: 11, color: COLORS.danger, fontWeight: 700, marginTop: 10, marginBottom: 4 }}>FRAUD RISK NOTES</div>
                 <div style={{ background: "#FEF2F2", borderRadius: 8, padding: "12px 14px", fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-wrap", border: "1px solid #FECACA" }}>{fi.fraudRiskNotes}</div>
               </>}
             </>
@@ -2768,13 +2768,13 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
               <Row label="Delivery Method"     val={(dp.deliveryMethod || "—").replace(/_/g," ")} />
               <Row label="Amount Delivered"    val={money(dp.amountDelivered)} success />
               <Row label="Recipient Name"      val={dp.recipientName || "Confirmed on-site"} />
-              <Row label="Admin Confirmed"     val={dp.adminConfirmed ? `✅ Yes — ${fmtDate(dp.adminConfirmedAt)}` : "Pending"} success={dp.adminConfirmed} />
+              <Row label="Admin Confirmed"     val={dp.adminConfirmed ? `Yes — ${fmtDate(dp.adminConfirmedAt)}` : "Pending"} success={dp.adminConfirmed} />
               {proofParts[0] && <>
                 <div style={{ fontSize: 11, color: COLORS.muted, fontWeight: 700, marginTop: 10, marginBottom: 4 }}>AGENT DELIVERY NOTES</div>
                 <div style={{ background: "#ECFDF5", borderRadius: 8, padding: "12px 14px", fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-wrap", border: "1px solid #BBF7D0" }}>{proofParts[0]}</div>
               </>}
               {proofParts[1] && <>
-                <div style={{ fontSize: 11, color: COLORS.primary, fontWeight: 700, marginTop: 10, marginBottom: 4 }}>📎 ADDITIONAL PROOF / OBSERVATIONS</div>
+                <div style={{ fontSize: 11, color: COLORS.primary, fontWeight: 700, marginTop: 10, marginBottom: 4 }}>ADDITIONAL PROOF / OBSERVATIONS</div>
                 <div style={{ background: "#EFF6FF", borderRadius: 8, padding: "12px 14px", fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-wrap", border: "1px solid #BFDBFE" }}>{proofParts[1]}</div>
               </>}
               {dp.adminNotes && <>
@@ -2839,7 +2839,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 24, paddingTop: 16, borderTop: `1px solid ${COLORS.border}` }}>
         <Btn variant="ghost"   onClick={onClose}>Close</Btn>
-        <Btn variant="primary" onClick={handlePrint}>🖨️ Print / Save as PDF</Btn>
+        <Btn variant="primary" onClick={handlePrint}>Print / Save as PDF</Btn>
       </div>
     </Modal>
   );
@@ -2876,7 +2876,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24, marginBottom: 24 }}>
         {/* Case pipeline bar chart */}
         <div style={{ background: "#fff", borderRadius: 14, padding: 24, boxShadow: "0 2px 8px #0001" }}>
-          <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>📊 Case Distribution by Status</h3>
+          <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>Case Distribution by Status</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {Object.entries(casesByStatus).map(([status, count]) => (
               <div key={status}>
@@ -2894,7 +2894,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
 
         {/* Donation trend bar chart */}
         <div style={{ background: "#fff", borderRadius: 14, padding: 24, boxShadow: "0 2px 8px #0001" }}>
-          <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>💰 Donation Trends</h3>
+          <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>Donation Trends</h3>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 16, height: 160, paddingBottom: 8 }}>
             {[{ month: "March", amount: 1800 }, { month: "April", amount: 2400 }, { month: "May", amount: 2500 }].map((d, i) => (
               <div key={i} style={{ flex: 1, textAlign: "center" }}>
@@ -2909,7 +2909,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
 
       {/* Urgency distribution */}
       <div style={{ background: "#fff", borderRadius: 14, padding: 24, boxShadow: "0 2px 8px #0001", marginBottom: 24 }}>
-        <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>🚦 Cases by Urgency Level</h3>
+        <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>Cases by Urgency Level</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 16 }}>
           {["Critical", "High", "Medium", "Low"].map(level => {
             const count = cases.filter(c => c.urgency_level === level).length;
@@ -2926,7 +2926,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
 
       {/* Team performance */}
       <div style={{ background: "#fff", borderRadius: 14, padding: 24, boxShadow: "0 2px 8px #0001" }}>
-        <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>🏆 Team Performance Metrics</h3>
+        <h3 style={{ margin: "0 0 20px", fontSize: 15, fontWeight: 700 }}>Team Performance Metrics</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
           {[
             { team: "Field Team Alpha",   investigations: 12, completed: 10, avgTime: "3.2 days", rating: 4.8 },
@@ -2936,10 +2936,10 @@ const AnalyticsDashboard = ({ cases, donations }) => {
             <div key={i} style={{ background: "#F8FAFC", borderRadius: 12, padding: 20, border: `1px solid ${COLORS.border}` }}>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: COLORS.primary }}>{team.team}</div>
               <div style={{ fontSize: 12, color: COLORS.muted, lineHeight: 2 }}>
-                <div>📊 Investigations: <strong style={{ color: COLORS.text }}>{team.investigations}</strong></div>
-                <div>✅ Completed: <strong style={{ color: COLORS.secondary }}>{team.completed}</strong></div>
-                <div>⏱️ Avg Time: <strong style={{ color: COLORS.text }}>{team.avgTime}</strong></div>
-                <div>⭐ Rating: <strong style={{ color: COLORS.accent }}>{team.rating}/5</strong></div>
+                <div>Investigations: <strong style={{ color: COLORS.text }}>{team.investigations}</strong></div>
+                <div>Completed: <strong style={{ color: COLORS.secondary }}>{team.completed}</strong></div>
+                <div>Avg Time: <strong style={{ color: COLORS.text }}>{team.avgTime}</strong></div>
+                <div>Rating: <strong style={{ color: COLORS.accent }}>{team.rating}/5</strong></div>
               </div>
             </div>
           ))}
@@ -2972,17 +2972,17 @@ const CaseTable = ({ cases, onView, compact, onReport, onPublish }) => (
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{c.victim_name}</div>
                 {!compact && <div style={{ fontSize: 11, color: COLORS.muted }}>{c.age} yrs · {c.gender}</div>}
               </td>
-              <td style={{ padding: compact ? "10px 12px" : "12px 16px", fontSize: 12, color: COLORS.muted }}>📍 {c.location}</td>
+              <td style={{ padding: compact ? "10px 12px" : "12px 16px", fontSize: 12, color: COLORS.muted }}>{c.location}</td>
               <td style={{ padding: compact ? "10px 12px" : "12px 16px" }}><UrgencyBadge level={c.urgency_level} /></td>
               <td style={{ padding: compact ? "10px 12px" : "12px 16px" }}><Badge status={c.status} /></td>
               <td style={{ padding: compact ? "10px 12px" : "12px 16px" }}>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   <Btn variant="ghost" size="sm" onClick={() => onView(c)}>View →</Btn>
                   {onPublish && ["Awaiting Approval","Pending Verification"].includes(c.status) && (
-                    <Btn variant="success" size="sm" onClick={() => onPublish(c)}>📢 Publish</Btn>
+                    <Btn variant="success" size="sm" onClick={() => onPublish(c)}>Publish</Btn>
                   )}
                   {onReport && c.status === "Completed" && (
-                    <Btn variant="primary" size="sm" onClick={() => onReport(c.id)}>📄 Report</Btn>
+                    <Btn variant="primary" size="sm" onClick={() => onReport(c.id)}>Report</Btn>
                   )}
                 </div>
               </td>
@@ -2998,21 +2998,21 @@ const CaseTable = ({ cases, onView, compact, onReport, onPublish }) => (
 // Reporter case status pipeline tracker
 const CaseStatusTracker = ({ status }) => {
   const PIPELINE = [
-    { key: "Pending Verification", label: "Submitted",     icon: "📝" },
-    { key: "Under Review",         label: "Under Review",  icon: "🔍" },
-    { key: "Investigating",        label: "Field Visit",   icon: "🕵️" },
-    { key: "Awaiting Approval",    label: "Admin Review",  icon: "🏛️" },
-    { key: "Waiting Sponsor",      label: "Finding Donor", icon: "🤝" },
-    { key: "Sponsored",            label: "Sponsored",     icon: "❤️" },
-    { key: "Aid Delivered",        label: "Aid Sent",      icon: "📦" },
-    { key: "Completed",            label: "Completed",     icon: "✅" },
+    { key: "Pending Verification", label: "Submitted",     icon: "" },
+    { key: "Under Review",         label: "Under Review",  icon: "" },
+    { key: "Investigating",        label: "Field Visit",   icon: "" },
+    { key: "Awaiting Approval",    label: "Admin Review",  icon: "" },
+    { key: "Waiting Sponsor",      label: "Finding Donor", icon: "" },
+    { key: "Sponsored",            label: "Sponsored",     icon: "" },
+    { key: "Aid Delivered",        label: "Aid Sent",      icon: "" },
+    { key: "Completed",            label: "Completed",     icon: "" },
   ];
   const idx = PIPELINE.findIndex(s => s.key === status);
   const isRejected = status === "Archived";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 12, flexWrap: "wrap" }}>
       {isRejected
-        ? <span style={{ fontSize: 12, background: "#FEE2E2", color: COLORS.danger, borderRadius: 20, padding: "4px 12px", fontWeight: 700 }}>❌ Case Rejected — see details</span>
+        ? <span style={{ fontSize: 12, background: "#FEE2E2", color: COLORS.danger, borderRadius: 20, padding: "4px 12px", fontWeight: 700 }}>Case Rejected — see details</span>
         : PIPELINE.map((step, i) => {
           const done    = i < idx;
           const current = i === idx;
@@ -3099,7 +3099,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
   const handlePayNow = async (spId) => {
     try {
       await programsApi.submitPayment(spId, {});
-      showToast("✅ Payment submitted — admin will confirm receipt.");
+      showToast("Payment submitted — admin will confirm receipt.");
       programsApi.mySponsorships().then(d => Array.isArray(d) && setMySponsorships(d));
     } catch { showToast("Failed to submit payment", "error"); }
   };
@@ -3118,10 +3118,10 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
   const SPONS_STATUS = { active:{ label:"Active", color:"#065F46", bg:"#D1FAE5" }, paused:{ label:"Paused", color:"#92400E", bg:"#FEF3C7" }, cancelled:{ label:"Ended", color:"#991B1B", bg:"#FEE2E2" } };
 
   const TABS = [
-    { id: "reports",  icon: "📋", label: "My Reports",        count: myCases.length },
-    { id: "sponsor",  icon: "❤️", label: "Sponsor Cases",      count: publicCases.length },
-    { id: "programs", icon: "🌱", label: "My Program Support", count: mySponsorships.length },
-    { id: "history",  icon: "💰", label: "Donation History",   count: myDonations.length },
+    { id: "reports",  icon: "", label: "My Reports",        count: myCases.length },
+    { id: "sponsor",  icon: "", label: "Sponsor Cases",      count: publicCases.length },
+    { id: "programs", icon: "", label: "My Program Support", count: mySponsorships.length },
+    { id: "history",  icon: "", label: "Donation History",   count: myDonations.length },
   ];
 
   return (
@@ -3130,14 +3130,14 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20, flexWrap:"wrap", gap:12 }}>
         <div>
           <h2 style={{ margin:0, fontSize:22, fontWeight:800 }}>
-            {realRole === "donor" ? "❤️" : "📝"} {currentUser.fullname}'s Dashboard
+            {realRole === "donor" ? "" : ""} {currentUser.fullname}'s Dashboard
           </h2>
           <p style={{ margin:"4px 0 0", color:C.muted, fontSize:13 }}>
             You can both submit reports and sponsor cases — switch tabs below.
           </p>
         </div>
         <div style={{ display:"flex", gap:8 }}>
-          <Btn variant="outline" size="sm" onClick={() => setTab("sponsor")}>❤️ Sponsor a Case</Btn>
+          <Btn variant="outline" size="sm" onClick={() => setTab("sponsor")}>Sponsor a Case</Btn>
           <Btn variant="primary" size="sm" onClick={onReport}>+ Submit Report</Btn>
         </div>
       </div>
@@ -3165,15 +3165,15 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
       {tab === "reports" && (
         <div>
           <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
-            <StatCard label="Total Reports"  value={myCases.length}  icon="📋" color={C.primary}   />
-            <StatCard label="Pending Review" value={myPending}       icon="⏳" color="#F59E0B"     />
-            <StatCard label="In Progress"    value={myActive}        icon="🔄" color="#8B5CF6"     />
-            <StatCard label="Completed"      value={myCompleted}     icon="✅" color={C.secondary} />
+            <StatCard label="Total Reports"  value={myCases.length}  icon="" color={C.primary}   />
+            <StatCard label="Pending Review" value={myPending}       icon="" color="#F59E0B"     />
+            <StatCard label="In Progress"    value={myActive}        icon="" color="#8B5CF6"     />
+            <StatCard label="Completed"      value={myCompleted}     icon="" color={C.secondary} />
           </div>
 
           {myCases.length === 0 ? (
             <div style={{ background:"#fff", borderRadius:16, padding:40, textAlign:"center", boxShadow:"0 2px 8px #0001" }}>
-              <div style={{ fontSize:48, marginBottom:12 }}>📝</div>
+              <div style={{ fontSize:48, marginBottom:12 }}></div>
               <div style={{ fontSize:17, fontWeight:700 }}>No reports submitted yet</div>
               <div style={{ fontSize:13, color:C.muted, margin:"8px auto 20px", maxWidth:380 }}>
                 Report a case in your community and our field team will verify it within 48 hours.
@@ -3192,7 +3192,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                         <Badge status={c.status} />
                       </div>
                       <div style={{ fontSize:14, fontWeight:700, marginBottom:2 }}>{c.description?.slice(0,70) || "Case report"}</div>
-                      <div style={{ fontSize:12, color:C.muted }}>📍 {c.location || "Location pending"}</div>
+                      <div style={{ fontSize:12, color:C.muted }}>{c.location || "Location pending"}</div>
                     </div>
                     <Btn variant="outline" size="sm" onClick={() => onViewCase(c)}>View →</Btn>
                   </div>
@@ -3208,7 +3208,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
         <div>
           {publicCases.length === 0 ? (
             <div style={{ background:"#fff", borderRadius:16, padding:40, textAlign:"center", boxShadow:"0 2px 8px #0001" }}>
-              <div style={{ fontSize:48, marginBottom:12 }}>❤️</div>
+              <div style={{ fontSize:48, marginBottom:12 }}></div>
               <div style={{ fontSize:17, fontWeight:700 }}>No cases open for sponsorship right now</div>
               <div style={{ fontSize:13, color:C.muted, margin:"8px auto 20px", maxWidth:380 }}>
                 Check back soon — verified cases are published regularly.
@@ -3232,7 +3232,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                       <div style={{ fontSize:14, fontWeight:800, color:C.navy, marginBottom:4, lineHeight:1.3 }}>
                         {c._raw?.publicTitle || c.victim_name || "Verified Case"}
                       </div>
-                      <div style={{ fontSize:12, color:C.muted, marginBottom:12 }}>📍 {c._raw?.publicCity || c.location || "Somalia"}</div>
+                      <div style={{ fontSize:12, color:C.muted, marginBottom:12 }}>{c._raw?.publicCity || c.location || "Somalia"}</div>
                       {goal > 0 && (
                         <div style={{ marginBottom:14 }}>
                           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
@@ -3250,7 +3250,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                       )}
                       <div style={{ display:"flex", gap:8 }}>
                         <Btn variant="outline" size="sm" style={{ flex:1 }} onClick={() => onViewCase(c)}>Details</Btn>
-                        <Btn variant="primary" size="sm" style={{ flex:1 }} onClick={() => onSponsor(c)}>❤️ Sponsor</Btn>
+                        <Btn variant="primary" size="sm" style={{ flex:1 }} onClick={() => onSponsor(c)}>Sponsor</Btn>
                       </div>
                     </div>
                   </div>
@@ -3266,17 +3266,17 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
         <div>
           {/* Summary stats */}
           <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
-            <StatCard label="Total Donations"  value={myDonations.length}           icon="💰" color={C.primary}   />
-            <StatCard label="Total Given"       value={`$${totalGiven.toLocaleString()}`}    icon="💵" color="#EC4899"   />
-            <StatCard label="Confirmed"         value={`$${confirmedGiven.toLocaleString()}`} icon="✅" color={C.secondary} />
-            <StatCard label="Pending Review"    value={myDonations.filter(d=>d.status==="pending").length} icon="⏳" color="#F59E0B" />
+            <StatCard label="Total Donations"  value={myDonations.length}           icon="" color={C.primary}   />
+            <StatCard label="Total Given"       value={`$${totalGiven.toLocaleString()}`}    icon="" color="#EC4899"   />
+            <StatCard label="Confirmed"         value={`$${confirmedGiven.toLocaleString()}`} icon="" color={C.secondary} />
+            <StatCard label="Pending Review"    value={myDonations.filter(d=>d.status==="pending").length} icon="" color="#F59E0B" />
           </div>
 
           {loadingDons ? (
             <div style={{ textAlign:"center", padding:40, color:C.muted }}>Loading your donations…</div>
           ) : myDonations.length === 0 ? (
             <div style={{ background:"#fff", borderRadius:16, padding:40, textAlign:"center", boxShadow:"0 2px 8px #0001" }}>
-              <div style={{ fontSize:48, marginBottom:12 }}>💰</div>
+              <div style={{ fontSize:48, marginBottom:12 }}></div>
               <div style={{ fontSize:17, fontWeight:700 }}>No donations yet</div>
               <div style={{ fontSize:13, color:C.muted, margin:"8px auto 20px", maxWidth:360 }}>
                 Your sponsorship history will appear here after you support a case.
@@ -3310,7 +3310,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                     </div>
                     {/* Status badge */}
                     <span style={{ background:bg, color:clr, borderRadius:20, padding:"4px 12px", fontSize:11, fontWeight:800, whiteSpace:"nowrap" }}>
-                      {st === "confirmed" ? "✅ Confirmed" : st === "pending" ? "⏳ Pending" : "❌ Rejected"}
+                      {st === "confirmed" ? "Confirmed" : st === "pending" ? "Pending" : "Rejected"}
                     </span>
                   </div>
                 );
@@ -3324,9 +3324,9 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
       {tab === "programs" && (
         <div>
           <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
-            <StatCard label="Active Sponsorships" value={mySponsorships.filter(s=>s.status==="active").length}                     icon="🌱" color={C.primary}   />
-            <StatCard label="Monthly Commitment"  value={`$${mySponsorships.filter(s=>s.status==="active").reduce((a,s)=>a+(s.monthlyAmount||0),0).toLocaleString()}`} icon="💵" color="#8B5CF6" />
-            <StatCard label="Total Paid"          value={`$${mySponsorships.reduce((a,s)=>a+(s.totalPaid||0),0).toLocaleString()}`} icon="✅" color={C.secondary} />
+            <StatCard label="Active Sponsorships" value={mySponsorships.filter(s=>s.status==="active").length}                     icon="" color={C.primary}   />
+            <StatCard label="Monthly Commitment"  value={`$${mySponsorships.filter(s=>s.status==="active").reduce((a,s)=>a+(s.monthlyAmount||0),0).toLocaleString()}`} icon="" color="#8B5CF6" />
+            <StatCard label="Total Paid"          value={`$${mySponsorships.reduce((a,s)=>a+(s.totalPaid||0),0).toLocaleString()}`} icon="" color={C.secondary} />
             <StatCard label="People Supported"    value={mySponsorships.length}                                                     icon="👶" color="#EC4899" />
           </div>
 
@@ -3334,7 +3334,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
             <div style={{ textAlign:"center", padding:40, color:C.muted }}>Loading your sponsorships…</div>
           ) : mySponsorships.length === 0 ? (
             <div style={{ background:"#fff", borderRadius:16, padding:40, textAlign:"center", boxShadow:"0 2px 8px #0001" }}>
-              <div style={{ fontSize:48, marginBottom:12 }}>🌱</div>
+              <div style={{ fontSize:48, marginBottom:12 }}></div>
               <div style={{ fontSize:17, fontWeight:700 }}>No program sponsorships yet</div>
               <div style={{ fontSize:13, color:C.muted, margin:"8px auto 20px", maxWidth:380 }}>
                 Sponsor a child, widow, orphan or other beneficiary in an ongoing monthly program. You choose the amount and can pay part or all of their monthly need.
@@ -3354,7 +3354,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                     {/* Header bar */}
                     <div style={{ background:`linear-gradient(90deg,${C.primary}18,${C.accent}10)`, borderBottom:`1px solid ${C.border}`, padding:"12px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                        <span style={{ fontSize:22 }}>{prog?.icon || "🌱"}</span>
+                        <span style={{ fontSize:22 }}>{prog?.icon || ""}</span>
                         <div>
                           <div style={{ fontWeight:800, fontSize:14 }}>{prog?.name || "Program"}</div>
                           <div style={{ fontSize:11, color:C.muted }}>Beneficiary {ben?.publicId} · {ben?.programType?.replace(/_/g," ")}</div>
@@ -3382,7 +3382,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                               {nextDue.toLocaleDateString("en-GB",{ day:"numeric", month:"short", year:"numeric" })}
                             </div>
                             <div style={{ fontSize:11, color: daysLeft <= 7 ? "#EF4444" : C.muted }}>
-                              {daysLeft <= 0 ? "⚠️ OVERDUE" : `in ${daysLeft} days`}
+                              {daysLeft <= 0 ? "OVERDUE" : `in ${daysLeft} days`}
                             </div>
                           </div>
                         )}
@@ -3403,7 +3403,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                       {s.endDate && (
                         <div style={{ background:"#EFF6FF", borderRadius:10, padding:"10px 14px", marginBottom:12, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
                           <div style={{ fontSize:12, color:"#1E40AF" }}>
-                            <strong>📋 Contract:</strong> {s.monthsCompleted || 0} / {Math.round((new Date(s.endDate) - new Date(s.startDate || s.createdAt)) / (30*24*60*60*1000))} months completed
+                            <strong>Contract:</strong> {s.monthsCompleted || 0} / {Math.round((new Date(s.endDate) - new Date(s.startDate || s.createdAt)) / (30*24*60*60*1000))} months completed
                             {" · "}Expires <strong>{new Date(s.endDate).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</strong>
                             {" · "}{Math.ceil((new Date(s.endDate) - new Date()) / (1000*60*60*24))} days left
                           </div>
@@ -3413,20 +3413,20 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                       <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                         {s.status === "active" && (
                           <Btn variant="primary" size="sm" onClick={() => handlePayNow(s.id)}>
-                            💳 Pay This Month (${(s.monthlyAmount||0).toLocaleString()})
+                            Pay This Month (${(s.monthlyAmount||0).toLocaleString()})
                           </Btn>
                         )}
-                        <Btn variant="outline" size="sm" onClick={() => handleViewInvoice(s.id)}>🧾 Invoice Letter</Btn>
-                        <Btn variant="ghost" size="sm" onClick={() => handleViewReport(s.id)}>📊 Monthly Report</Btn>
+                        <Btn variant="outline" size="sm" onClick={() => handleViewInvoice(s.id)}>Invoice Letter</Btn>
+                        <Btn variant="ghost" size="sm" onClick={() => handleViewReport(s.id)}>Monthly Report</Btn>
                         {s.status === "active" && (
                           <Btn variant="success" size="sm" onClick={async () => {
                             if (!window.confirm("Renew your sponsorship contract for another 12 months?")) return;
                             try {
                               await programsApi.renewContract(s.id, { months: 12 });
-                              showToast("✅ Contract renewed for 12 more months — thank you!");
+                              showToast("Contract renewed for 12 more months — thank you!");
                               programsApi.mySponsorships().then(d => Array.isArray(d) && setMySponsorships(d));
                             } catch (e) { showToast(e.message || "Failed to renew", "error"); }
-                          }}>🔄 Renew Contract</Btn>
+                          }}>Renew Contract</Btn>
                         )}
                       </div>
                     </div>
@@ -3480,10 +3480,10 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
             );
             const isAdmin = user?.role === "super_admin" || user?.role === "admin";
             return (
-              <Modal title={`🧾 Invoice — ${invoiceNo}`} onClose={() => { setSponsorInvoice(null); setInvoiceEditMode(false); }} wide>
+              <Modal title={`Invoice — ${invoiceNo}`} onClose={() => { setSponsorInvoice(null); setInvoiceEditMode(false); }} wide>
                 {invoiceEditMode ? (
                   <div style={{ background:"#F0F7FF", border:`1.5px solid ${C.primary}30`, borderRadius:12, padding:20, marginBottom:16 }}>
-                    <div style={{ fontWeight:800, fontSize:14, color:C.primary, marginBottom:16 }}>✏️ Edit Invoice Template</div>
+                    <div style={{ fontWeight:800, fontSize:14, color:C.primary, marginBottom:16 }}>Edit Invoice Template</div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 16px" }}>
                       {ifield("orgName",      "Organization Name")}
                       {ifield("orgSub",       "Subtitle")}
@@ -3502,7 +3502,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                     </div>
                     <div style={{ display:"flex", gap:8 }}>
                       <Btn variant="muted" size="sm" onClick={() => saveInvoiceSettings({ ...DEFAULT_INVOICE_SETTINGS })}>↺ Reset to Default</Btn>
-                      <Btn variant="primary" size="sm" onClick={() => setInvoiceEditMode(false)}>✅ Done Editing</Btn>
+                      <Btn variant="primary" size="sm" onClick={() => setInvoiceEditMode(false)}>Done Editing</Btn>
                     </div>
                   </div>
                 ) : (
@@ -3545,7 +3545,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                       </table>
                     </div>
                     <div style={{ background:`${C.primary}08`, borderRadius:10, padding:14, marginBottom:12 }}>
-                      <div style={{ fontWeight:700, marginBottom:8, fontSize:13 }}>💳 How to Pay</div>
+                      <div style={{ fontWeight:700, marginBottom:8, fontSize:13 }}>How to Pay</div>
                       <div style={{ fontSize:12, lineHeight:2, color:C.text }}>
                         <b>Bank Transfer:</b> {IS.bankName} · IBAN: {IS.bankIBAN} · BIC: {IS.bankBIC}<br/>
                         <b>Mobile Money (EVC+):</b> {IS.mobileNumber} · {IS.mobileName}<br/>
@@ -3559,10 +3559,10 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                   <Btn variant="muted" onClick={() => { setSponsorInvoice(null); setInvoiceEditMode(false); }} style={{ flex:1, minWidth:80 }}>Close</Btn>
                   {isAdmin && (
                     <Btn variant="outline" onClick={() => setInvoiceEditMode(m => !m)} style={{ flex:1, minWidth:100 }}>
-                      {invoiceEditMode ? "👁️ Preview" : "✏️ Edit Template"}
+                      {invoiceEditMode ? "Preview" : "Edit Template"}
                     </Btn>
                   )}
-                  <Btn variant="primary" onClick={printInv} style={{ flex:2, minWidth:160 }}>🖨️ Print / Save as PDF</Btn>
+                  <Btn variant="primary" onClick={printInv} style={{ flex:2, minWidth:160 }}>Print / Save as PDF</Btn>
                 </div>
               </Modal>
             );
@@ -3574,14 +3574,14 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
             const ben = s?.beneficiary;
             const deliveries = (() => { try { return JSON.parse(update?.deliveriesMade || "[]"); } catch { return []; } })();
             return (
-              <Modal title={`📊 Monthly Report — ${MONTH_FULL[month-1]} ${year}`} onClose={() => setSponsorReport(null)} wide>
+              <Modal title={`Monthly Report — ${MONTH_FULL[month-1]} ${year}`} onClose={() => setSponsorReport(null)} wide>
                 <div style={{ marginBottom:16, background:`linear-gradient(135deg,${C.primary}10,${C.accent}08)`, borderRadius:12, padding:20, border:`1px solid ${C.primary}20` }}>
                   <div style={{ fontSize:15, fontWeight:800, marginBottom:4 }}>{ben?.program?.icon} {ben?.program?.name}</div>
                   <div style={{ fontSize:13, color:C.muted }}>Beneficiary {ben?.publicId} · {ben?.programType?.replace(/_/g," ")} · {ben?.publicRegion || "Somalia"}</div>
                 </div>
                 {!update ? (
                   <div style={{ textAlign:"center", padding:32, color:C.muted }}>
-                    <div style={{ fontSize:40, marginBottom:12 }}>📋</div>
+                    <div style={{ fontSize:40, marginBottom:12 }}></div>
                     <div style={{ fontWeight:700 }}>No report published yet for {MONTH_FULL[month-1]} {year}</div>
                     <div style={{ fontSize:13, marginTop:4 }}>The program manager will publish a monthly update soon. You'll be notified when it's ready.</div>
                   </div>
@@ -3589,26 +3589,26 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                   <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
                     {/* Key metrics */}
                     <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
-                      {update.schoolAttendance != null && <StatCard icon="🏫" label="School Attendance" value={`${update.schoolAttendance}%`} color={C.secondary} />}
-                      {update.healthStatus && <StatCard icon="❤️" label="Health Status" value={update.healthStatus} color="#EC4899" />}
-                      {deliveries.length > 0 && <StatCard icon="📦" label="Deliveries Made" value={deliveries.length} color={C.primary} />}
+                      {update.schoolAttendance != null && <StatCard icon="" label="School Attendance" value={`${update.schoolAttendance}%`} color={C.secondary} />}
+                      {update.healthStatus && <StatCard icon="" label="Health Status" value={update.healthStatus} color="#EC4899" />}
+                      {deliveries.length > 0 && <StatCard icon="" label="Deliveries Made" value={deliveries.length} color={C.primary} />}
                     </div>
                     {/* Progress notes */}
                     <div style={{ background:"#fff", borderRadius:12, padding:16, border:`1px solid ${C.border}` }}>
-                      <div style={{ fontWeight:700, marginBottom:8 }}>📝 Progress This Month</div>
+                      <div style={{ fontWeight:700, marginBottom:8 }}>Progress This Month</div>
                       <p style={{ fontSize:14, color:C.text, lineHeight:1.7, margin:0 }}>{update.progressNotes}</p>
                     </div>
                     {/* Needs assessment */}
                     {update.needsAssessment && (
                       <div style={{ background:"#FEF3C7", borderRadius:12, padding:16, border:"1px solid #FCD34D" }}>
-                        <div style={{ fontWeight:700, marginBottom:8, color:"#92400E" }}>📋 Needs Assessment</div>
+                        <div style={{ fontWeight:700, marginBottom:8, color:"#92400E" }}>Needs Assessment</div>
                         <p style={{ fontSize:13, color:"#78350F", margin:0 }}>{update.needsAssessment}</p>
                       </div>
                     )}
                     {/* Deliveries */}
                     {deliveries.length > 0 && (
                       <div style={{ background:"#fff", borderRadius:12, padding:16, border:`1px solid ${C.border}` }}>
-                        <div style={{ fontWeight:700, marginBottom:10 }}>📦 What Was Delivered</div>
+                        <div style={{ fontWeight:700, marginBottom:10 }}>What Was Delivered</div>
                         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                           {deliveries.map((d, i) => <span key={i} style={{ background:`${C.primary}12`, color:C.primary, borderRadius:20, padding:"4px 12px", fontSize:12, fontWeight:600 }}>{d}</span>)}
                         </div>
@@ -3618,7 +3618,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
                     <div style={{ background:`${C.secondary}10`, borderRadius:12, padding:16, border:`1px solid ${C.secondary}30`, textAlign:"center" }}>
                       <div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>YOUR CONTRIBUTION THIS MONTH</div>
                       <div style={{ fontSize:26, fontWeight:900, color:C.secondary }}>${(s?.monthlyAmount||0).toLocaleString()}</div>
-                      <div style={{ fontSize:13, color:C.muted }}>Thank you for making this possible 💚</div>
+                      <div style={{ fontSize:13, color:C.muted }}>Thank you for making this possible </div>
                     </div>
                   </div>
                 )}
@@ -3646,7 +3646,7 @@ const ObserverDashboard = ({ cases, currentUser, onReport, onViewCase }) => {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>📝 Reporter Dashboard</h2>
+          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>Reporter Dashboard</h2>
           <p style={{ margin: "4px 0 0", color: COLORS.muted }}>Ku soo dhawoow, {currentUser.fullname} — Track your submitted cases</p>
         </div>
         <Btn variant="primary" onClick={onReport}>+ Report New Case</Btn>
@@ -3654,16 +3654,16 @@ const ObserverDashboard = ({ cases, currentUser, onReport, onViewCase }) => {
 
       {/* Stats */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
-        <StatCard label="Total Reports"  value={myCases.length}  icon="📋" color={COLORS.primary} />
-        <StatCard label="Pending Review" value={pending}         icon="⏳" color="#F59E0B" />
-        <StatCard label="In Progress"    value={active}          icon="🔄" color="#8B5CF6" />
-        <StatCard label="Completed"      value={completed}       icon="✅" color={COLORS.secondary} />
+        <StatCard label="Total Reports"  value={myCases.length}  icon="" color={COLORS.primary} />
+        <StatCard label="Pending Review" value={pending}         icon="" color="#F59E0B" />
+        <StatCard label="In Progress"    value={active}          icon="" color="#8B5CF6" />
+        <StatCard label="Completed"      value={completed}       icon="" color={COLORS.secondary} />
       </div>
 
       {/* How it works */}
       {myCases.length === 0 && (
         <div style={{ background: "#fff", borderRadius: 16, padding: 40, textAlign: "center", boxShadow: "0 2px 8px #0001" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>📝</div>
+          <div style={{ fontSize: 48, marginBottom: 16 }}></div>
           <div style={{ fontSize: 18, fontWeight: 700 }}>No cases yet</div>
           <div style={{ fontSize: 14, color: COLORS.muted, marginTop: 8, maxWidth: 400, margin: "8px auto 24px" }}>
             Submit your first case report and we'll notify you at every step — from field investigation to aid delivery.
@@ -3738,7 +3738,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
     localStorage.setItem(CHILDREN_KEY, JSON.stringify(updated));
     window.dispatchEvent(new Event("storage"));
     setEditChild(null);
-    setChildMsg("✅ Child record saved.");
+    setChildMsg("Child record saved.");
     setTimeout(() => setChildMsg(""), 3000);
   };
   const delChild = (id) => {
@@ -3750,9 +3750,9 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
   };
 
   const TABS = [
-    { id: "workflow",  label: `🔄 Workflow${alertCount > 0 ? ` (${alertCount})` : ""}` },
-    { id: "all",       label: `📋 All Cases (${cases.length})` },
-    { id: "donations", label: `💰 Donations${pendingDons.length > 0 ? ` (${pendingDons.length})` : ""}` },
+    { id: "workflow",  label: `Workflow${alertCount > 0 ? ` (${alertCount})` : ""}` },
+    { id: "all",       label: `All Cases (${cases.length})` },
+    { id: "donations", label: `Donations${pendingDons.length > 0 ? ` (${pendingDons.length})` : ""}` },
     { id: "children",  label: `👶 Register Children (${children.length})` },
   ];
 
@@ -3765,34 +3765,34 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
             <UrgencyBadge level={c.urgency_level} />
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: COLORS.text }}>{c.victim_name}</div>
-          <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 3 }}>📍 {c.location} · {c.created_at}</div>
+          <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 3 }}>{c.location} · {c.created_at}</div>
           <p style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5, margin: "8px 0 0", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{c.description}</p>
         </div>
       </div>
       {/* Action buttons per status */}
       <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-        <Btn variant="ghost" size="sm" onClick={() => onViewCase(c)}>🔍 Full Details</Btn>
+        <Btn variant="ghost" size="sm" onClick={() => onViewCase(c)}>Full Details</Btn>
         {c.status === "Pending Verification" && <>
-          <Btn variant="primary" size="sm" onClick={() => onAssign(c)}>🗺️ Assign Team</Btn>
-          <Btn variant="success" size="sm" onClick={() => onPublish(c)}>✅ Approve & Publish</Btn>
-          <Btn variant="teal"   size="sm" onClick={() => onRequestInfo && onRequestInfo(c)}>📋 Request Info</Btn>
-          <Btn variant="danger"  size="sm" onClick={() => onReject(c)}>❌ Reject</Btn>
+          <Btn variant="primary" size="sm" onClick={() => onAssign(c)}>Assign Team</Btn>
+          <Btn variant="success" size="sm" onClick={() => onPublish(c)}>Approve & Publish</Btn>
+          <Btn variant="teal"   size="sm" onClick={() => onRequestInfo && onRequestInfo(c)}>Request Info</Btn>
+          <Btn variant="danger"  size="sm" onClick={() => onReject(c)}>Reject</Btn>
         </>}
         {c.status === "Awaiting Approval" && <>
-          <Btn variant="purple" size="sm" onClick={() => onViewReport(c)}>📋 Field Report</Btn>
+          <Btn variant="purple" size="sm" onClick={() => onViewReport(c)}>Field Report</Btn>
           {(c._raw?.caseType === "child_support" || ["child_support","education","orphan","family_support","medical"].includes(c._raw?.category)) ? (
-            <Btn variant="success" size="sm" onClick={() => onEnroll && onEnroll(c)}>🌱 Enroll in Program</Btn>
+            <Btn variant="success" size="sm" onClick={() => onEnroll && onEnroll(c)}>Enroll in Program</Btn>
           ) : (
-            <Btn variant="success" size="sm" onClick={() => onPublish(c)}>✅ Approve & Publish</Btn>
+            <Btn variant="success" size="sm" onClick={() => onPublish(c)}>Approve & Publish</Btn>
           )}
-          <Btn variant="danger"  size="sm" onClick={() => onReject(c)}>❌ Reject</Btn>
+          <Btn variant="danger"  size="sm" onClick={() => onReject(c)}>Reject</Btn>
         </>}
         {["Under Review","Investigating"].includes(c.status) && (
-          <span style={{ fontSize: 12, color: COLORS.muted, alignSelf: "center" }}>⏳ Awaiting field investigation…</span>
+          <span style={{ fontSize: 12, color: COLORS.muted, alignSelf: "center" }}>Awaiting field investigation…</span>
         )}
         {c.status === "Aid Delivered" && onComplete && <>
-          <Btn variant="ghost" size="sm" onClick={() => onViewCase(c)}>🔍 View Proof</Btn>
-          <Btn variant="success" size="sm" onClick={() => onComplete(c)}>🏁 Mark Complete</Btn>
+          <Btn variant="ghost" size="sm" onClick={() => onViewCase(c)}>View Proof</Btn>
+          <Btn variant="success" size="sm" onClick={() => onComplete(c)}>Mark Complete</Btn>
         </>}
       </div>
     </div>
@@ -3800,14 +3800,14 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
 
   return (
     <div>
-      <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>🏛️ Verification Dashboard</h2>
+      <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>Verification Dashboard</h2>
       <p style={{ margin: "0 0 20px", color: COLORS.muted }}>Review incoming reports and manage the case pipeline</p>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
         <StatCard label="New Reports"    value={newReports.length}   icon="🚨" color="#EF4444" />
-        <StatCard label="In Field"       value={inField.length}      icon="🕵️" color="#8B5CF6" />
-        <StatCard label="Needs Decision" value={reviewReady.length}  icon="📋" color="#F59E0B" />
-        <StatCard label="Total Active"   value={allActive.length}    icon="📊" color={COLORS.primary} />
+        <StatCard label="In Field"       value={inField.length}      icon="" color="#8B5CF6" />
+        <StatCard label="Needs Decision" value={reviewReady.length}  icon="" color="#F59E0B" />
+        <StatCard label="Total Active"   value={allActive.length}    icon="" color={COLORS.primary} />
       </div>
 
       {/* Tabs */}
@@ -3832,7 +3832,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
               </div>
             </div>
             {newReports.length === 0
-              ? <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 24, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No new reports 🎉</div>
+              ? <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 24, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No new reports </div>
               : newReports.map(c => <WorkflowCard key={c.id} c={c} />)
             }
           </div>
@@ -3841,7 +3841,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <div style={{ background: "#EDE9FE", borderRadius: 10, padding: "8px 14px", fontWeight: 800, fontSize: 13, color: "#6B21A8" }}>
-                🕵️ Field Investigation ({inField.length})
+                Field Investigation ({inField.length})
               </div>
             </div>
             {inField.length === 0
@@ -3854,7 +3854,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <div style={{ background: "#FEF3C7", borderRadius: 10, padding: "8px 14px", fontWeight: 800, fontSize: 13, color: "#92400E" }}>
-                📋 Needs Decision ({reviewReady.length})
+                Needs Decision ({reviewReady.length})
               </div>
             </div>
             {reviewReady.length === 0
@@ -3867,12 +3867,12 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <div style={{ background: "#CFFAFE", borderRadius: 10, padding: "8px 14px", fontWeight: 800, fontSize: 13, color: "#0E7490", position: "relative" }}>
-                📦 Proof Uploaded ({proofReady.length})
+                Proof Uploaded ({proofReady.length})
                 {proofReady.length > 0 && <span style={{ position: "absolute", top: -6, right: -6, background: COLORS.danger, color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{proofReady.length}</span>}
               </div>
             </div>
             {proofReady.length === 0
-              ? <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 24, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No delivery proofs to review 🎉</div>
+              ? <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 24, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No delivery proofs to review </div>
               : proofReady.map(c => <WorkflowCard key={c.id} c={c} />)
             }
           </div>
@@ -3889,9 +3889,9 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
       {tab === "donations" && (
         <div>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
-            <StatCard label="Total Received"  value={`$${donations.reduce((a,d)=>a+(d.amount||0),0).toLocaleString()}`} icon="💵" color={COLORS.secondary} />
-            <StatCard label="Confirmed"       value={`$${donations.filter(d=>d.status==="confirmed").reduce((a,d)=>a+(d.amount||0),0).toLocaleString()}`} icon="✅" color="#10B981" />
-            <StatCard label="Needs Confirm"   value={pendingDons.length} icon="⏳" color="#F59E0B" />
+            <StatCard label="Total Received"  value={`$${donations.reduce((a,d)=>a+(d.amount||0),0).toLocaleString()}`} icon="" color={COLORS.secondary} />
+            <StatCard label="Confirmed"       value={`$${donations.filter(d=>d.status==="confirmed").reduce((a,d)=>a+(d.amount||0),0).toLocaleString()}`} icon="" color="#10B981" />
+            <StatCard label="Needs Confirm"   value={pendingDons.length} icon="" color="#F59E0B" />
           </div>
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
             {["all","pending","confirmed"].map(f => (
@@ -3929,7 +3929,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                     <td style={{ padding: "10px 14px", fontSize: 12, color: COLORS.muted }}>{d.createdAt ? new Date(d.createdAt).toLocaleDateString() : "—"}</td>
                     <td style={{ padding: "10px 14px" }}>
                       <span style={{ background: d.status==="confirmed" ? "#D1FAE5" : "#FEF3C7", color: d.status==="confirmed" ? "#065F46" : "#92400E", borderRadius: 20, padding: "3px 8px", fontSize: 11, fontWeight: 700 }}>
-                        {d.status==="confirmed" ? "✅ Confirmed" : "⏳ Pending"}
+                        {d.status==="confirmed" ? "Confirmed" : "Pending"}
                       </span>
                     </td>
                     <td style={{ padding: "10px 14px" }}>
@@ -3947,20 +3947,20 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                             _amount: d.amount, _caseTitle: d.case?.publicTitle, _caseCity: d.case?.publicCity, _caseId: d.caseId,
                           })}
                             style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#0891B2", color: "#fff", border: "none", cursor: "pointer" }}>
-                            🚚 Start Delivery
+                            Start Delivery
                           </button>
                         )}
                         {d.status === "confirmed" && d.case?.status === "delivering" && (
-                          <span style={{ fontSize: 11, color: "#0891B2", fontWeight: 700 }}>🚚 En Route</span>
+                          <span style={{ fontSize: 11, color: "#0891B2", fontWeight: 700 }}>En Route</span>
                         )}
                         {d.status === "confirmed" && d.case?.status === "proof_uploaded" && onComplete && (
                           <button onClick={() => { const c = cases.find(x => x.id === d.caseId); if(c) onComplete(c); }}
                             style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: COLORS.secondary, color: "#fff", border: "none", cursor: "pointer" }}>
-                            🏁 Complete
+                            Complete
                           </button>
                         )}
                         {d.status === "confirmed" && d.case?.status === "completed" && (
-                          <span style={{ fontSize: 11, color: COLORS.secondary, fontWeight: 700 }}>🏁 Done</span>
+                          <span style={{ fontSize: 11, color: COLORS.secondary, fontWeight: 700 }}>Done</span>
                         )}
                       </div>
                     </td>
@@ -3985,7 +3985,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
             </button>
           </div>
 
-          {childMsg && <div style={{ background:childMsg.startsWith("✅") ? "#ECFDF5" : "#FEF2F2", color:childMsg.startsWith("✅") ? "#065F46" : COLORS.danger, borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13, fontWeight:600 }}>{childMsg}</div>}
+          {childMsg && <div style={{ background:childMsg.startsWith("") ? "#ECFDF5" : "#FEF2F2", color:childMsg.startsWith("") ? "#065F46" : COLORS.danger, borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13, fontWeight:600 }}>{childMsg}</div>}
 
           {/* Registration form */}
           {editChild && (
@@ -4039,7 +4039,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
               )}
               <div style={{ display:"flex", gap:10, marginTop:20 }}>
                 <button onClick={saveChild} style={{ flex:2, padding:"12px", background:COLORS.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14 }}>
-                  {editChild==="new" ? "✅ Save & Register" : "💾 Update Record"}
+                  {editChild==="new" ? "Save & Register" : "Update Record"}
                 </button>
                 <button onClick={() => setEditChild(null)} style={{ flex:1, padding:"12px", background:COLORS.bg, border:`1px solid ${COLORS.border}`, borderRadius:10, cursor:"pointer", fontWeight:700, fontSize:14 }}>Cancel</button>
               </div>
@@ -4061,15 +4061,15 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                     {ch.publicPhotoUrl ? (
                       <img src={ch.publicPhotoUrl} alt="" style={{ width:56, height:56, borderRadius:"50%", objectFit:"cover", border:"2px solid rgba(255,255,255,0.5)" }} onError={e=>e.target.style.display="none"} />
                     ) : (
-                      <div style={{ width:56, height:56, borderRadius:"50%", background:"rgba(255,255,255,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:26 }}>👤</div>
+                      <div style={{ width:56, height:56, borderRadius:"50%", background:"rgba(255,255,255,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:26 }}></div>
                     )}
                     <div style={{ color:"#fff", flex:1, minWidth:0 }}>
                       <div style={{ fontWeight:800, fontSize:15 }}>{ch.firstName} {ch.lastName}</div>
                       <div style={{ fontSize:11, opacity:0.8, marginTop:2 }}>{ch.publicId} · {ch.age ? `${ch.age}y` : ""} {ch.gender}</div>
-                      <div style={{ fontSize:11, opacity:0.7, marginTop:2 }}>📍 {ch.publicCity}{ch.publicRegion ? `, ${ch.publicRegion}` : ""}</div>
+                      <div style={{ fontSize:11, opacity:0.7, marginTop:2 }}>{ch.publicCity}{ch.publicRegion ? `, ${ch.publicRegion}` : ""}</div>
                     </div>
                     <span style={{ background: ch.status==="sponsored" ? "rgba(16,185,129,0.25)" : ch.status==="seeking_sponsor" ? "rgba(245,158,11,0.25)" : "rgba(255,255,255,0.15)", color:"#fff", borderRadius:20, padding:"3px 8px", fontSize:10, fontWeight:700, whiteSpace:"nowrap" }}>
-                      {ch.status==="sponsored" ? "✅ Sponsored" : ch.status==="seeking_sponsor" ? "⏳ Seeking" : "Pending"}
+                      {ch.status==="sponsored" ? "Sponsored" : ch.status==="seeking_sponsor" ? "Seeking" : "Pending"}
                     </span>
                   </div>
                   <div style={{ padding:"14px 18px" }}>
@@ -4079,8 +4079,8 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                     <div style={{ fontSize:18, fontWeight:900, color:COLORS.primary }}>${ch.monthlyNeed}/mo</div>
                   </div>
                   <div style={{ padding:"10px 18px", borderTop:`1px solid ${COLORS.border}`, display:"flex", gap:8 }}>
-                    <button onClick={() => openEditChild(ch)} style={{ flex:1, padding:"8px", background:COLORS.bg, border:`1px solid ${COLORS.border}`, borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }}>✏️ Edit</button>
-                    <button onClick={() => delChild(ch.id)} style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:COLORS.danger }}>🗑</button>
+                    <button onClick={() => openEditChild(ch)} style={{ flex:1, padding:"8px", background:COLORS.bg, border:`1px solid ${COLORS.border}`, borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }}>Edit</button>
+                    <button onClick={() => delChild(ch.id)} style={{ padding:"8px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:COLORS.danger }}></button>
                   </div>
                 </div>
               ))}
@@ -4102,12 +4102,12 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
 
   const MissionCard = ({ c }) => {
     const statusColors = {
-      "Under Review": { bg: "#EDE9FE", color: "#6B21A8", label: "🆕 Just Assigned" },
-      "Investigating": { bg: "#DBEAFE", color: "#1E40AF", label: "🔍 Investigating" },
-      "Awaiting Approval": { bg: "#D1FAE5", color: "#065F46", label: "✅ Report Submitted" },
-      "Delivering":    { bg: "#CFFAFE", color: "#0891B2", label: "🚚 Active Delivery" },
-      "Sponsored":     { bg: "#FCE7F3", color: "#9D174D", label: "❤️ Funded — Deliver Aid" },
-      "Proof Submitted":{ bg: "#D1FAE5", color: "#065F46", label: "📤 Proof Sent to Admin" },
+      "Under Review": { bg: "#EDE9FE", color: "#6B21A8", label: "Just Assigned" },
+      "Investigating": { bg: "#DBEAFE", color: "#1E40AF", label: "Investigating" },
+      "Awaiting Approval": { bg: "#D1FAE5", color: "#065F46", label: "Report Submitted" },
+      "Delivering":    { bg: "#CFFAFE", color: "#0891B2", label: "Active Delivery" },
+      "Sponsored":     { bg: "#FCE7F3", color: "#9D174D", label: "Funded — Deliver Aid" },
+      "Proof Submitted":{ bg: "#D1FAE5", color: "#065F46", label: "Proof Sent to Admin" },
     };
     const s = statusColors[c.status] || { bg: "#F3F4F6", color: COLORS.muted, label: c.status };
     return (
@@ -4123,29 +4123,29 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
           <span style={{ fontSize: 11, fontWeight: 700, background: s.bg, color: s.color, borderRadius: 20, padding: "4px 12px" }}>{s.label}</span>
         </div>
 
-        <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 8 }}>📍 {c.location}</div>
+        <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 8 }}>{c.location}</div>
         <p style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.5, margin: "0 0 16px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{c.description}</p>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Btn variant="ghost" size="sm" onClick={() => onViewCase(c)}>🔍 View Details</Btn>
+          <Btn variant="ghost" size="sm" onClick={() => onViewCase(c)}>View Details</Btn>
           {["Under Review","Investigating"].includes(c.status) && (
             <Btn variant="success" size="sm" onClick={() => onInvestigate(c)} style={{ flex: 1 }}>
-              📋 Submit Investigation Report
+              Submit Investigation Report
             </Btn>
           )}
           {c.status === "Awaiting Approval" && (
             <span style={{ fontSize: 12, color: "#065F46", background: "#D1FAE5", borderRadius: 8, padding: "4px 10px", alignSelf: "center" }}>
-              ✅ Report submitted — awaiting admin approval
+              Report submitted — awaiting admin approval
             </span>
           )}
           {["Sponsored","Delivering"].includes(c.status) && (
             <Btn variant="teal" size="sm" onClick={() => onDeliver ? onDeliver(c) : onViewCase(c)} style={{ flex: 1 }}>
-              📤 Submit Delivery Proof
+              Submit Delivery Proof
             </Btn>
           )}
           {c.status === "Proof Submitted" && (
             <span style={{ fontSize: 12, color: "#065F46", background: "#D1FAE5", borderRadius: 8, padding: "4px 10px", alignSelf: "center" }}>
-              ✅ Proof submitted — waiting for admin to close case
+              Proof submitted — waiting for admin to close case
             </span>
           )}
         </div>
@@ -4155,19 +4155,19 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
 
   return (
     <div>
-      <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>🗺️ Field Team Dashboard</h2>
+      <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>Field Team Dashboard</h2>
       <p style={{ margin: "0 0 20px", color: COLORS.muted }}>Welcome, {currentUser.fullname} — Your active missions and investigations</p>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
-        <StatCard label="Active Missions"   value={active.length}     icon="🎯" color={COLORS.primary} />
-        <StatCard label="Report Submitted"  value={submitted.length}  icon="📋" color={COLORS.secondary} />
-        <StatCard label="Delivering Aid"    value={delivering.length} icon="📦" color="#EC4899" />
-        <StatCard label="Completed"         value={completed.length}  icon="✅" color="#5A6E8A" />
+        <StatCard label="Active Missions"   value={active.length}     icon="" color={COLORS.primary} />
+        <StatCard label="Report Submitted"  value={submitted.length}  icon="" color={COLORS.secondary} />
+        <StatCard label="Delivering Aid"    value={delivering.length} icon="" color="#EC4899" />
+        <StatCard label="Completed"         value={completed.length}  icon="" color="#5A6E8A" />
       </div>
 
       {active.length > 0 && (
         <>
-          <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: COLORS.primary }}>🎯 Active Missions — Need Your Action</h3>
+          <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: COLORS.primary }}>Active Missions — Need Your Action</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 28 }}>
             {active.map(c => <MissionCard key={c.id} c={c} />)}
           </div>
@@ -4176,7 +4176,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
 
       {toDeliver.length > 0 && (
         <>
-          <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#9D174D" }}>🚚 Aid Delivery — Submit Your Proof</h3>
+          <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#9D174D" }}>Aid Delivery — Submit Your Proof</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 28 }}>
             {toDeliver.map(c => <MissionCard key={c.id} c={c} />)}
           </div>
@@ -4185,7 +4185,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
 
       {proofSent.length > 0 && (
         <>
-          <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#065F46" }}>📤 Proof Submitted — Waiting for Admin to Close</h3>
+          <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#065F46" }}>Proof Submitted — Waiting for Admin to Close</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 28 }}>
             {proofSent.map(c => <MissionCard key={c.id} c={c} />)}
           </div>
@@ -4194,7 +4194,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
 
       {submitted.length > 0 && (
         <>
-          <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: COLORS.secondary }}>📋 Reports Submitted — Awaiting Admin Review</h3>
+          <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: COLORS.secondary }}>Reports Submitted — Awaiting Admin Review</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 28 }}>
             {submitted.map(c => <MissionCard key={c.id} c={c} />)}
           </div>
@@ -4203,7 +4203,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
 
       {active.length === 0 && delivering.length === 0 && submitted.length === 0 && (
         <div style={{ background: "#fff", borderRadius: 16, padding: 60, textAlign: "center", boxShadow: "0 2px 8px #0001" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🗺️</div>
+          <div style={{ fontSize: 48, marginBottom: 16 }}></div>
           <div style={{ fontSize: 18, fontWeight: 700 }}>No Active Missions</div>
           <div style={{ fontSize: 14, color: COLORS.muted, marginTop: 8 }}>You will receive a notification when a case is assigned to you.</div>
         </div>
@@ -4212,7 +4212,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
       {/* Programs section for field team */}
       <div style={{ marginTop: 32 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: COLORS.secondary }}>🌱 Program Beneficiaries — Monthly Updates</h3>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: COLORS.secondary }}>Program Beneficiaries — Monthly Updates</h3>
         </div>
         <FieldTeamProgramsSection currentUser={currentUser} showToast={() => {}} />
       </div>
@@ -4242,7 +4242,7 @@ const FieldTeamProgramsSection = ({ currentUser, showToast }) => {
 
   if (beneficiaries.length === 0) return (
     <div style={{ background: "#F0FDF4", borderRadius: 12, padding: 24, textAlign: "center", color: COLORS.secondary, border: "1px solid #BBF7D0" }}>
-      <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+      <div style={{ fontSize: 32, marginBottom: 8 }}></div>
       No sponsored beneficiaries assigned yet.
     </div>
   );
@@ -4251,12 +4251,12 @@ const FieldTeamProgramsSection = ({ currentUser, showToast }) => {
     <div>
       {toast && (
         <div style={{ position: "fixed", bottom: 24, right: 16, background: COLORS.secondary, color: "#fff", borderRadius: 14, padding: "12px 20px", boxShadow: "0 8px 32px #0003", fontSize: 14, fontWeight: 700, zIndex: 3000 }}>
-          ✅ {toast}
+          {toast}
         </div>
       )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 14 }}>
         {beneficiaries.map(b => {
-          const pt = PROGRAM_TYPE_LABELS[b.programType] || { icon: "👤", color: COLORS.primary };
+          const pt = PROGRAM_TYPE_LABELS[b.programType] || { icon: "", color: COLORS.primary };
           return (
             <div key={b.id} style={{ background: "#fff", borderRadius: 14, padding: 16, border: `1px solid ${COLORS.border}`, boxShadow: "0 2px 8px #0001" }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
@@ -4267,7 +4267,7 @@ const FieldTeamProgramsSection = ({ currentUser, showToast }) => {
               <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2 }}>{b.publicCity || "—"} · ${b.monthlyNeed}/mo</div>
               <div style={{ marginTop: 10 }}>
                 <Btn variant="purple" size="sm" onClick={() => setUpdateTarget(b)} style={{ width: "100%" }}>
-                  📊 Submit Monthly Update
+                  Submit Monthly Update
                 </Btn>
               </div>
             </div>
@@ -4299,38 +4299,38 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
   const confirmedTotal = myDonations.filter(d => d.status === "confirmed").reduce((a, d) => a + (d.amount || 0), 0);
 
   const STATUS_COLORS = {
-    pending:   { bg: "#FEF3C7", color: "#92400E",  label: "⏳ Awaiting Payment Verification" },
-    confirmed: { bg: "#D1FAE5", color: "#065F46",  label: "✅ Payment Confirmed" },
-    failed:    { bg: "#FEE2E2", color: COLORS.danger, label: "❌ Payment Failed" },
+    pending:   { bg: "#FEF3C7", color: "#92400E",  label: "Awaiting Payment Verification" },
+    confirmed: { bg: "#D1FAE5", color: "#065F46",  label: "Payment Confirmed" },
+    failed:    { bg: "#FEE2E2", color: COLORS.danger, label: "Payment Failed" },
   };
 
   const [certDonation, setCertDonation] = useState(null);
 
   const METHOD_LABELS = {
-    mobile_money:  "📱 Mobile Money",
-    bank_transfer: "🏦 Bank Transfer",
-    card:          "💳 Card",
-    wallet:        "💰 Wallet",
+    mobile_money:  "Mobile Money",
+    bank_transfer: "Bank Transfer",
+    card:          "Card",
+    wallet:        "Wallet",
   };
 
   return (
     <div>
-      <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>❤️ Donor Dashboard</h2>
+      <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>Donor Dashboard</h2>
       <p style={{ margin: "0 0 16px", color: COLORS.muted }}>Welcome, {currentUser.fullname} — your support changes lives</p>
 
       {/* Stats */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
-        <StatCard label="Cases to Sponsor" value={waitingCases.length}                    icon="🤝" color={COLORS.primary} />
-        <StatCard label="My Donations"      value={myDonations.length}                    icon="❤️" color="#EC4899" />
-        <StatCard label="Total Pledged"     value={`$${myTotal.toLocaleString()}`}        icon="💸" color={COLORS.accent} />
-        <StatCard label="Confirmed"         value={`$${confirmedTotal.toLocaleString()}`} icon="✅" color={COLORS.secondary} />
+        <StatCard label="Cases to Sponsor" value={waitingCases.length}                    icon="" color={COLORS.primary} />
+        <StatCard label="My Donations"      value={myDonations.length}                    icon="" color="#EC4899" />
+        <StatCard label="Total Pledged"     value={`$${myTotal.toLocaleString()}`}        icon="" color={COLORS.accent} />
+        <StatCard label="Confirmed"         value={`$${confirmedTotal.toLocaleString()}`} icon="" color={COLORS.secondary} />
       </div>
 
       {/* Tab selector */}
       <div style={{ display: "flex", gap: 4, borderBottom: `2px solid ${COLORS.border}`, marginBottom: 24 }}>
         {[
           { id: "emergency", label: "🚨 Emergency Cases" },
-          { id: "programs",  label: "🌱 Long-Term Sponsorships" },
+          { id: "programs",  label: "Long-Term Sponsorships" },
         ].map(t => (
           <button key={t.id} onClick={() => setDonorTab(t.id)}
             style={{ padding: "10px 20px", fontSize: 13, fontWeight: 700, border: "none", background: "none", cursor: "pointer", color: donorTab === t.id ? COLORS.primary : COLORS.muted, borderBottom: donorTab === t.id ? `2px solid ${COLORS.primary}` : "2px solid transparent", marginBottom: -2 }}>
@@ -4342,7 +4342,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
       {donorTab === "programs" && (
         <div>
           <div style={{ background: `linear-gradient(135deg, ${COLORS.primary}10, ${COLORS.secondary}10)`, borderRadius: 16, padding: 24, marginBottom: 24, border: `1px solid ${COLORS.primary}20` }}>
-            <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>🌱 Sponsor a Future</div>
+            <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Sponsor a Future</div>
             <p style={{ fontSize: 14, color: COLORS.muted, margin: "0 0 16px", lineHeight: 1.7 }}>
               Unlike emergency donations, long-term sponsorships give you monthly progress updates — school attendance, health reports, photos — and create a real relationship with the beneficiary.
             </p>
@@ -4355,10 +4355,10 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
       {donorTab === "emergency" && (
       <div>
       {/* Cases grid */}
-      <h3 style={{ margin: "0 0 16px", fontSize: 18, fontWeight: 700, color: "#EC4899" }}>💝 Cases Waiting for a Sponsor</h3>
+      <h3 style={{ margin: "0 0 16px", fontSize: 18, fontWeight: 700, color: "#EC4899" }}>Cases Waiting for a Sponsor</h3>
       {waitingCases.length === 0 ? (
         <div style={{ background: "#fff", borderRadius: 16, padding: 48, textAlign: "center", color: COLORS.muted, boxShadow: "0 2px 8px #0001", marginBottom: 32 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
+          <div style={{ fontSize: 48, marginBottom: 12 }}></div>
           <div style={{ fontSize: 16, fontWeight: 700 }}>All cases are currently sponsored!</div>
           <div style={{ fontSize: 13, marginTop: 6 }}>Check back soon — new verified cases are added regularly.</div>
         </div>
@@ -4378,7 +4378,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
                     <div style={{ fontSize: 16, fontWeight: 800, flex: 1, marginRight: 8 }}>{c.victim_name}</div>
                     <UrgencyBadge level={c.urgency_level} />
                   </div>
-                  <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 10 }}>📍 {c.location}</div>
+                  <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 10 }}>{c.location}</div>
                   <p style={{ fontSize: 13, color: COLORS.text, lineHeight: 1.6, margin: "0 0 16px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
                     {c.description}
                   </p>
@@ -4394,7 +4394,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
                         <div style={{ background: pct >= 100 ? COLORS.secondary : COLORS.accent, borderRadius: 20, height: "100%", width: `${pct}%`, transition: "width 0.5s" }} />
                       </div>
                       <div style={{ marginTop: 5, fontSize: 12, color: remain > 0 ? COLORS.danger : COLORS.secondary, fontWeight: 700 }}>
-                        {remain > 0 ? `💔 $${remain.toLocaleString()} still needed` : "🎉 Fully funded!"}
+                        {remain > 0 ? `$${remain.toLocaleString()} still needed` : "Fully funded!"}
                       </div>
                     </div>
                   )}
@@ -4403,7 +4403,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
                 <div style={{ padding: "0 20px 20px", display: "flex", gap: 8 }}>
                   <Btn variant="ghost" size="sm" onClick={() => onViewCase(c)} style={{ flex: 1 }}>View Details</Btn>
                   <Btn variant="accent" size="sm" onClick={() => onSponsor(c)} style={{ flex: 2 }}>
-                    ❤️ {remain > 0 ? `Sponsor $${remain.toLocaleString()}` : "Contribute"}
+                    {remain > 0 ? `Sponsor $${remain.toLocaleString()}` : "Contribute"}
                   </Btn>
                 </div>
               </div>
@@ -4413,13 +4413,13 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
       )}
 
       {/* Donation history */}
-      <h3 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 700 }}>💰 My Sponsorship History</h3>
+      <h3 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 700 }}>My Sponsorship History</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {loadingDonations ? (
           <div style={{ background: "#fff", borderRadius: 16, padding: 32, textAlign: "center", color: COLORS.muted }}>Loading…</div>
         ) : myDonations.length === 0 ? (
           <div style={{ background: "#fff", borderRadius: 16, padding: 40, textAlign: "center", color: COLORS.muted, boxShadow: "0 2px 8px #0001" }}>
-            <div style={{ fontSize: 40, marginBottom: 10 }}>💝</div>
+            <div style={{ fontSize: 40, marginBottom: 10 }}></div>
             <div style={{ fontWeight: 700 }}>No sponsorships yet</div>
             <div style={{ fontSize: 13, marginTop: 6 }}>Sponsor a case above to get started!</div>
           </div>
@@ -4431,16 +4431,16 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
           const isCompleted = caseStatus === "completed";
 
           const caseStatusLabel = {
-            waiting_for_sponsor:  { label: "⏳ Awaiting sponsor match", color: "#92400E", bg: "#FEF3C7" },
-            "Waiting Sponsor":    { label: "⏳ Awaiting sponsor match", color: "#92400E", bg: "#FEF3C7" },
-            sponsored:            { label: "✅ Donation received — starting delivery", color: "#065F46", bg: "#D1FAE5" },
-            "Sponsored":          { label: "✅ Donation received — starting delivery", color: "#065F46", bg: "#D1FAE5" },
-            delivering:           { label: "🚚 Aid en route to beneficiary", color: "#0891B2", bg: "#CFFAFE" },
-            "Delivering":         { label: "🚚 Aid en route to beneficiary", color: "#0891B2", bg: "#CFFAFE" },
-            proof_uploaded:       { label: "📦 Aid delivered — admin reviewing", color: "#6D28D9", bg: "#EDE9FE" },
-            "Aid Delivered":      { label: "📦 Aid delivered — admin reviewing", color: "#6D28D9", bg: "#EDE9FE" },
-            completed:            { label: "🏁 Completed — aid confirmed delivered", color: "#065F46", bg: "#D1FAE5" },
-            "Completed":          { label: "🏁 Completed — aid confirmed delivered", color: "#065F46", bg: "#D1FAE5" },
+            waiting_for_sponsor:  { label: "Awaiting sponsor match", color: "#92400E", bg: "#FEF3C7" },
+            "Waiting Sponsor":    { label: "Awaiting sponsor match", color: "#92400E", bg: "#FEF3C7" },
+            sponsored:            { label: "Donation received — starting delivery", color: "#065F46", bg: "#D1FAE5" },
+            "Sponsored":          { label: "Donation received — starting delivery", color: "#065F46", bg: "#D1FAE5" },
+            delivering:           { label: "Aid en route to beneficiary", color: "#0891B2", bg: "#CFFAFE" },
+            "Delivering":         { label: "Aid en route to beneficiary", color: "#0891B2", bg: "#CFFAFE" },
+            proof_uploaded:       { label: "Aid delivered — admin reviewing", color: "#6D28D9", bg: "#EDE9FE" },
+            "Aid Delivered":      { label: "Aid delivered — admin reviewing", color: "#6D28D9", bg: "#EDE9FE" },
+            completed:            { label: "Completed — aid confirmed delivered", color: "#065F46", bg: "#D1FAE5" },
+            "Completed":          { label: "Completed — aid confirmed delivered", color: "#065F46", bg: "#D1FAE5" },
           }[caseStatus] || { label: caseStatus || "—", color: COLORS.muted, bg: "#F3F4F6" };
 
           return (
@@ -4455,7 +4455,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.primary }}>{d.case?.publicTitle || `Case #${d.caseId?.slice(-8)}`}</div>
-                    {d.case?.publicCity && <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>📍 {d.case.publicCity}</div>}
+                    {d.case?.publicCity && <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>{d.case.publicCity}</div>}
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 22, fontWeight: 800, color: COLORS.secondary }}>${d.amount?.toLocaleString()}</div>
@@ -4471,7 +4471,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
                 {isDelivered && proof && (
                   <div style={{ marginTop: 14, background: "#F0FDF4", borderRadius: 12, padding: "14px 16px", border: "1px solid #BBF7D0" }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#166534", marginBottom: 10 }}>
-                      📦 Delivery Proof — {isCompleted ? "✅ Admin Confirmed" : "⏳ Pending Admin Review"}
+                      Delivery Proof — {isCompleted ? "Admin Confirmed" : "Pending Admin Review"}
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8 }}>
                       {[
@@ -4495,11 +4495,11 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
                     {isCompleted && (
                       <div style={{ marginTop: 10 }}>
                         <div style={{ background: "#065F46", color: "#fff", borderRadius: 8, padding: "10px 14px", fontSize: 12, fontWeight: 700, textAlign: "center", marginBottom: 8 }}>
-                          🏁 Case fully completed on {d.case?.completedAt ? new Date(d.case.completedAt).toLocaleDateString() : "—"} — Thank you for your generosity!
+                          Case fully completed on {d.case?.completedAt ? new Date(d.case.completedAt).toLocaleDateString() : "—"} — Thank you for your generosity!
                         </div>
                         <Btn variant="ghost" size="sm" onClick={() => setCertDonation(d)}
                           style={{ width: "100%", border: `1.5px solid ${COLORS.secondary}`, color: COLORS.secondary }}>
-                          🏆 View Impact Certificate
+                          View Impact Certificate
                         </Btn>
                       </div>
                     )}
@@ -4509,7 +4509,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
                 {/* Waiting message if not yet delivered */}
                 {!isDelivered && d.status === "confirmed" && (
                   <div style={{ marginTop: 10, background: "#EFF6FF", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: COLORS.primary }}>
-                    ℹ️ Your donation is confirmed. The field team is preparing to deliver aid. You'll see proof of delivery here once it's done.
+                    Your donation is confirmed. The field team is preparing to deliver aid. You'll see proof of delivery here once it's done.
                   </div>
                 )}
               </div>
@@ -4522,10 +4522,10 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
 
       {/* Impact Certificate Modal */}
       {certDonation && (
-        <Modal title="🏆 Impact Certificate" onClose={() => setCertDonation(null)} wide>
+        <Modal title="Impact Certificate" onClose={() => setCertDonation(null)} wide>
           <style>{`@media print { .no-print { display: none !important; } body * { visibility: hidden; } #impact-cert, #impact-cert * { visibility: visible; } #impact-cert { position: fixed; top: 0; left: 0; width: 100%; } }`}</style>
           <div id="impact-cert" style={{ background: `linear-gradient(145deg, ${COLORS.navy}, ${COLORS.primary})`, borderRadius: 20, padding: "36px 40px", color: "#fff", textAlign: "center", marginBottom: 20 }}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>🕊️</div>
+            <div style={{ fontSize: 48, marginBottom: 8 }}></div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, opacity: 0.7, marginBottom: 4 }}>KAFAALE QAAD · HUMANITARIAN AID PLATFORM</div>
             <div style={{ fontSize: 28, fontWeight: 900, margin: "12px 0 6px" }}>Certificate of Impact</div>
             <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 24 }}>This certifies that the following contribution reached its beneficiary</div>
@@ -4546,7 +4546,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
               ))}
             </div>
             <div style={{ background: "#10B981", borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
-              ✅ Aid Delivered & Confirmed — {certDonation.case?.completedAt ? new Date(certDonation.case.completedAt).toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" }) : "Completed"}
+              Aid Delivered & Confirmed — {certDonation.case?.completedAt ? new Date(certDonation.case.completedAt).toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" }) : "Completed"}
             </div>
             <div style={{ fontSize: 11, opacity: 0.55 }}>Issued by Kafaale Qaad Hope Society · kafaaleqaad.org</div>
           </div>
@@ -4558,7 +4558,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
               const styles = `*{box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;margin:0;padding:32px;background:#fff}`;
               const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Impact Certificate</title><style>${styles}</style></head><body>${el.outerHTML}</body></html>`;
               openPrintWindow(html, "Impact Certificate");
-            }} style={{ flex: 2 }}>🖨️ Print / Save as PDF</Btn>
+            }} style={{ flex: 2 }}>Print / Save as PDF</Btn>
           </div>
         </Modal>
       )}
@@ -4584,10 +4584,10 @@ const MySponshorshipsTab = () => {
 
   if (sponsorships.length === 0) return (
     <div style={{ background: "#fff", borderRadius: 16, padding: 48, textAlign: "center", color: COLORS.muted, boxShadow: "0 2px 8px #0001" }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>🌱</div>
+      <div style={{ fontSize: 48, marginBottom: 12 }}></div>
       <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No long-term sponsorships yet</div>
       <div style={{ fontSize: 13, marginBottom: 20 }}>Sponsor a child, family, or program for ongoing monthly support with progress updates.</div>
-      <Btn variant="primary" onClick={() => navigate("/programs")}>🌱 Explore Programs →</Btn>
+      <Btn variant="primary" onClick={() => navigate("/programs")}>Explore Programs →</Btn>
     </div>
   );
 
@@ -4596,7 +4596,7 @@ const MySponshorshipsTab = () => {
       {sponsorships.map(s => {
         const b = s.beneficiary;
         if (!b) return null;
-        const pt = PROGRAM_TYPE_LABELS[b.programType] || { icon: "👤", color: COLORS.primary, label: b.programType };
+        const pt = PROGRAM_TYPE_LABELS[b.programType] || { icon: "", color: COLORS.primary, label: b.programType };
         const updates = b.monthlyUpdates || [];
         return (
           <div key={s.id} style={{ background: "#fff", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 16px #0002", border: `1.5px solid ${pt.color}30` }}>
@@ -4607,7 +4607,7 @@ const MySponshorshipsTab = () => {
                   <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 2 }}>{pt.icon} {b.program?.name || pt.label}</div>
                   <div style={{ fontSize: 17, fontWeight: 800 }}>{b.publicId}</div>
                   <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>
-                    {b.publicAge ? `${b.publicAge} years old · ` : ""}{b.publicGender ? `${b.publicGender} · ` : ""}📍 {b.publicCity || "—"}
+                    {b.publicAge ? `${b.publicAge} years old · ` : ""}{b.publicGender ? `${b.publicGender} · ` : ""}{b.publicCity || "—"}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
@@ -4621,7 +4621,7 @@ const MySponshorshipsTab = () => {
             {/* Progress timeline */}
             {updates.length > 0 && (
               <div style={{ padding: "16px 20px" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 12 }}>📊 Progress Journey</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 12 }}>Progress Journey</div>
                 <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
                   {updates.map((u, i) => (
                     <div key={u.id} style={{ minWidth: 160, background: "#F8FAFC", borderRadius: 12, padding: "12px 14px", border: `1px solid ${COLORS.border}`, flexShrink: 0 }}>
@@ -4639,7 +4639,7 @@ const MySponshorshipsTab = () => {
                       {u.deliveriesMade?.length > 0 && (
                         <div style={{ marginTop: 6 }}>
                           {u.deliveriesMade.map((d, j) => (
-                            <div key={j} style={{ fontSize: 10, color: COLORS.secondary, fontWeight: 600 }}>✅ {d}</div>
+                            <div key={j} style={{ fontSize: 10, color: COLORS.secondary, fontWeight: 600 }}>{d}</div>
                           ))}
                         </div>
                       )}
@@ -4654,7 +4654,7 @@ const MySponshorshipsTab = () => {
 
             {updates.length === 0 && (
               <div style={{ padding: "16px 20px", fontSize: 13, color: COLORS.muted, textAlign: "center" }}>
-                📊 Monthly updates will appear here after the first month.
+                Monthly updates will appear here after the first month.
               </div>
             )}
           </div>
@@ -4681,10 +4681,10 @@ const ALL_ROLES = [
   { value: "user",                label: "User (report + donate)"    },
   { value: "reporter",            label: "Reporter"                  },
   { value: "donor",               label: "Donor"                     },
-  { value: "field_agent",         label: "🔍 Field Agent"            },
-  { value: "verification_office", label: "🏛️ Verification Office"   },
-  { value: "program_manager",     label: "🌱 Program Manager"        },
-  { value: "project_manager",     label: "🏗️ Project Manager"       },
+  { value: "field_agent",         label: "Field Agent"            },
+  { value: "verification_office", label: "Verification Office"   },
+  { value: "program_manager",     label: "Program Manager"        },
+  { value: "project_manager",     label: "Project Manager"       },
   { value: "admin",               label: "🟠 Admin"                  },
   { value: "super_admin",         label: "🔴 Super Admin"            },
 ];
@@ -4903,7 +4903,7 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
                       title={isSuperAdmin ? "Click to change role" : ""}
                       style={{ background: rc.bg, color: rc.text, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: isSuperAdmin ? "pointer" : "default", display: "inline-flex", alignItems: "center", gap: 4 }}>
                       {(u.role || "").replace(/_/g, " ")}
-                      {isSuperAdmin && <span style={{ fontSize: 9, opacity: 0.6 }}>✏️</span>}
+                      {isSuperAdmin && <span style={{ fontSize: 9, opacity: 0.6 }}></span>}
                     </span>
                   )}
                 </td>
@@ -5102,18 +5102,18 @@ const NotebookPanel = ({ users = [], showToast }) => {
 
 // ─── SITE SETTINGS PANEL (super admin) ───────────────────────────────────────
 const PAGE_DEFAULTS = {
-  about:        { label: "About Us",       path: "/about",        icon: "🏛️", group: "About" },
-  howItWorks:   { label: "How We Work",    path: "/how-it-works", icon: "⚙️", group: "About" },
-  cases:        { label: "Cases",          path: "/cases",        icon: "📋", group: "Operations" },
-  programs:     { label: "Programs",       path: "/programs",     icon: "🌱", group: "Operations" },
-  projects:     { label: "Projects",       path: "/projects",     icon: "🏗️", group: "Operations" },
-  donate:       { label: "Donate",         path: "/donate",       icon: "❤️", group: "Give" },
-  partners:     { label: "Partners",       path: "/partners",     icon: "🌐", group: "Give" },
-  stories:      { label: "Stories",        path: "/stories",      icon: "📰", group: "More" },
-  volunteer:    { label: "Volunteer",      path: "/volunteer",    icon: "🤝", group: "More" },
-  faq:          { label: "FAQ",            path: "/faq",          icon: "❓", group: "More" },
+  about:        { label: "About Us",       path: "/about",        icon: "", group: "About" },
+  howItWorks:   { label: "How We Work",    path: "/how-it-works", icon: "", group: "About" },
+  cases:        { label: "Cases",          path: "/cases",        icon: "", group: "Operations" },
+  programs:     { label: "Programs",       path: "/programs",     icon: "", group: "Operations" },
+  projects:     { label: "Projects",       path: "/projects",     icon: "", group: "Operations" },
+  donate:       { label: "Donate",         path: "/donate",       icon: "", group: "Give" },
+  partners:     { label: "Partners",       path: "/partners",     icon: "", group: "Give" },
+  stories:      { label: "Stories",        path: "/stories",      icon: "", group: "More" },
+  volunteer:    { label: "Volunteer",      path: "/volunteer",    icon: "", group: "More" },
+  faq:          { label: "FAQ",            path: "/faq",          icon: "", group: "More" },
   updates:      { label: "Updates",        path: "/updates",      icon: "🚨", group: "More" },
-  contact:      { label: "Contact",        path: "/contact",      icon: "📬", group: "Contact" },
+  contact:      { label: "Contact",        path: "/contact",      icon: "", group: "Contact" },
 };
 
 const SITE_INFO_DEFAULTS = {
@@ -5276,14 +5276,14 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
   const groups = [...new Set(Object.values(PAGE_DEFAULTS).map(p => p.group))];
 
   const STABS = [
-    { id: "pages",       label: "📄 Page Visibility" },
-    { id: "siteinfo",   label: "🏢 Site Information" },
+    { id: "pages",       label: "Page Visibility" },
+    { id: "siteinfo",   label: "Site Information" },
     { id: "homepage",   label: "🏠 Homepage Content" },
-    { id: "cases_display", label: "📋 Cases Display" },
-    { id: "social",     label: "📱 Social & Contact" },
-    { id: "team",       label: "👥 Meet the Team" },
+    { id: "cases_display", label: "Cases Display" },
+    { id: "social",     label: "Social & Contact" },
+    { id: "team",       label: "Meet the Team" },
     { id: "updates_mgr",label: "🚨 Updates" },
-    { id: "categories", label: "🏷️ Categories" },
+    { id: "categories", label: "Categories" },
   ];
 
   // ── Cases display settings ───────────────────────────────────────
@@ -5319,7 +5319,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>⚙️ Site Settings</h2>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>Site Settings</h2>
         <p style={{ margin: "4px 0 0", color: C.muted, fontSize: 13 }}>
           {isSuperAdmin ? "Full control over the platform — pages, content, and site information." : "View-only. Only Super Admins can make changes."}
         </p>
@@ -5342,7 +5342,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
       {settingsTab === "categories" && (
         <div>
           <div style={{ background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 12, padding: "14px 18px", marginBottom: 24, display: "flex", gap: 10 }}>
-            <span style={{ fontSize: 18 }}>💡</span>
+            <span style={{ fontSize: 18 }}></span>
             <div style={{ fontSize: 13, color: "#92400E" }}>
               Add or remove categories used across the site. Removing a category only takes it off the lists — existing cases, stories, and projects already tagged with it keep their tag.
             </div>
@@ -5359,7 +5359,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
       {settingsTab === "pages" && (
         <div>
           <div style={{ background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 12, padding: "14px 18px", marginBottom: 24, display: "flex", gap: 10 }}>
-            <span style={{ fontSize: 18 }}>💡</span>
+            <span style={{ fontSize: 18 }}></span>
             <div style={{ fontSize: 13, color: "#92400E" }}>
               <strong>Toggling a page OFF</strong> hides it from the public navigation and shows a "Coming Soon" message when visited directly. Core pages (Home, Login) are always visible.
             </div>
@@ -5489,7 +5489,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
             ))}
           </div>
           <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "14px 18px", marginBottom: 24, fontSize: 13, color: "#065F46" }}>
-            💡 Impact story cards on the homepage are managed under the <strong>Impact Stories</strong> tab.
+            Impact story cards on the homepage are managed under the <strong>Impact Stories</strong> tab.
           </div>
           {isSuperAdmin && (
             <button onClick={saveSiteInfo} style={{ padding: "11px 28px", borderRadius: 10, border: "none", cursor: "pointer", background: C.primary, color: "#fff", fontWeight: 800, fontSize: 14 }}>
@@ -5504,9 +5504,9 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
         <div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20, marginBottom: 28 }}>
             {[
-              { key: "facebook",  label: "Facebook URL",  icon: "📘" },
-              { key: "twitter",   label: "Twitter/X URL", icon: "🐦" },
-              { key: "linkedin",  label: "LinkedIn URL",  icon: "💼" },
+              { key: "facebook",  label: "Facebook URL",  icon: "" },
+              { key: "twitter",   label: "Twitter/X URL", icon: "" },
+              { key: "linkedin",  label: "LinkedIn URL",  icon: "" },
             ].map(({ key, label, icon }) => (
               <div key={key}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: C.muted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>{icon} {label}</label>
@@ -5600,12 +5600,12 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                       <div style={{ width:72, height:72, borderRadius:"50%", overflow:"hidden", border:`2px solid ${C.border}`, flexShrink:0, background:C.bg, display:"flex", alignItems:"center", justifyContent:"center" }}>
                         {memberForm.photo
                           ? <img src={memberForm.photo} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                          : <span style={{ fontSize:28, opacity:0.3 }}>👤</span>}
+                          : <span style={{ fontSize:28, opacity:0.3 }}></span>}
                       </div>
                       <div style={{ flex:1, minWidth:160 }}>
                         {/* File upload */}
                         <label style={{ display:"block", padding:"8px 14px", background:C.primary+"15", color:C.primary, borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, textAlign:"center", marginBottom:8, border:`1px solid ${C.primary}40` }}>
-                          📷 Upload Photo
+                          Upload Photo
                           <input type="file" accept="image/*" style={{ display:"none" }} onChange={e => {
                             const file = e.target.files[0];
                             if (!file) return;
@@ -5667,7 +5667,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                     <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:4, flexWrap:"wrap" }}>
                       <span style={{ background:tc+"18", color:tc, borderRadius:20, padding:"2px 10px", fontSize:10, fontWeight:800 }}>{u.type}</span>
                       <span style={{ fontSize:11, color:C.muted }}>{u.date}</span>
-                      <span style={{ fontSize:11, color:C.muted }}>📍 {u.location}</span>
+                      <span style={{ fontSize:11, color:C.muted }}>{u.location}</span>
                     </div>
                     <div style={{ fontSize:14, fontWeight:700, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.title || <em style={{color:C.muted}}>Untitled</em>}</div>
                   </div>
@@ -5759,18 +5759,18 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
       {settingsTab === "cases_display" && (
         <div>
           <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:12, padding:"14px 18px", marginBottom:24, display:"flex", gap:10 }}>
-            <span style={{ fontSize:18 }}>📋</span>
+            <span style={{ fontSize:18 }}></span>
             <div style={{ fontSize:13, color:"#1E40AF" }}>
               Control what information is displayed on the public <strong>Cases page</strong>. Changes apply immediately for all visitors.
             </div>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:12 }}>
             {[
-              { key:"showTrustBadges",       icon:"🔐", label:"Trust Badges Strip",     desc:"Field Verified · Privacy · Escrow badges at top" },
-              { key:"showVerificationBadge", icon:"✅", label:"'Field Verified' Badge",  desc:"Green verified badge on each case card" },
-              { key:"showFundingBar",        icon:"💰", label:"Funding Progress Bar",    desc:"% funded bar and goal amount on cards" },
-              { key:"showCategoryFilter",    icon:"🗂️", label:"Category Filter",         desc:"Food, Medical, Shelter… filter dropdown" },
-              { key:"showUrgencyFilter",     icon:"⚡", label:"Urgency Filter",          desc:"Critical, High, Medium, Low filter" },
+              { key:"showTrustBadges",       icon:"", label:"Trust Badges Strip",     desc:"Field Verified · Privacy · Escrow badges at top" },
+              { key:"showVerificationBadge", icon:"", label:"'Field Verified' Badge",  desc:"Green verified badge on each case card" },
+              { key:"showFundingBar",        icon:"", label:"Funding Progress Bar",    desc:"% funded bar and goal amount on cards" },
+              { key:"showCategoryFilter",    icon:"", label:"Category Filter",         desc:"Food, Medical, Shelter… filter dropdown" },
+              { key:"showUrgencyFilter",     icon:"", label:"Urgency Filter",          desc:"Critical, High, Medium, Low filter" },
               { key:"showTableView",         icon:"☰",  label:"Table View Option",       desc:"Allow visitors to switch to table layout" },
             ].map(({ key, icon, label, desc }) => {
               const on = casesVis[key] !== false;
@@ -5794,7 +5794,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
             })}
           </div>
           <div style={{ marginTop:20, padding:"12px 16px", background:"#F0FDF4", borderRadius:10, fontSize:12, color:"#166534" }}>
-            ✅ Changes take effect immediately — no save needed.
+            Changes take effect immediately — no save needed.
           </div>
         </div>
       )}
@@ -5857,14 +5857,14 @@ const CommunityStoriesPanel = ({ showToast }) => {
     setPublished(newPub);
     window.dispatchEvent(new Event("storage"));
     const isNow = newPub.find(p => p.id === pub.id)?.featured;
-    showToast(isNow ? "⭐ Story is now featured on the Stories page" : "Story removed from featured");
+    showToast(isNow ? "Story is now featured on the Stories page" : "Story removed from featured");
   };
 
   const rowStyle = { background:"#fff", borderRadius:12, padding:"14px 18px", border:`1px solid ${C.border}`, marginBottom:10 };
   const TABS = [
-    { id:"pending",   label:`⏳ Pending Review (${pending.length})`  },
-    { id:"published", label:`✅ Published (${published.length})`     },
-    { id:"rejected",  label:`❌ Rejected (${rejected.length})`       },
+    { id:"pending",   label:`Pending Review (${pending.length})`  },
+    { id:"published", label:`Published (${published.length})`     },
+    { id:"rejected",  label:`Rejected (${rejected.length})`       },
   ];
 
   const shown = tab === "pending" ? pending : tab === "published" ? published : rejected;
@@ -5872,7 +5872,7 @@ const CommunityStoriesPanel = ({ showToast }) => {
   return (
     <div>
       <div style={{ marginBottom:24 }}>
-        <h2 style={{ margin:0, fontSize:22, fontWeight:800 }}>📝 Community Story Submissions</h2>
+        <h2 style={{ margin:0, fontSize:22, fontWeight:800 }}>Community Story Submissions</h2>
         <p style={{ margin:"4px 0 0", color:C.muted, fontSize:13 }}>Review stories submitted by community members and publish to the platform.</p>
       </div>
 
@@ -5891,7 +5891,7 @@ const CommunityStoriesPanel = ({ showToast }) => {
 
       {shown.length === 0 && (
         <div style={{ textAlign:"center", padding:"60px 20px", color:C.muted }}>
-          <div style={{ fontSize:48, marginBottom:12 }}>📭</div>
+          <div style={{ fontSize:48, marginBottom:12 }}></div>
           <div style={{ fontSize:16, fontWeight:700 }}>No {tab} submissions yet</div>
         </div>
       )}
@@ -5901,11 +5901,11 @@ const CommunityStoriesPanel = ({ showToast }) => {
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, flexWrap:"wrap" }}>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ display:"flex", gap:8, marginBottom:6, flexWrap:"wrap" }}>
-                {sub.featured && <span style={{ background:"#FEF9C3", color:"#92400E", borderRadius:6, padding:"2px 10px", fontSize:11, fontWeight:800 }}>⭐ Featured</span>}
+                {sub.featured && <span style={{ background:"#FEF9C3", color:"#92400E", borderRadius:6, padding:"2px 10px", fontSize:11, fontWeight:800 }}>Featured</span>}
                 <span style={{ background:C.primary+"15", color:C.primary, borderRadius:6, padding:"2px 10px", fontSize:11, fontWeight:800 }}>{sub.category}</span>
-                {sub.location && <span style={{ fontSize:11, color:C.muted }}>📍 {sub.location}</span>}
-                <span style={{ fontSize:11, color:C.muted }}>👤 {sub.authorName}</span>
-                <span style={{ fontSize:11, color:C.muted }}>🗓 {new Date(sub.submittedAt).toLocaleDateString()}</span>
+                {sub.location && <span style={{ fontSize:11, color:C.muted }}>{sub.location}</span>}
+                <span style={{ fontSize:11, color:C.muted }}>{sub.authorName}</span>
+                <span style={{ fontSize:11, color:C.muted }}>{new Date(sub.submittedAt).toLocaleDateString()}</span>
               </div>
               <div style={{ fontSize:15, fontWeight:800, color:C.text, marginBottom:4 }}>{sub.title}</div>
               <div style={{ fontSize:12, color:C.muted, lineHeight:1.6, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
@@ -5914,12 +5914,12 @@ const CommunityStoriesPanel = ({ showToast }) => {
             </div>
             <div style={{ display:"flex", gap:8, flexShrink:0 }}>
               <button onClick={() => setPreview(sub)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.border}`, background:"#fff", cursor:"pointer", fontSize:12, fontWeight:700, color:C.text }}>
-                👁 Preview
+                Preview
               </button>
               {tab === "pending" && (
                 <>
                   <button onClick={() => publish(sub)} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:C.secondary, cursor:"pointer", fontSize:12, fontWeight:800, color:"#fff" }}>
-                    ✅ Publish
+                    Publish
                   </button>
                   <button onClick={() => reject(sub)} style={{ padding:"7px 14px", borderRadius:8, border:"none", background:"#FEE2E2", cursor:"pointer", fontSize:12, fontWeight:700, color:"#C0392B" }}>
                     ✕ Reject
@@ -5929,7 +5929,7 @@ const CommunityStoriesPanel = ({ showToast }) => {
               {tab === "published" && (
                 <>
                   <button onClick={() => toggleFeaturePub(sub)} style={{ padding:"7px 14px", borderRadius:8, border: sub.featured ? "1.5px solid #FCD34D" : `1px solid ${C.border}`, background: sub.featured ? "#FEF9C3" : "#fff", cursor:"pointer", fontSize:12, fontWeight:700, color: sub.featured ? "#92400E" : C.muted }}>
-                    {sub.featured ? "⭐ Featured" : "☆ Feature"}
+                    {sub.featured ? "Featured" : "☆ Feature"}
                   </button>
                   <button onClick={() => unpublish(sub)} style={{ padding:"7px 14px", borderRadius:8, border:"none", background:"#FEE2E2", cursor:"pointer", fontSize:12, fontWeight:700, color:"#C0392B" }}>
                     Unpublish
@@ -5949,8 +5949,8 @@ const CommunityStoriesPanel = ({ showToast }) => {
             <button onClick={() => setPreview(null)} style={{ position:"absolute", top:14, right:14, background:"#F3F4F6", border:"none", borderRadius:8, padding:"6px 12px", cursor:"pointer", fontSize:16 }}>✕</button>
             <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap" }}>
               <span style={{ background:C.primary+"15", color:C.primary, borderRadius:6, padding:"3px 12px", fontSize:11, fontWeight:800 }}>{preview.category}</span>
-              {preview.location && <span style={{ fontSize:11, color:C.muted }}>📍 {preview.location}</span>}
-              <span style={{ fontSize:11, color:C.muted }}>👤 {preview.authorName}</span>
+              {preview.location && <span style={{ fontSize:11, color:C.muted }}>{preview.location}</span>}
+              <span style={{ fontSize:11, color:C.muted }}>{preview.authorName}</span>
             </div>
             <h3 style={{ fontSize:20, fontWeight:900, margin:"0 0 16px", color:C.navy }}>{preview.title}</h3>
             <div style={{ marginBottom:14 }}>
@@ -5964,7 +5964,7 @@ const CommunityStoriesPanel = ({ showToast }) => {
             {preview.status === "pending" && (
               <div style={{ display:"flex", gap:10 }}>
                 <button onClick={() => publish(preview)} style={{ flex:1, padding:"12px", borderRadius:10, border:"none", background:C.secondary, cursor:"pointer", fontWeight:800, fontSize:14, color:"#fff" }}>
-                  ✅ Publish This Story
+                  Publish This Story
                 </button>
                 <button onClick={() => reject(preview)} style={{ padding:"12px 20px", borderRadius:10, border:"none", background:"#FEE2E2", cursor:"pointer", fontWeight:700, fontSize:14, color:"#C0392B" }}>
                   Reject
@@ -5995,7 +5995,7 @@ const ImpactStoriesPanel = ({ showToast }) => {
     const updated = stories.map(s => s.id === id ? { ...s, featured: !s.featured } : s);
     save(updated);
     const isNowFeatured = updated.find(s => s.id === id)?.featured;
-    showToast(isNowFeatured ? "⭐ Story is now featured on the Stories page" : "Story removed from featured", isNowFeatured ? "success" : "info");
+    showToast(isNowFeatured ? "Story is now featured on the Stories page" : "Story removed from featured", isNowFeatured ? "success" : "info");
   };
 
   const handleImg = (side, file) => {
@@ -6048,7 +6048,7 @@ const ImpactStoriesPanel = ({ showToast }) => {
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24, flexWrap:"wrap", gap:10 }}>
         <div>
-          <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>📸 Impact Stories (Before & After)</h3>
+          <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>Impact Stories (Before & After)</h3>
           <p style={{ margin:"4px 0 0", fontSize:13, color:COLORS.muted }}>Stories you save here will appear on the public homepage.</p>
         </div>
         <Btn variant="primary" onClick={() => { setShowForm(!showForm); setEditing(null); setForm({ title:"", category:"", location:"", beforeDesc:"", afterDesc:"", daysToDeliver:"", amountDistributed:"", beforeImg:null, afterImg:null, beforePreview:"", afterPreview:"" }); }}>
@@ -6095,7 +6095,7 @@ const ImpactStoriesPanel = ({ showToast }) => {
                     </div>
                   ) : (
                     <label style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, cursor:"pointer", gap:8 }}>
-                      <span style={{ fontSize:32 }}>{side==="before"?"📷":"🌟"}</span>
+                      <span style={{ fontSize:32 }}>{side==="before"?"":""}</span>
                       <span style={{ fontSize:12, color:COLORS.muted, textAlign:"center" }}>Click to upload {side} photo<br/><em>JPG, PNG (max 5MB)</em></span>
                       <input type="file" accept="image/*" style={{ display:"none" }} onChange={e=>handleImg(side, e.target.files[0])} />
                     </label>
@@ -6107,14 +6107,14 @@ const ImpactStoriesPanel = ({ showToast }) => {
 
           <div style={{ display:"flex", gap:10, marginTop:16, justifyContent:"flex-end" }}>
             <Btn variant="ghost" onClick={() => { setShowForm(false); setEditing(null); }}>Cancel</Btn>
-            <Btn variant="success" onClick={handleSubmit}>{editing ? "💾 Save Changes" : "✅ Publish Story"}</Btn>
+            <Btn variant="success" onClick={handleSubmit}>{editing ? "Save Changes" : "Publish Story"}</Btn>
           </div>
         </div>
       )}
 
       {stories.length === 0 && !showForm && (
         <div style={{ textAlign:"center", padding:"60px 20px", color:COLORS.muted }}>
-          <div style={{ fontSize:48, marginBottom:12 }}>📸</div>
+          <div style={{ fontSize:48, marginBottom:12 }}></div>
           <div style={{ fontSize:16, fontWeight:700, marginBottom:8 }}>No impact stories yet</div>
           <div style={{ fontSize:13 }}>Add your first before & after story to display on the homepage.</div>
         </div>
@@ -6125,7 +6125,7 @@ const ImpactStoriesPanel = ({ showToast }) => {
           <div key={s.id} style={{ background:"#fff", border:`1px solid ${COLORS.border}`, borderRadius:16, overflow:"hidden", boxShadow:"0 2px 10px #0002" }}>
             {/* Header */}
             <div style={{ background: s.featured ? "linear-gradient(135deg,#FEF9C3,#FEF3C7)" : `linear-gradient(135deg,${COLORS.primary}14,${COLORS.secondary}12)`, padding:"14px 18px", borderBottom:`1px solid ${s.featured ? "#FCD34D" : COLORS.border}` }}>
-              {s.featured && <div style={{ fontSize:10, fontWeight:800, color:"#92400E", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6 }}>⭐ Featured Story</div>}
+              {s.featured && <div style={{ fontSize:10, fontWeight:800, color:"#92400E", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6 }}>Featured Story</div>}
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
                 <div>
                   <div style={{ fontSize:11, fontWeight:700, color:COLORS.muted, textTransform:"uppercase", letterSpacing:1 }}>{s.category}{s.location ? ` · ${s.location}` : ""}</div>
@@ -6133,7 +6133,7 @@ const ImpactStoriesPanel = ({ showToast }) => {
                 </div>
                 <div style={{ display:"flex", gap:6, flexShrink:0, flexWrap:"wrap", justifyContent:"flex-end" }}>
                   <button onClick={() => toggleFeature(s.id)} style={{ padding:"5px 12px", fontSize:12, background: s.featured ? "#FEF9C3" : COLORS.bg, color: s.featured ? "#92400E" : COLORS.muted, border: s.featured ? "1.5px solid #FCD34D" : `1px solid ${COLORS.border}`, borderRadius:7, cursor:"pointer", fontWeight:700 }}>
-                    {s.featured ? "⭐ Featured" : "☆ Feature"}
+                    {s.featured ? "Featured" : "☆ Feature"}
                   </button>
                   <button onClick={() => handleEdit(s)} style={{ padding:"5px 12px", fontSize:12, background:COLORS.primary+"15", color:COLORS.primary, border:"none", borderRadius:7, cursor:"pointer", fontWeight:700 }}>Edit</button>
                   <button onClick={() => handleDelete(s.id)} style={{ padding:"5px 12px", fontSize:12, background:"#FEE2E2", color:"#DC2626", border:"none", borderRadius:7, cursor:"pointer", fontWeight:700 }}>Delete</button>
@@ -6143,7 +6143,7 @@ const ImpactStoriesPanel = ({ showToast }) => {
 
             {/* Before/After photos */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", position:"relative" }}>
-              {[["before","Before",s.beforeImg,"#374151","😔"],["after","After",s.afterImg,"#065F46","😊"]].map(([side, lbl, img, color, emoji]) => (
+              {[["before","Before",s.beforeImg,"#374151",""],["after","After",s.afterImg,"#065F46",""]].map(([side, lbl, img, color, emoji]) => (
                 <div key={side} style={{ position:"relative" }}>
                   {img ? (
                     <img src={img} alt={side} style={{ width:"100%", height:160, objectFit:"cover", display:"block" }} />
@@ -6305,7 +6305,7 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
   return (
     <div>
       <div style={{ marginBottom:24 }}>
-        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>📥 Bulk Child Import</h3>
+        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>Bulk Child Import</h3>
         <p style={{ margin:"4px 0 0", fontSize:13, color:COLORS.muted }}>Import up to hundreds of children at once from a CSV/Excel file. You can create individual cases or enroll them all in one program.</p>
       </div>
 
@@ -6316,7 +6316,7 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
             <div style={{ fontWeight:800, fontSize:14, color:COLORS.primary, marginBottom:4 }}>Step 1 — Download the Excel Template</div>
             <div style={{ fontSize:13, color:COLORS.muted }}>Fill in one child per row. Required columns: Name, Urgency, Description. All others optional.</div>
           </div>
-          <Btn variant="primary" onClick={generateExcelTemplate}>⬇ Download Template (.csv)</Btn>
+          <Btn variant="primary" onClick={generateExcelTemplate}>Download Template (.csv)</Btn>
         </div>
         <div style={{ marginTop:12, display:"flex", flexWrap:"wrap", gap:6 }}>
           {XLSX_TEMPLATE_COLS.map((c,i) => (
@@ -6329,7 +6329,7 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
       <div style={{ background:"#fff", border:`1px solid ${COLORS.border}`, borderRadius:14, padding:20, marginBottom:20 }}>
         <div style={{ fontWeight:800, fontSize:14, color:COLORS.text, marginBottom:14 }}>Step 2 — Upload Filled File</div>
         <label style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", border:`2px dashed ${fileName ? COLORS.secondary : COLORS.border}`, borderRadius:12, padding:32, cursor:"pointer", gap:8, background: fileName ? "#F0FDF4" : "#FAFAFA" }}>
-          <span style={{ fontSize:36 }}>{fileName ? "✅" : "📂"}</span>
+          <span style={{ fontSize:36 }}>{fileName ? "" : ""}</span>
           <span style={{ fontSize:14, fontWeight:700, color: fileName ? COLORS.secondary : COLORS.muted }}>
             {fileName ? fileName : "Click to upload CSV / Excel file"}
           </span>
@@ -6347,8 +6347,8 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
           <div style={{ fontWeight:800, fontSize:14, color:COLORS.text, marginBottom:14 }}>Step 3 — Choose Import Mode</div>
           <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr":"1fr 1fr", gap:12, marginBottom:20 }}>
             {[
-              { val:"individual", icon:"👤", title:"Individual Cases", desc:`Create ${rows.length} separate cases, each child managed independently. Admin can track each case through the full pipeline.` },
-              { val:"program",    icon:"👥", title:"Group Program",     desc:`Enroll all ${rows.length} children into one program. Ideal for orphan programs, school feeding, or shelter projects.` },
+              { val:"individual", icon:"", title:"Individual Cases", desc:`Create ${rows.length} separate cases, each child managed independently. Admin can track each case through the full pipeline.` },
+              { val:"program",    icon:"", title:"Group Program",     desc:`Enroll all ${rows.length} children into one program. Ideal for orphan programs, school feeding, or shelter projects.` },
             ].map(m => (
               <div key={m.val} onClick={() => setImportMode(m.val)} style={{ border:`2px solid ${importMode===m.val?COLORS.primary:COLORS.border}`, background: importMode===m.val?COLORS.primary+"08":"#fff", borderRadius:12, padding:16, cursor:"pointer" }}>
                 <div style={{ fontSize:28, marginBottom:8 }}>{m.icon}</div>
@@ -6378,7 +6378,7 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
       {/* Validation errors */}
       {errors.length > 0 && (
         <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:12, padding:16, marginBottom:20 }}>
-          <div style={{ fontWeight:700, color:"#DC2626", marginBottom:8 }}>⚠️ {errors.length} validation error(s):</div>
+          <div style={{ fontWeight:700, color:"#DC2626", marginBottom:8 }}>{errors.length} validation error(s):</div>
           {errors.slice(0,8).map((e,i) => <div key={i} style={{ fontSize:12, color:"#B91C1C", marginBottom:4 }}>• {e}</div>)}
           {errors.length > 8 && <div style={{ fontSize:12, color:COLORS.muted }}>…and {errors.length-8} more</div>}
         </div>
@@ -6389,8 +6389,8 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
         <div style={{ background:"#fff", border:`1px solid ${COLORS.border}`, borderRadius:14, padding:20, marginBottom:20 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, flexWrap:"wrap", gap:8 }}>
             <div style={{ fontWeight:800, fontSize:14 }}>Preview — {rows.length} records</div>
-            {!submitted && <Btn variant="success" onClick={handleSubmit} disabled={submitting}>{submitting ? "Importing…" : `✅ Import ${rows.length} Children`}</Btn>}
-            {submitted && <span style={{ color:COLORS.secondary, fontWeight:700, fontSize:14 }}>✅ Import complete!</span>}
+            {!submitted && <Btn variant="success" onClick={handleSubmit} disabled={submitting}>{submitting ? "Importing…" : `Import ${rows.length} Children`}</Btn>}
+            {submitted && <span style={{ color:COLORS.secondary, fontWeight:700, fontSize:14 }}>Import complete!</span>}
           </div>
           <div className="kf-table-wrap">
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
@@ -6440,11 +6440,11 @@ const PartnerApplicationsPanel = ({ showToast }) => {
     setSelected(null);
     showToast?.(`Application ${status}`, status === "approved" ? "success" : "error");
   };
-  const ST = { pending:{ bg:"#FEF3C7", color:"#92400E", label:"⏳ Pending" }, approved:{ bg:"#D1FAE5", color:"#065F46", label:"✅ Approved" }, rejected:{ bg:"#FEE2E2", color:"#991B1B", label:"❌ Rejected" } };
+  const ST = { pending:{ bg:"#FEF3C7", color:"#92400E", label:"Pending" }, approved:{ bg:"#D1FAE5", color:"#065F46", label:"Approved" }, rejected:{ bg:"#FEE2E2", color:"#991B1B", label:"Rejected" } };
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>🤝 Partner Applications</h3>
+        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>Partner Applications</h3>
         <span style={{ fontSize:13, color:COLORS.muted }}>{apps.length} applications · {apps.filter(a=>a.status==="pending").length} pending review</span>
       </div>
       {apps.length === 0 && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.muted, background:"#fff", borderRadius:16 }}>No partner applications yet</div>}
@@ -6460,8 +6460,8 @@ const PartnerApplicationsPanel = ({ showToast }) => {
               <span style={{ ...((ST[a.status]||ST.pending)), borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>{(ST[a.status]||ST.pending).label}</span>
               <button onClick={() => setSelected(a)} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.primary, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Review</button>
               {a.status === "pending" && <>
-                <button onClick={() => updateStatus(a.id,"approved")} style={{ padding:"7px 14px", borderRadius:8, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>✅ Approve</button>
-                <button onClick={() => updateStatus(a.id,"rejected")} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>❌ Reject</button>
+                <button onClick={() => updateStatus(a.id,"approved")} style={{ padding:"7px 14px", borderRadius:8, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Approve</button>
+                <button onClick={() => updateStatus(a.id,"rejected")} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Reject</button>
               </>}
             </div>
           </div>
@@ -6482,8 +6482,8 @@ const PartnerApplicationsPanel = ({ showToast }) => {
             ))}
             {selected.status === "pending" && (
               <div style={{ display:"flex", gap:10, marginTop:20 }}>
-                <button onClick={() => updateStatus(selected.id,"approved")} style={{ flex:1, padding:"12px", borderRadius:10, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>✅ Approve Partner</button>
-                <button onClick={() => updateStatus(selected.id,"rejected")} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>❌ Reject</button>
+                <button onClick={() => updateStatus(selected.id,"approved")} style={{ flex:1, padding:"12px", borderRadius:10, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>Approve Partner</button>
+                <button onClick={() => updateStatus(selected.id,"rejected")} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>Reject</button>
               </div>
             )}
           </div>
@@ -6504,12 +6504,12 @@ const VolunteerApplicationsPanel = ({ showToast }) => {
     setSelected(null);
     showToast?.(`Volunteer application ${status}`, status === "approved" ? "success" : "error");
   };
-  const CAT_ICONS = { reporter:"📝", field:"🗺️", medical:"🏥", education:"🎓", legal:"⚖️", translator:"🌐", tech:"💻", coordinator:"🤝" };
-  const ST = { pending:{ bg:"#FEF3C7", color:"#92400E", label:"⏳ Pending" }, approved:{ bg:"#D1FAE5", color:"#065F46", label:"✅ Approved" }, rejected:{ bg:"#FEE2E2", color:"#991B1B", label:"❌ Rejected" } };
+  const CAT_ICONS = { reporter:"", field:"", medical:"🏥", education:"", legal:"", translator:"", tech:"", coordinator:"" };
+  const ST = { pending:{ bg:"#FEF3C7", color:"#92400E", label:"Pending" }, approved:{ bg:"#D1FAE5", color:"#065F46", label:"Approved" }, rejected:{ bg:"#FEE2E2", color:"#991B1B", label:"Rejected" } };
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>🙋 Volunteer Applications</h3>
+        <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>Volunteer Applications</h3>
         <span style={{ fontSize:13, color:COLORS.muted }}>{apps.length} applications · {apps.filter(a=>a.status==="pending").length} pending</span>
       </div>
       {apps.length === 0 && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.muted, background:"#fff", borderRadius:16 }}>No volunteer applications yet</div>}
@@ -6517,7 +6517,7 @@ const VolunteerApplicationsPanel = ({ showToast }) => {
         {apps.map(a => (
           <div key={a.id} style={{ background:"#fff", borderRadius:14, padding:"16px 20px", boxShadow:"0 2px 8px #0001", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, border:`1px solid ${COLORS.border}` }}>
             <div style={{ display:"flex", gap:12, alignItems:"center" }}>
-              <div style={{ width:44, height:44, borderRadius:"50%", background:COLORS.primary+"20", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{CAT_ICONS[a.category]||"🙋"}</div>
+              <div style={{ width:44, height:44, borderRadius:"50%", background:COLORS.primary+"20", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{CAT_ICONS[a.category]||""}</div>
               <div>
                 <div style={{ fontSize:15, fontWeight:800 }}>{a.name}</div>
                 <div style={{ fontSize:12, color:COLORS.muted }}>{a.category?.replace(/_/g," ")} · {a.city}, {a.country}</div>
@@ -6528,8 +6528,8 @@ const VolunteerApplicationsPanel = ({ showToast }) => {
               <span style={{ ...((ST[a.status]||ST.pending)), borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>{(ST[a.status]||ST.pending).label}</span>
               <button onClick={() => setSelected(a)} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.primary, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>View</button>
               {a.status === "pending" && <>
-                <button onClick={() => updateStatus(a.id,"approved")} style={{ padding:"7px 14px", borderRadius:8, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>✅ Approve</button>
-                <button onClick={() => updateStatus(a.id,"rejected")} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>❌ Reject</button>
+                <button onClick={() => updateStatus(a.id,"approved")} style={{ padding:"7px 14px", borderRadius:8, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Approve</button>
+                <button onClick={() => updateStatus(a.id,"rejected")} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Reject</button>
               </>}
             </div>
           </div>
@@ -6539,7 +6539,7 @@ const VolunteerApplicationsPanel = ({ showToast }) => {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
           <div style={{ background:"#fff", borderRadius:20, padding:28, maxWidth:520, width:"100%", maxHeight:"85vh", overflowY:"auto" }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
-              <h3 style={{ margin:0 }}>{CAT_ICONS[selected.category]||"🙋"} {selected.name}</h3>
+              <h3 style={{ margin:0 }}>{CAT_ICONS[selected.category]||""} {selected.name}</h3>
               <button onClick={() => setSelected(null)} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:COLORS.muted }}>✕</button>
             </div>
             {[["Role",selected.category],["City",selected.city],["Country",selected.country],["Email",selected.email],["Phone",selected.phone||"—"],["Availability",selected.availability||"—"],["Experience",selected.experience||"—"],["Motivation",selected.motivation||"—"]].map(([k,v])=>(
@@ -6550,8 +6550,8 @@ const VolunteerApplicationsPanel = ({ showToast }) => {
             ))}
             {selected.status === "pending" && (
               <div style={{ display:"flex", gap:10, marginTop:20 }}>
-                <button onClick={() => updateStatus(selected.id,"approved")} style={{ flex:1, padding:"12px", borderRadius:10, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>✅ Approve</button>
-                <button onClick={() => updateStatus(selected.id,"rejected")} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>❌ Reject</button>
+                <button onClick={() => updateStatus(selected.id,"approved")} style={{ flex:1, padding:"12px", borderRadius:10, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>Approve</button>
+                <button onClick={() => updateStatus(selected.id,"rejected")} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>Reject</button>
               </div>
             )}
           </div>
@@ -6644,7 +6644,7 @@ const HistoryPanel = ({ showToast }) => {
               </div>
             </div>
             <div style={{ display:"flex", gap:10 }}>
-              <button onClick={save} style={{ flex:1, padding:"12px", background:COLORS.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800 }}>💾 Save Record</button>
+              <button onClick={save} style={{ flex:1, padding:"12px", background:COLORS.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800 }}>Save Record</button>
               <button onClick={() => { setEditing(null); setForm(BLANK_HIST); }} style={{ padding:"12px 20px", background:"#F3F4F6", color:COLORS.text, border:"none", borderRadius:10, cursor:"pointer", fontWeight:700 }}>Cancel</button>
             </div>
           </div>
@@ -6668,11 +6668,11 @@ const HistoryPanel = ({ showToast }) => {
             <div style={{ padding:"14px 16px 18px" }}>
               <div style={{ fontSize:11, fontWeight:700, color:COLORS.primary, textTransform:"uppercase", letterSpacing:1, marginBottom:4 }}>{e.category||"Record"} · {e.date}</div>
               <div style={{ fontSize:15, fontWeight:800, marginBottom:4 }}>{e.title}</div>
-              {e.location && <div style={{ fontSize:12, color:COLORS.muted, marginBottom:6 }}>📍 {e.location}</div>}
+              {e.location && <div style={{ fontSize:12, color:COLORS.muted, marginBottom:6 }}>{e.location}</div>}
               <div style={{ fontSize:13, color:COLORS.muted, lineHeight:1.6 }}>{(e.description||"").slice(0,90)}{(e.description||"").length>90?"…":""}</div>
               <div style={{ display:"flex", gap:8, marginTop:12 }}>
-                <button onClick={() => startEdit(e)} style={{ padding:"6px 14px", borderRadius:8, background:COLORS.primary+"15", color:COLORS.primary, border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>✏️ Edit</button>
-                <button onClick={() => del(e.id)} style={{ padding:"6px 14px", borderRadius:8, background:"#FEE2E2", color:COLORS.danger, border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>🗑 Delete</button>
+                <button onClick={() => startEdit(e)} style={{ padding:"6px 14px", borderRadius:8, background:COLORS.primary+"15", color:COLORS.primary, border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Edit</button>
+                <button onClick={() => del(e.id)} style={{ padding:"6px 14px", borderRadius:8, background:"#FEE2E2", color:COLORS.danger, border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Delete</button>
               </div>
             </div>
           </div>
@@ -6727,21 +6727,21 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   const workflowAlerts  = newReports.length + investigateDone.length + proofSubmitted.length + pendingPayments.length;
 
   const SUPER_MODULES = [
-    { id:"workflow",   icon:"🔄", label:"Workflow",        sub:`${workflowAlerts} need action`, color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: workflowAlerts },
-    { id:"overview",   icon:"📊", label:"Overview",        sub:`${cases.length} cases`,         color:"#004B96", g:"linear-gradient(135deg,#004B96,#0072CE)", badge: pendingCases.length },
-    { id:"users",      icon:"👥", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
-    { id:"cases",      icon:"📋", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
-    { id:"donations",  icon:"💰", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:"#4B7D19", g:"linear-gradient(135deg,#4B7D19,#65A30D)", badge: donations.filter(d=>d.status==="pending").length },
-    { id:"analytics",  icon:"📈", label:"Analytics",       sub:"Charts & reports",               color:"#EA580C", g:"linear-gradient(135deg,#EA580C,#F97316)", badge: 0 },
-    { id:"programs",   icon:"🌱", label:"Programs",        sub:"Children enrolled",              color:"#059669", g:"linear-gradient(135deg,#059669,#10B981)", badge: 0 },
-    { id:"partners",   icon:"🤝", label:"Partners",        sub:`${partnerApps.filter(a=>a.status==="pending").length} pending`, color:"#2563EB", g:"linear-gradient(135deg,#2563EB,#3B82F6)", badge: partnerApps.filter(a=>a.status==="pending").length },
-    { id:"volunteers", icon:"🙋", label:"Volunteers",      sub:`${volApps.filter(a=>a.status==="pending").length} pending`,    color:"#9333EA", g:"linear-gradient(135deg,#9333EA,#C026D3)", badge: volApps.filter(a=>a.status==="pending").length },
-    { id:"impact_stories", icon:"📸", label:"Stories",    sub:"Impact content",                 color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: 0 },
+    { id:"workflow",   icon:"", label:"Workflow",        sub:`${workflowAlerts} need action`, color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: workflowAlerts },
+    { id:"overview",   icon:"", label:"Overview",        sub:`${cases.length} cases`,         color:"#004B96", g:"linear-gradient(135deg,#004B96,#0072CE)", badge: pendingCases.length },
+    { id:"users",      icon:"", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
+    { id:"cases",      icon:"", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
+    { id:"donations",  icon:"", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:"#4B7D19", g:"linear-gradient(135deg,#4B7D19,#65A30D)", badge: donations.filter(d=>d.status==="pending").length },
+    { id:"analytics",  icon:"", label:"Analytics",       sub:"Charts & reports",               color:"#EA580C", g:"linear-gradient(135deg,#EA580C,#F97316)", badge: 0 },
+    { id:"programs",   icon:"", label:"Programs",        sub:"Children enrolled",              color:"#059669", g:"linear-gradient(135deg,#059669,#10B981)", badge: 0 },
+    { id:"partners",   icon:"", label:"Partners",        sub:`${partnerApps.filter(a=>a.status==="pending").length} pending`, color:"#2563EB", g:"linear-gradient(135deg,#2563EB,#3B82F6)", badge: partnerApps.filter(a=>a.status==="pending").length },
+    { id:"volunteers", icon:"", label:"Volunteers",      sub:`${volApps.filter(a=>a.status==="pending").length} pending`,    color:"#9333EA", g:"linear-gradient(135deg,#9333EA,#C026D3)", badge: volApps.filter(a=>a.status==="pending").length },
+    { id:"impact_stories", icon:"", label:"Stories",    sub:"Impact content",                 color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: 0 },
     { id:"updates",    icon:"🚨", label:"Updates",         sub:"Alerts & news",                  color:"#D97706", g:"linear-gradient(135deg,#D97706,#F59E0B)", badge: 0 },
-    { id:"completed",  icon:"🏁", label:"Completed Ops",   sub:`${completedCases.length} operations`, color:"#065F46", g:"linear-gradient(135deg,#065F46,#10B981)", badge: 0 },
+    { id:"completed",  icon:"", label:"Completed Ops",   sub:`${completedCases.length} operations`, color:"#065F46", g:"linear-gradient(135deg,#065F46,#10B981)", badge: 0 },
     { id:"history",    icon:"📚", label:"History",         sub:"Records & archive",              color:"#0F766E", g:"linear-gradient(135deg,#0F766E,#14B8A6)", badge: 0 },
-    { id:"notebook",   icon:"📓", label:"Notebook",        sub:"Notes & tasks",                  color:"#B8861A", g:"linear-gradient(135deg,#B8861A,#E0AB21)", badge: 0 },
-    { id:"settings",   icon:"⚙️", label:"Settings",        sub:"Site configuration",             color:"#374151", g:"linear-gradient(135deg,#374151,#6B7280)", badge: 0 },
+    { id:"notebook",   icon:"", label:"Notebook",        sub:"Notes & tasks",                  color:"#B8861A", g:"linear-gradient(135deg,#B8861A,#E0AB21)", badge: 0 },
+    { id:"settings",   icon:"", label:"Settings",        sub:"Site configuration",             color:"#374151", g:"linear-gradient(135deg,#374151,#6B7280)", badge: 0 },
   ];
   const ADMIN_MODULES = SUPER_MODULES.filter(m => !["users","settings"].includes(m.id));
   const modules = isSuperAdmin ? SUPER_MODULES : ADMIN_MODULES;
@@ -6763,7 +6763,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
       {isDemoMode && (
         <div style={{ background:"linear-gradient(90deg,#92400E,#B45309)", color:"#fff", borderRadius:12, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontSize:20 }}>⚠️</span>
+            <span style={{ fontSize:20 }}></span>
             <div>
               <div style={{ fontWeight:800, fontSize:14 }}>Demo Mode Active — Showing sample data</div>
               <div style={{ fontSize:12, opacity:0.85 }}>You are not connected to the live database. Log out and sign in while the server is running to see real data.</div>
@@ -6771,7 +6771,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           </div>
           <Btn variant="outline" size="sm" style={{ background:"rgba(255,255,255,0.15)", borderColor:"rgba(255,255,255,0.4)", color:"#fff", whiteSpace:"nowrap" }}
             onClick={() => { localStorage.removeItem('kf_token'); localStorage.removeItem('kf_user'); window.location.href = '/login'; }}>
-            🔑 Sign in for Live Data
+            Sign in for Live Data
           </Btn>
         </div>
       )}
@@ -6787,10 +6787,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
               <div style={{ fontSize:13, opacity:0.7, fontWeight:600, marginBottom:4 }}>{greeting},</div>
               <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:900 }}>{currentUser?.fullname || "Administrator"}</h2>
               <div style={{ fontSize:12, opacity:0.65 }}>
-                {isSuperAdmin ? "🛡️ Super Administrator · Full System Access"
-                  : currentUser?.role === "verification_office" ? "🔍 Verification Office · Case Review Access"
-                  : currentUser?.role === "program_manager"     ? "🌱 Program Manager · Programs Access"
-                  : currentUser?.role === "project_manager"     ? "🏗️ Project Manager · Projects Access"
+                {isSuperAdmin ? "Super Administrator · Full System Access"
+                  : currentUser?.role === "verification_office" ? "Verification Office · Case Review Access"
+                  : currentUser?.role === "program_manager"     ? "Program Manager · Programs Access"
+                  : currentUser?.role === "project_manager"     ? "Project Manager · Projects Access"
                   : "🟠 Administrator · Full Access"}
               </div>
             </div>
@@ -6799,10 +6799,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           {/* Quick stats strip */}
           <div style={{ display:"grid", gridTemplateColumns:`repeat(${isMob?2:4},1fr)`, gap:12, marginBottom:28 }}>
             {[
-              { label:"Active Cases",  value:cases.length,  icon:"📋", color:COLORS.primary },
-              { label:"Total Donated", value:`$${totalDonated.toLocaleString()}`, icon:"💰", color:COLORS.secondary },
-              { label:"Pending Review",value:pendingCases.length, icon:"⏳", color:"#D97706" },
-              { label:"Users",         value:users.length,  icon:"👥", color:"#7C3AED" },
+              { label:"Active Cases",  value:cases.length,  icon:"", color:COLORS.primary },
+              { label:"Total Donated", value:`$${totalDonated.toLocaleString()}`, icon:"", color:COLORS.secondary },
+              { label:"Pending Review",value:pendingCases.length, icon:"", color:"#D97706" },
+              { label:"Users",         value:users.length,  icon:"", color:"#7C3AED" },
             ].map(s => (
               <div key={s.label} style={{ background:"#fff", borderRadius:14, padding:"16px 16px", boxShadow:"0 2px 8px #0001", textAlign:"center", border:`1px solid ${COLORS.border}` }}>
                 <div style={{ fontSize:24 }}>{s.icon}</div>
@@ -6881,10 +6881,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                     <span style={{ fontSize: 12, color: COLORS.muted }}>{c.created_at}</span>
                   </div>
                   <div style={{ fontSize: 14, fontWeight: 700, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 340 }}>{c.victim_name}</div>
-                  <div style={{ fontSize: 12, color: COLORS.muted }}>📍 {c.location} · {c._raw?.category?.replace(/_/g," ")}</div>
+                  <div style={{ fontSize: 12, color: COLORS.muted }}>{c.location} · {c._raw?.category?.replace(/_/g," ")}</div>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: 0 }}>
-                  <Btn size="sm" variant="ghost" onClick={() => onViewCase(c)}>👁 View</Btn>
+                  <Btn size="sm" variant="ghost" onClick={() => onViewCase(c)}>View</Btn>
                   {buttons}
                 </div>
               </div>
@@ -6897,14 +6897,14 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
             return (
               <div>
                 {/* Step 1 — New Reports */}
-                <WfSection title="📥 Step 1 — New Reports" badge={newReports.length}>
+                <WfSection title="Step 1 — New Reports" badge={newReports.length}>
                   {newReports.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>✅ No new reports pending</div>
+                    <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No new reports pending</div>
                   ) : newReports.map(c => (
                     <WfRow key={c.id} c={c} buttons={<>
-                      <Btn size="sm" variant="danger" onClick={() => onReject(c)}>❌ Reject</Btn>
-                      <Btn size="sm" variant="primary" onClick={() => approveAndPublish(c)}>✅ Approve → Publish</Btn>
-                      <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>🗺️ Assign Team</Btn>
+                      <Btn size="sm" variant="danger" onClick={() => onReject(c)}>Reject</Btn>
+                      <Btn size="sm" variant="primary" onClick={() => approveAndPublish(c)}>Approve → Publish</Btn>
+                      <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>Assign Team</Btn>
                     </>} />
                   ))}
                 </WfSection>
@@ -6913,13 +6913,13 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                 {(() => {
                   const underInvestigation = cases.filter(c => ["Under Review","Investigating"].includes(c.status));
                   return (
-                    <WfSection title="🔍 Step 2 — Under Investigation" badge={underInvestigation.length} badgeColor={COLORS.secondary}>
+                    <WfSection title="Step 2 — Under Investigation" badge={underInvestigation.length} badgeColor={COLORS.secondary}>
                       {underInvestigation.length === 0 ? (
                         <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No cases under investigation</div>
                       ) : underInvestigation.map(c => (
                         <WfRow key={c.id} c={c} buttons={<>
-                          <Btn size="sm" variant="ghost" onClick={() => onReject(c)}>❌ Reject</Btn>
-                          <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>🔄 Reassign</Btn>
+                          <Btn size="sm" variant="ghost" onClick={() => onReject(c)}>Reject</Btn>
+                          <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>Reassign</Btn>
                         </>} />
                       ))}
                     </WfSection>
@@ -6930,15 +6930,15 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                 {(() => {
                   const invDone = cases.filter(c => c.status === "Awaiting Approval");
                   return (
-                    <WfSection title="📋 Step 3 — Investigation Report Ready" badge={invDone.length}>
+                    <WfSection title="Step 3 — Investigation Report Ready" badge={invDone.length}>
                       {invDone.length === 0 ? (
                         <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No investigation reports ready</div>
                       ) : invDone.map(c => (
                         <WfRow key={c.id} c={c} buttons={<>
-                          <Btn size="sm" variant="danger" onClick={() => onReject(c)}>❌ Reject</Btn>
-                          <Btn size="sm" variant="primary" onClick={() => onPublish(c)}>✅ Approve → Publish</Btn>
-                          <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>🔄 Reassign</Btn>
-                          <Btn size="sm" variant="ghost" onClick={() => onRequestInfo(c)}>💬 Request Info</Btn>
+                          <Btn size="sm" variant="danger" onClick={() => onReject(c)}>Reject</Btn>
+                          <Btn size="sm" variant="primary" onClick={() => onPublish(c)}>Approve → Publish</Btn>
+                          <Btn size="sm" variant="teal" onClick={() => onAssign(c)}>Reassign</Btn>
+                          <Btn size="sm" variant="ghost" onClick={() => onRequestInfo(c)}>Request Info</Btn>
                         </>} />
                       ))}
                     </WfSection>
@@ -6946,7 +6946,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                 })()}
 
                 {/* Step 4 — Pending Donations */}
-                <WfSection title="💳 Step 4 — Pending Payments" badge={pendingPayments.length} badgeColor="#F59E0B">
+                <WfSection title="Step 4 — Pending Payments" badge={pendingPayments.length} badgeColor="#F59E0B">
                   {pendingPayments.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No pending payments</div>
                   ) : pendingPayments.map(d => (
@@ -6955,29 +6955,29 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                         <div style={{ fontWeight: 700, fontSize: 14 }}>${(d.amount||0).toLocaleString()} — {d.case?.publicTitle || `Case #${d.caseId?.slice(-6)}`}</div>
                         <div style={{ fontSize: 12, color: COLORS.muted }}>{d.donor?.name || "Donor"} · {d.method?.replace(/_/g," ")} · {d.createdAt?.slice(0,10)}</div>
                       </div>
-                      <Btn size="sm" variant="primary" onClick={() => onConfirmDonation && onConfirmDonation(d.id)}>✅ Confirm Payment</Btn>
+                      <Btn size="sm" variant="primary" onClick={() => onConfirmDonation && onConfirmDonation(d.id)}>Confirm Payment</Btn>
                     </div>
                   ))}
                 </WfSection>
 
                 {/* Step 5 — Assign Delivery */}
-                <WfSection title="🚚 Step 5 — Ready for Delivery" badge={deliveryCases.length} badgeColor={COLORS.secondary}>
+                <WfSection title="Step 5 — Ready for Delivery" badge={deliveryCases.length} badgeColor={COLORS.secondary}>
                   {deliveryCases.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No cases ready for delivery</div>
                   ) : deliveryCases.map(c => (
                     <WfRow key={c.id} c={c} buttons={
-                      <Btn size="sm" variant="primary" onClick={() => onStartDelivery && onStartDelivery(c)}>🚚 Assign Delivery</Btn>
+                      <Btn size="sm" variant="primary" onClick={() => onStartDelivery && onStartDelivery(c)}>Assign Delivery</Btn>
                     } />
                   ))}
                 </WfSection>
 
                 {/* Step 6 — Proof Submitted */}
-                <WfSection title="📦 Step 6 — Delivery Proof Submitted" badge={proofSubmitted.length} badgeColor={COLORS.secondary}>
+                <WfSection title="Step 6 — Delivery Proof Submitted" badge={proofSubmitted.length} badgeColor={COLORS.secondary}>
                   {proofSubmitted.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "24px 0", color: COLORS.muted, fontSize: 13 }}>No delivery proofs pending</div>
                   ) : proofSubmitted.map(c => (
                     <WfRow key={c.id} c={c} buttons={<>
-                      <Btn size="sm" variant="primary" onClick={() => onComplete(c)}>🏁 Complete Case</Btn>
+                      <Btn size="sm" variant="primary" onClick={() => onComplete(c)}>Complete Case</Btn>
                     </>} />
                   ))}
                 </WfSection>
@@ -6989,24 +6989,24 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           {activeModule === "overview" && (
         <div>
           <div className="kf-stats-row">
-            <StatCard label={t("totalCases")}   value={cases.length}    icon="📋" color={COLORS.primary} />
-            <StatCard label={t("totalUsers")}   value={users.length}    icon="👥" color="#8B5CF6" />
-            <StatCard label={t("totalDonated")} value={`$${totalDonated.toLocaleString()}`} icon="💰" color={COLORS.secondary} />
-            <StatCard label={t("completed")}    value={cases.filter(c => c.status === "Completed").length} icon="🏁" color="#5A6E8A" />
+            <StatCard label={t("totalCases")}   value={cases.length}    icon="" color={COLORS.primary} />
+            <StatCard label={t("totalUsers")}   value={users.length}    icon="" color="#8B5CF6" />
+            <StatCard label={t("totalDonated")} value={`$${totalDonated.toLocaleString()}`} icon="" color={COLORS.secondary} />
+            <StatCard label={t("completed")}    value={cases.filter(c => c.status === "Completed").length} icon="" color="#5A6E8A" />
           </div>
 
           {/* Proof pending alert */}
           {proofPending.length > 0 && (
             <div style={{ background: "#ECFDF5", border: "1px solid #6EE7B7", borderRadius: 12, padding: "14px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#065F46" }}>📦 {proofPending.length} case{proofPending.length > 1 ? "s" : ""} with delivery proof — needs your review</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#065F46" }}>{proofPending.length} case{proofPending.length > 1 ? "s" : ""} with delivery proof — needs your review</div>
                 <div style={{ fontSize: 12, color: "#047857", marginTop: 2 }}>Field agent has submitted proof. Review and mark complete to notify donors & reporter.</div>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 {proofPending.map(c => (
                   <button key={c.id} onClick={() => onComplete && onComplete(c)}
                     style={{ padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: COLORS.secondary, color: "#fff", border: "none", cursor: "pointer" }}>
-                    🏁 Complete {c.ref}
+                    Complete {c.ref}
                   </button>
                 ))}
               </div>
@@ -7015,7 +7015,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
 
           {/* Case Pipeline */}
           <div style={{ background: "#fff", borderRadius: 14, padding: "20px 16px", boxShadow: "0 2px 8px #0001", marginBottom: 24 }}>
-            <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700 }}>📊 Live Case Pipeline</h3>
+            <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700 }}>Live Case Pipeline</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 10 }}>
               {WORKFLOW_STEPS.map(s => (
                 <div key={s.num} style={{ textAlign: "center", background: s.color + "12", borderRadius: 12, padding: "14px 8px", border: `1px solid ${s.color}30` }}>
@@ -7033,7 +7033,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
               <CaseTable cases={pendingCases.slice(0,4)} onView={onViewCase} compact />
             </div>
             <div>
-              <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>💰 Recent Donations</h3>
+              <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>Recent Donations</h3>
               <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden", boxShadow: "0 2px 8px #0001" }}>
                 {recentDonations.length === 0 && (
                   <div style={{ padding: "20px 16px", color: COLORS.muted, fontSize: 13, textAlign: "center" }}>No donations yet</div>
@@ -7080,10 +7080,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           {activeModule === "donations" && (
             <div>
               <div className="kf-stats-row">
-                <StatCard label="Total Received"  value={`$${totalDonated.toLocaleString()}`}  icon="💵" color={COLORS.secondary} />
-                <StatCard label="Confirmed"        value={`$${confirmedTotal.toLocaleString()}`} icon="✅" color="#10B981" />
-                <StatCard label="Pending Confirm"  value={`$${pendingTotal.toLocaleString()}`}   icon="⏳" color="#F59E0B" />
-                <StatCard label="# Donations"      value={donations.length}                      icon="📊" color={COLORS.primary} />
+                <StatCard label="Total Received"  value={`$${totalDonated.toLocaleString()}`}  icon="" color={COLORS.secondary} />
+                <StatCard label="Confirmed"        value={`$${confirmedTotal.toLocaleString()}`} icon="" color="#10B981" />
+                <StatCard label="Pending Confirm"  value={`$${pendingTotal.toLocaleString()}`}   icon="" color="#F59E0B" />
+                <StatCard label="# Donations"      value={donations.length}                      icon="" color={COLORS.primary} />
               </div>
               <div style={{ display:"flex", gap:8, marginBottom:16 }}>
                 {["all","pending","confirmed"].map(f => (
@@ -7119,20 +7119,20 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                         <td style={{ padding:"12px 16px", fontSize:12, color:COLORS.muted }}>{d.createdAt?new Date(d.createdAt).toLocaleDateString():"—"}</td>
                         <td style={{ padding:"12px 16px" }}>
                           <span style={{ background:d.status==="confirmed"?"#D1FAE5":d.status==="pending"?"#FEF3C7":"#FEE2E2", color:d.status==="confirmed"?"#065F46":d.status==="pending"?"#92400E":"#991B1B", borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:700 }}>
-                            {d.status==="confirmed"?"✅ Confirmed":d.status==="pending"?"⏳ Pending":d.status}
+                            {d.status==="confirmed"?"Confirmed":d.status==="pending"?"Pending":d.status}
                           </span>
                         </td>
                         <td style={{ padding:"12px 16px" }}>
                           {d.status==="pending" && onConfirmDonation && <button onClick={()=>onConfirmDonation(d.id)} style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:"#10B981", color:"#fff", border:"none", cursor:"pointer" }}>✓ Confirm</button>}
                           {d.status==="confirmed" && ["sponsored","waiting_for_sponsor"].includes(d.case?.status) && onStartDelivery && (
                             <button onClick={()=>onStartDelivery({ id:d.caseId, victim_name:d.case?.publicTitle||`Case #${(d.caseId||"").slice(-6)}`, location:d.case?.publicCity||"", donation_amount:d.amount, _amount:d.amount, _caseTitle:d.case?.publicTitle, _caseCity:d.case?.publicCity, _caseId:d.caseId })}
-                              style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:"#0891B2", color:"#fff", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}>🚚 Start Delivery</button>
+                              style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:"#0891B2", color:"#fff", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}>Start Delivery</button>
                           )}
-                          {d.status==="confirmed" && d.case?.status==="delivering" && <span style={{ fontSize:11, color:"#0891B2", fontWeight:700 }}>🚚 En Route</span>}
+                          {d.status==="confirmed" && d.case?.status==="delivering" && <span style={{ fontSize:11, color:"#0891B2", fontWeight:700 }}>En Route</span>}
                           {d.status==="confirmed" && d.case?.status==="proof_uploaded" && onComplete && (
-                            <button onClick={()=>{ const c=cases.find(x=>x.id===d.caseId); if(c)onComplete(c); }} style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:COLORS.secondary, color:"#fff", border:"none", cursor:"pointer" }}>🏁 Mark Complete</button>
+                            <button onClick={()=>{ const c=cases.find(x=>x.id===d.caseId); if(c)onComplete(c); }} style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:COLORS.secondary, color:"#fff", border:"none", cursor:"pointer" }}>Mark Complete</button>
                           )}
-                          {d.status==="confirmed" && d.case?.status==="completed" && <span style={{ fontSize:11, color:COLORS.secondary, fontWeight:700 }}>🏁 Completed</span>}
+                          {d.status==="confirmed" && d.case?.status==="completed" && <span style={{ fontSize:11, color:COLORS.secondary, fontWeight:700 }}>Completed</span>}
                         </td>
                       </tr>
                     ))}
@@ -7151,13 +7151,13 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
             return (
               <div>
                 <div className="kf-stats-row" style={{ marginBottom: 24 }}>
-                  <StatCard label="Total Completed"  value={completedCases.length}             icon="🏁" color="#065F46" />
-                  <StatCard label="Total Delivered"  value={`$${totalDelivered.toLocaleString()}`} icon="💰" color={COLORS.secondary} />
-                  <StatCard label="Families Helped"  value={completedCases.length}             icon="❤️" color={COLORS.primary} />
+                  <StatCard label="Total Completed"  value={completedCases.length}             icon="" color="#065F46" />
+                  <StatCard label="Total Delivered"  value={`$${totalDelivered.toLocaleString()}`} icon="" color={COLORS.secondary} />
+                  <StatCard label="Families Helped"  value={completedCases.length}             icon="" color={COLORS.primary} />
                 </div>
                 {completedCases.length === 0 ? (
                   <div style={{ textAlign:"center", padding:"60px 0", color:COLORS.muted }}>
-                    <div style={{ fontSize:48, marginBottom:12 }}>🏁</div>
+                    <div style={{ fontSize:48, marginBottom:12 }}></div>
                     <div style={{ fontSize:16, fontWeight:700 }}>No completed operations yet</div>
                     <div style={{ fontSize:13, marginTop:6 }}>Completed cases will appear here automatically</div>
                   </div>
@@ -7170,11 +7170,11 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                             <div style={{ fontWeight:800, fontSize:14, color:"#fff" }}>{c.ref}</div>
                             <div style={{ fontSize:11, color:"rgba(255,255,255,0.75)", marginTop:2 }}>Completed {c._raw?.completedAt?.slice(0,10) || c.created_at}</div>
                           </div>
-                          <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:800, color:"#fff" }}>🏁 DONE</span>
+                          <span style={{ background:"rgba(255,255,255,0.2)", borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:800, color:"#fff" }}>DONE</span>
                         </div>
                         <div style={{ padding:"14px 16px" }}>
                           <div style={{ fontWeight:700, fontSize:15, marginBottom:4 }}>{c.victim_name}</div>
-                          <div style={{ fontSize:12, color:COLORS.muted, marginBottom:10 }}>📍 {c.location} · {c._raw?.category?.replace(/_/g," ")}</div>
+                          <div style={{ fontSize:12, color:COLORS.muted, marginBottom:10 }}>{c.location} · {c._raw?.category?.replace(/_/g," ")}</div>
                           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:12 }}>
                             <div style={{ background:"#F0FDF4", borderRadius:8, padding:"8px 12px" }}>
                               <div style={{ fontSize:10, color:"#065F46", fontWeight:700 }}>RAISED</div>
@@ -7186,9 +7186,9 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                             </div>
                           </div>
                           <div style={{ display:"flex", gap:8 }}>
-                            <Btn size="sm" variant="ghost" onClick={() => onViewCase(c)} style={{ flex:1 }}>👁 View</Btn>
+                            <Btn size="sm" variant="ghost" onClick={() => onViewCase(c)} style={{ flex:1 }}>View</Btn>
                             {isSuperAdmin && (
-                              <Btn size="sm" variant="primary" onClick={() => onFullReport(c.id)} style={{ flex:1 }}>📄 Full Report</Btn>
+                              <Btn size="sm" variant="primary" onClick={() => onFullReport(c.id)} style={{ flex:1 }}>Full Report</Btn>
                             )}
                           </div>
                         </div>
@@ -7213,31 +7213,31 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
 
 const PROGRAM_TYPE_LABELS = {
   child_sponsorship: { icon: "👶", label: "Child Sponsorship", color: "#EC4899" },
-  education:         { icon: "🎓", label: "Education",         color: "#3B82F6" },
-  medical:           { icon: "🩺", label: "Medical Support",   color: "#EF4444" },
+  education:         { icon: "", label: "Education",         color: "#3B82F6" },
+  medical:           { icon: "", label: "Medical Support",   color: "#EF4444" },
   family_care:       { icon: "🏠", label: "Family Care",       color: "#F59E0B" },
-  nutrition:         { icon: "🍎", label: "Nutrition",         color: "#10B981" },
+  nutrition:         { icon: "", label: "Nutrition",         color: "#10B981" },
   emergency_relief:  { icon: "🚨", label: "Emergency Relief",  color: "#7C3AED" },
 };
 
 const PROJECT_CAT_LABELS = {
-  water:       { icon: "💧", label: "Water & Sanitation" },
-  school:      { icon: "🏫", label: "Education" },
+  water:       { icon: "", label: "Water & Sanitation" },
+  school:      { icon: "", label: "Education" },
   health:      { icon: "🏥", label: "Healthcare" },
-  agriculture: { icon: "🌱", label: "Agriculture" },
+  agriculture: { icon: "", label: "Agriculture" },
   shelter:     { icon: "🏠", label: "Shelter" },
-  energy:      { icon: "⚡", label: "Energy" },
+  energy:      { icon: "", label: "Energy" },
 };
 
 const BeneficiaryStatusBadge = ({ status }) => {
   const map = {
-    pending_verification: { bg: "#F3F4F6", color: COLORS.muted, label: "⏳ Pending" },
-    verified:             { bg: "#DBEAFE", color: "#1E40AF",    label: "✅ Verified" },
-    seeking_sponsor:      { bg: "#FEF3C7", color: "#92400E",    label: "🤝 Seeking Sponsor" },
-    sponsored:            { bg: "#D1FAE5", color: "#065F46",    label: "🤝 Under Sponsor" },
-    under_sponsor:        { bg: "#D1FAE5", color: "#065F46",    label: "🤝 Under Sponsor" },
-    completed:            { bg: "#F0FDF4", color: "#166534",    label: "🏁 Completed" },
-    on_hold:              { bg: "#F3F4F6", color: COLORS.muted, label: "⏸ On Hold" },
+    pending_verification: { bg: "#F3F4F6", color: COLORS.muted, label: "Pending" },
+    verified:             { bg: "#DBEAFE", color: "#1E40AF",    label: "Verified" },
+    seeking_sponsor:      { bg: "#FEF3C7", color: "#92400E",    label: "Seeking Sponsor" },
+    sponsored:            { bg: "#D1FAE5", color: "#065F46",    label: "Under Sponsor" },
+    under_sponsor:        { bg: "#D1FAE5", color: "#065F46",    label: "Under Sponsor" },
+    completed:            { bg: "#F0FDF4", color: "#166534",    label: "Completed" },
+    on_hold:              { bg: "#F3F4F6", color: COLORS.muted, label: "On Hold" },
   };
   const s = map[status] || { bg: "#F3F4F6", color: COLORS.muted, label: status };
   return <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>{s.label}</span>;
@@ -7279,7 +7279,7 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
         monthlyNeed: parseFloat(form.monthlyNeed),
         publicAge: form.publicAge ? parseInt(form.publicAge) : undefined,
       });
-      showToast("✅ Beneficiary enrolled! Pending verification.");
+      showToast("Beneficiary enrolled! Pending verification.");
       onDone();
       onClose();
     } catch (e) {
@@ -7294,13 +7294,13 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
   return (
     <Modal title="👶 Enroll New Beneficiary" onClose={onClose} wide>
       <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#065F46" }}>
-        🔐 Private information (full name, guardian, school, medical records) is <strong>never shown publicly</strong>. Only the public profile fields are visible to donors.
+        Private information (full name, guardian, school, medical records) is <strong>never shown publicly</strong>. Only the public profile fields are visible to donors.
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 24 }}>
         {/* Left — private */}
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12, letterSpacing: 0.5 }}>🔐 Private Information</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12, letterSpacing: 0.5 }}>Private Information</div>
           <Input label="Full Name *" value={form.privateFullName} onChange={e => set("privateFullName", e.target.value)} placeholder="Full legal name" />
           <Input label="Guardian / Parent Name" value={form.privateGuardianName} onChange={e => set("privateGuardianName", e.target.value)} />
           <Input label="Guardian Phone" value={form.privateGuardianPhone} onChange={e => set("privateGuardianPhone", e.target.value)} placeholder="+252 61 xxx xxxx" />
@@ -7312,7 +7312,7 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
 
         {/* Right — program + public */}
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12, letterSpacing: 0.5 }}>🌱 Program & Public Profile</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", marginBottom: 12, letterSpacing: 0.5 }}>Program & Public Profile</div>
           <Select label="Program *" value={form.programId} onChange={e => set("programId", e.target.value)}>
             <option value="">— Select program —</option>
             {progList.map(p => <option key={p.id} value={p.id}>{p.icon} {p.name}</option>)}
@@ -7339,7 +7339,7 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
         </div>
       </div>
 
-      {error && <div style={{ background: "#FEF2F2", color: COLORS.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, marginTop: 12 }}>⚠️ {error}</div>}
+      {error && <div style={{ background: "#FEF2F2", color: COLORS.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, marginTop: 12 }}>{error}</div>}
 
       <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
         <Btn variant="muted" onClick={onClose} style={{ flex: 1 }} disabled={loading}>Cancel</Btn>
@@ -7353,7 +7353,7 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
 
 // ── Create Program Modal ──────────────────────────────────────────────────────
 const CreateProgramModal = ({ onClose, onDone, showToast }) => {
-  const [form, setForm] = useState({ name: "", type: "child_sponsorship", description: "", icon: "🌱", color: "#004B96", monthlyBudget: "" });
+  const [form, setForm] = useState({ name: "", type: "child_sponsorship", description: "", icon: "", color: "#004B96", monthlyBudget: "" });
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -7362,7 +7362,7 @@ const CreateProgramModal = ({ onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await programsApi.create({ ...form, monthlyBudget: form.monthlyBudget ? parseFloat(form.monthlyBudget) : undefined });
-      showToast("✅ Program created successfully!");
+      showToast("Program created successfully!");
       onDone();
       onClose();
     } catch (e) {
@@ -7371,21 +7371,21 @@ const CreateProgramModal = ({ onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title="🌱 Create New Program" onClose={onClose}>
+    <Modal title="Create New Program" onClose={onClose}>
       <Select label="Program Type *" value={form.type} onChange={e => set("type", e.target.value)}>
         {Object.entries(PROGRAM_TYPE_LABELS).map(([v, t]) => <option key={v} value={v}>{t.icon} {t.label}</option>)}
       </Select>
       <Input label="Program Name *" value={form.name} onChange={e => set("name", e.target.value)} placeholder="e.g. Education Support for Girls" />
       <Textarea label="Description *" value={form.description} onChange={e => set("description", e.target.value)} placeholder="Describe what this program does and who it helps…" />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <Input label="Icon (emoji)" value={form.icon} onChange={e => set("icon", e.target.value)} placeholder="🌱" />
+        <Input label="Icon (emoji)" value={form.icon} onChange={e => set("icon", e.target.value)} placeholder="" />
         <Input label="Color (hex)" value={form.color} onChange={e => set("color", e.target.value)} placeholder="#004B96" />
       </div>
       <Input label="Monthly Budget ($)" type="number" value={form.monthlyBudget} onChange={e => set("monthlyBudget", e.target.value)} placeholder="Optional" />
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
         <Btn variant="muted" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="success" onClick={handle} disabled={loading || !form.name || !form.description} style={{ flex: 2 }}>
-          {loading ? "Creating…" : "🌱 Create Program"}
+          {loading ? "Creating…" : "Create Program"}
         </Btn>
       </div>
     </Modal>
@@ -7424,7 +7424,7 @@ const MonthlyUpdateModal = ({ beneficiary, onClose, showToast }) => {
         ...form,
         schoolAttendance: form.schoolAttendance ? parseInt(form.schoolAttendance) : undefined,
       });
-      showToast(`✅ Monthly update for ${MONTH_NAMES[form.month-1]} submitted!`);
+      showToast(`Monthly update for ${MONTH_NAMES[form.month-1]} submitted!`);
       onClose();
     } catch (e) {
       showToast(e.message || "Failed to submit", "error");
@@ -7432,9 +7432,9 @@ const MonthlyUpdateModal = ({ beneficiary, onClose, showToast }) => {
   };
 
   return (
-    <Modal title={`📊 Monthly Update — ${beneficiary.publicId}`} onClose={onClose} wide>
+    <Modal title={`Monthly Update — ${beneficiary.publicId}`} onClose={onClose} wide>
       <div style={{ background: "#EFF6FF", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: COLORS.primary }}>
-        📋 This update will be reviewed by admin and then shared with the sponsor. Include accurate data and any receipts or photos if available.
+        This update will be reviewed by admin and then shared with the sponsor. Include accurate data and any receipts or photos if available.
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
@@ -7459,7 +7459,7 @@ const MonthlyUpdateModal = ({ beneficiary, onClose, showToast }) => {
       <Textarea label="Needs Assessment (optional)" value={form.needsAssessment} onChange={e => set("needsAssessment", e.target.value)} placeholder="What additional support is needed next month?" />
 
       <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 13, fontWeight: 700, display: "block", marginBottom: 8 }}>✅ What Was Delivered This Month</label>
+        <label style={{ fontSize: 13, fontWeight: 700, display: "block", marginBottom: 8 }}>What Was Delivered This Month</label>
         <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
           <input value={delivery} onChange={e => setDelivery(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addDelivery()}
@@ -7471,7 +7471,7 @@ const MonthlyUpdateModal = ({ beneficiary, onClose, showToast }) => {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {form.deliveriesMade.map((d, i) => (
               <span key={i} style={{ background: COLORS.secondary + "15", color: COLORS.secondary, borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                ✅ {d}
+                {d}
                 <button onClick={() => set("deliveriesMade", form.deliveriesMade.filter((_,j) => j !== i))}
                   style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: COLORS.muted, lineHeight: 1 }}>×</button>
               </span>
@@ -7483,7 +7483,7 @@ const MonthlyUpdateModal = ({ beneficiary, onClose, showToast }) => {
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
         <Btn variant="muted" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="success" onClick={handle} disabled={loading || !form.progressNotes.trim()} style={{ flex: 2 }}>
-          {loading ? "Submitting…" : "📊 Submit Monthly Update"}
+          {loading ? "Submitting…" : "Submit Monthly Update"}
         </Btn>
       </div>
     </Modal>
@@ -7522,7 +7522,7 @@ const BulkChildEnrollModal = ({ programs, onClose, onDone, showToast }) => {
         privateMedicalNotes: r.privateMedicalNotes || undefined,
       }));
       const res = await programsApi.bulkEnroll({ children });
-      showToast(`✅ ${res.count || validRows.length} children enrolled successfully!`);
+      showToast(`${res.count || validRows.length} children enrolled successfully!`);
       onDone();
       onClose();
     } catch (e) {
@@ -7576,7 +7576,7 @@ const BulkChildEnrollModal = ({ programs, onClose, onDone, showToast }) => {
                               background: row[f.key] === s ? C.primary : '#fff',
                               color: row[f.key] === s ? '#fff' : C.muted,
                             }}>
-                            {s === 'male' ? '♂' : s === 'female' ? '♀' : s}
+                            {s === 'male' ? '' : s === 'female' ? '' : s}
                           </button>
                         ))}
                       </div>
@@ -7646,7 +7646,7 @@ const AssignDonorModal = ({ beneficiaries, onClose, onDone, showToast }) => {
     try {
       const months = Math.max(12, parseInt(commitmentMonths) || 12);
       const res = await programsApi.assignDonor({ donorId, beneficiaryIds: selectedBens, monthlyAmount: parseFloat(monthlyAmount), paymentMethod, commitmentMonths: months });
-      showToast(`✅ Donor assigned to ${res.count || selectedBens.length} beneficiar${selectedBens.length > 1 ? 'ies' : 'y'}!`);
+      showToast(`Donor assigned to ${res.count || selectedBens.length} beneficiar${selectedBens.length > 1 ? 'ies' : 'y'}!`);
       onDone();
       onClose();
     } catch (e) {
@@ -7655,7 +7655,7 @@ const AssignDonorModal = ({ beneficiaries, onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title="🤝 Assign Donor to Beneficiaries" onClose={onClose} wide>
+    <Modal title="Assign Donor to Beneficiaries" onClose={onClose} wide>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px,100%),1fr))', gap: 14, marginBottom: 16 }}>
         <div>
           {loadingUsers
@@ -7682,7 +7682,7 @@ const AssignDonorModal = ({ beneficiaries, onClose, onDone, showToast }) => {
         </div>
       </div>
       <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#1E40AF' }}>
-        📋 <strong>Minimum contract: 12 months.</strong> The contract is <strong>{Math.max(12, parseInt(commitmentMonths)||12)} months</strong> — expires {new Date(Date.now() + Math.max(12, parseInt(commitmentMonths)||12) * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}. Donor will receive a renewal reminder 30 days before expiry.
+        <strong>Minimum contract: 12 months.</strong> The contract is <strong>{Math.max(12, parseInt(commitmentMonths)||12)} months</strong> — expires {new Date(Date.now() + Math.max(12, parseInt(commitmentMonths)||12) * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}. Donor will receive a renewal reminder 30 days before expiry.
       </div>
       <div style={{ marginBottom: 8 }}>
         <label style={{ fontSize: 12, fontWeight: 700, color: C.muted, display: 'block', marginBottom: 4 }}>SELECT BENEFICIARIES ({selectedBens.length} selected)</label>
@@ -7705,7 +7705,7 @@ const AssignDonorModal = ({ beneficiaries, onClose, onDone, showToast }) => {
       <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
         <Btn variant="muted" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="primary" onClick={handle} disabled={loading} style={{ flex: 2 }}>
-          {loading ? 'Assigning…' : `🤝 Assign Donor to ${selectedBens.length || '?'} Beneficiar${selectedBens.length !== 1 ? 'ies' : 'y'}`}
+          {loading ? 'Assigning…' : `Assign Donor to ${selectedBens.length || '?'} Beneficiar${selectedBens.length !== 1 ? 'ies' : 'y'}`}
         </Btn>
       </div>
     </Modal>
@@ -7742,7 +7742,7 @@ const ChildMonthlyReportModal = ({ beneficiary, onClose, showToast }) => {
         deliveriesMade: JSON.stringify(form.deliveries),
         photoUrls: form.photoUrl ? JSON.stringify([form.photoUrl]) : undefined,
       });
-      showToast('✅ Monthly report submitted!');
+      showToast('Monthly report submitted!');
       programsApi.getUpdates(beneficiary.id).then(d => setReports(Array.isArray(d) ? d : [])).catch(() => {});
       setForm(f => ({ ...f, progressNotes: '', needsAssessment: '', deliveries: [], photoUrl: '', schoolAttendance: '' }));
     } catch (e) {
@@ -7753,7 +7753,7 @@ const ChildMonthlyReportModal = ({ beneficiary, onClose, showToast }) => {
   const HEALTH_COLOR = { good: '#16A34A', fair: '#D97706', poor: '#DC2626', critical: '#7C3AED' };
 
   return (
-    <Modal title={`📊 Monthly Report — ${beneficiary.privateFullName || beneficiary.publicId}`} onClose={onClose} wide>
+    <Modal title={`Monthly Report — ${beneficiary.privateFullName || beneficiary.publicId}`} onClose={onClose} wide>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px,100%),1fr))', gap: 12, marginBottom: 14 }}>
         <Select label="MONTH" value={form.month} onChange={e => setF('month', e.target.value)}>
           {MONTHS.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
@@ -7789,7 +7789,7 @@ const ChildMonthlyReportModal = ({ beneficiary, onClose, showToast }) => {
       <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
         <Btn variant="muted" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="primary" onClick={handle} disabled={loading} style={{ flex: 2 }}>
-          {loading ? 'Submitting…' : '📊 Submit Monthly Report'}
+          {loading ? 'Submitting…' : 'Submit Monthly Report'}
         </Btn>
       </div>
 
@@ -7798,7 +7798,7 @@ const ChildMonthlyReportModal = ({ beneficiary, onClose, showToast }) => {
         <div style={{ textAlign: 'center', color: C.muted, fontSize: 13, padding: 12 }}>Loading previous reports…</div>
       ) : reports.length > 0 && (
         <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>📋 Previous Reports ({reports.length})</div>
+          <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>Previous Reports ({reports.length})</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {reports.map(r => (
               <div key={r.id} style={{ background: '#F9FAFB', borderRadius: 10, padding: '12px 14px', border: `1px solid ${C.border}` }}>
@@ -7808,7 +7808,7 @@ const ChildMonthlyReportModal = ({ beneficiary, onClose, showToast }) => {
                     {r.healthStatus ? r.healthStatus.charAt(0).toUpperCase() + r.healthStatus.slice(1) : '—'}
                   </span>
                 </div>
-                {r.schoolAttendance != null && <div style={{ fontSize: 12, color: C.muted }}>🎓 School attendance: <b>{r.schoolAttendance}%</b></div>}
+                {r.schoolAttendance != null && <div style={{ fontSize: 12, color: C.muted }}>School attendance: <b>{r.schoolAttendance}%</b></div>}
                 {r.progressNotes && <div style={{ fontSize: 12, marginTop: 4 }}>{r.progressNotes}</div>}
                 {r.isPublished && <span style={{ fontSize: 10, background: '#DCFCE7', color: '#166534', borderRadius: 4, padding: '2px 6px', fontWeight: 700 }}>Published to Sponsor</span>}
               </div>
@@ -7831,7 +7831,7 @@ const CreateProjectModal = ({ onClose, onDone, showToast }) => {
     setLoading(true);
     try {
       await projectsApi.create({ ...form, populationSize: form.populationSize ? parseInt(form.populationSize) : undefined, fundingGoal: parseFloat(form.fundingGoal) });
-      showToast("✅ Community project created!");
+      showToast("Community project created!");
       onDone();
       onClose();
     } catch (e) {
@@ -7840,7 +7840,7 @@ const CreateProjectModal = ({ onClose, onDone, showToast }) => {
   };
 
   return (
-    <Modal title="🏗️ Create Community Project" onClose={onClose} wide>
+    <Modal title="Create Community Project" onClose={onClose} wide>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 20 }}>
         <div>
           <Select label="Category *" value={form.category} onChange={e => set("category", e.target.value)}>
@@ -7861,7 +7861,7 @@ const CreateProjectModal = ({ onClose, onDone, showToast }) => {
       <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
         <Btn variant="muted" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="teal" onClick={handle} disabled={loading} style={{ flex: 2 }}>
-          {loading ? "Creating…" : "🏗️ Create Project"}
+          {loading ? "Creating…" : "Create Project"}
         </Btn>
       </div>
     </Modal>
@@ -7925,7 +7925,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
   const confirmSponsorPayment = async (paymentId) => {
     try {
       await programsApi.confirmPayment(paymentId);
-      showToast("✅ Payment confirmed — sponsor's total updated.");
+      showToast("Payment confirmed — sponsor's total updated.");
       loadPendingPayments();
     } catch { showToast("Failed to confirm payment", "error"); }
   };
@@ -7933,7 +7933,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
   const handleVerify = async (id, status) => {
     try {
       await programsApi.verifyBeneficiary(id, { status });
-      showToast(`✅ Beneficiary status updated to: ${status}`);
+      showToast(`Beneficiary status updated to: ${status}`);
       load();
     } catch (e) {
       showToast(e.message || "Failed to update", "error");
@@ -7944,7 +7944,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
     if (!window.confirm("End this sponsorship? The child will return to 'Seeking Sponsor' status and the donor will be notified.")) return;
     try {
       await programsApi.endSponsorship(sponsorshipId, reason);
-      showToast("✅ Sponsorship ended — child is now seeking a new sponsor");
+      showToast("Sponsorship ended — child is now seeking a new sponsor");
       load();
     } catch (e) {
       showToast(e.message || "Failed to end sponsorship", "error");
@@ -7956,16 +7956,16 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
     : beneficiaries;
 
   const TABS = [
-    { id: "overview",      label: "📊 Overview" },
+    { id: "overview",      label: "Overview" },
     { id: "beneficiaries", label: `👶 Beneficiaries (${beneficiaries.length})` },
-    { id: "projects",      label: `🏗️ Community Projects (${projects.length})` },
-    { id: "payments",      label: `💳 Sponsor Payments${pendingPayments.length > 0 ? ` (${pendingPayments.length} pending)` : ""}` },
-    { id: "documents",     label: "📄 Documents" },
+    { id: "projects",      label: `Community Projects (${projects.length})` },
+    { id: "payments",      label: `Sponsor Payments${pendingPayments.length > 0 ? ` (${pendingPayments.length} pending)` : ""}` },
+    { id: "documents",     label: "Documents" },
   ];
 
   if (loading) return (
     <div style={{ textAlign: "center", padding: "60px 0", color: COLORS.muted }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>🌱</div>
+      <div style={{ fontSize: 40, marginBottom: 12 }}></div>
       Loading Programs Engine…
     </div>
   );
@@ -7974,28 +7974,28 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
         <div>
-          <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>🌱 Humanitarian Programs Engine</h2>
+          <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>Humanitarian Programs Engine</h2>
           <p style={{ margin: 0, color: COLORS.muted }}>Long-term beneficiary management — Child Sponsorship, Education, Medical, Family Care</p>
         </div>
         {isAdmin && (
           <div style={{ display: "flex", gap: 8 }}>
             <Btn variant="primary" size="sm" onClick={() => setShowCreateProg(true)}>+ Program</Btn>
             <Btn variant="success" size="sm" onClick={() => programs.length > 0 ? setShowEnroll(true) : showToast("Create a program first", "error")}>👶 Enroll</Btn>
-            <Btn variant="outline" size="sm" onClick={() => programs.length > 0 ? setShowBulkEnroll(true) : showToast("Create a program first", "error")}>📋 Bulk Register</Btn>
-            <Btn variant="primary" size="sm" onClick={() => beneficiaries.length > 0 ? setShowAssignDonor(true) : showToast("Enroll beneficiaries first", "error")}>🤝 Assign Donor</Btn>
-            <Btn variant="teal" size="sm" onClick={() => setShowCreateProj(true)}>🏗️ Project</Btn>
+            <Btn variant="outline" size="sm" onClick={() => programs.length > 0 ? setShowBulkEnroll(true) : showToast("Create a program first", "error")}>Bulk Register</Btn>
+            <Btn variant="primary" size="sm" onClick={() => beneficiaries.length > 0 ? setShowAssignDonor(true) : showToast("Enroll beneficiaries first", "error")}>Assign Donor</Btn>
+            <Btn variant="teal" size="sm" onClick={() => setShowCreateProj(true)}>Project</Btn>
           </div>
         )}
       </div>
 
       {/* Stats row */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
-        <StatCard label="Programs"         value={programs.length}                                           icon="🌱" color={COLORS.secondary} />
+        <StatCard label="Programs"         value={programs.length}                                           icon="" color={COLORS.secondary} />
         <StatCard label="Beneficiaries"    value={beneficiaries.length}                                      icon="👶" color="#EC4899" />
-        <StatCard label="Seeking Sponsor"  value={beneficiaries.filter(b=>b.status==="seeking_sponsor").length} icon="🤝" color={COLORS.accent} />
-        <StatCard label="Under Sponsor"    value={beneficiaries.filter(b=>b.status==="under_sponsor"||b.status==="sponsored").length} icon="❤️" color={COLORS.primary} />
-        <StatCard label="Projects"         value={projects.length}                                            icon="🏗️" color={COLORS.teal} />
-        <StatCard label="Pending Payments" value={pendingPayments.length}                                     icon="💳" color="#F59E0B" />
+        <StatCard label="Seeking Sponsor"  value={beneficiaries.filter(b=>b.status==="seeking_sponsor").length} icon="" color={COLORS.accent} />
+        <StatCard label="Under Sponsor"    value={beneficiaries.filter(b=>b.status==="under_sponsor"||b.status==="sponsored").length} icon="" color={COLORS.primary} />
+        <StatCard label="Projects"         value={projects.length}                                            icon="" color={COLORS.teal} />
+        <StatCard label="Pending Payments" value={pendingPayments.length}                                     icon="" color="#F59E0B" />
       </div>
 
       {/* Tabs */}
@@ -8014,13 +8014,13 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
           <h3 style={{ margin: "0 0 16px", fontSize: 17, fontWeight: 800 }}>Active Programs</h3>
           {programs.length === 0 ? (
             <div style={{ background: "#fff", borderRadius: 16, padding: 40, textAlign: "center", color: COLORS.muted }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>🌱</div>
+              <div style={{ fontSize: 40, marginBottom: 8 }}></div>
               <div>No programs yet. Create your first program to get started.</div>
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(260px, 100%), 1fr))", gap: 16, marginBottom: 32 }}>
               {programs.map(p => {
-                const t = PROGRAM_TYPE_LABELS[p.type] || { icon: "🌱", color: COLORS.primary };
+                const t = PROGRAM_TYPE_LABELS[p.type] || { icon: "", color: COLORS.primary };
                 return (
                   <div key={p.id} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 12px #0001", borderLeft: `4px solid ${t.color}` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
@@ -8045,7 +8045,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
               <div style={{ fontSize: 12, color: COLORS.muted, lineHeight: 1.7 }}>Report → Verify → Sponsor → Deliver → Close.<br />One-time emergency cases managed in the main dashboard.</div>
             </div>
             <div style={{ background: "#F0FDF4", borderRadius: 16, padding: 20, border: "1px solid #BBF7D0" }}>
-              <div style={{ fontSize: 24, marginBottom: 8 }}>🌱</div>
+              <div style={{ fontSize: 24, marginBottom: 8 }}></div>
               <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.secondary, marginBottom: 6 }}>Long-Term Programs</div>
               <div style={{ fontSize: 12, color: COLORS.muted, lineHeight: 1.7 }}>Enroll → Verify → Sponsor Match → Monthly Updates → Graduation.<br />Continuous care for children, students, patients, and families.</div>
             </div>
@@ -8061,8 +8061,8 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
               { key: "",                 label: `All (${beneficiaries.length})` },
               { key: "pending_verification", label: `Pending (${beneficiaries.filter(b=>b.status==="pending_verification").length})` },
               { key: "verified",         label: `Verified (${beneficiaries.filter(b=>b.status==="verified").length})` },
-              { key: "seeking_sponsor",  label: `🤝 Seeking Sponsor (${beneficiaries.filter(b=>b.status==="seeking_sponsor").length})` },
-              { key: "under_sponsor",    label: `❤️ Under Sponsor (${beneficiaries.filter(b=>b.status==="under_sponsor"||b.status==="sponsored").length})` },
+              { key: "seeking_sponsor",  label: `Seeking Sponsor (${beneficiaries.filter(b=>b.status==="seeking_sponsor").length})` },
+              { key: "under_sponsor",    label: `Under Sponsor (${beneficiaries.filter(b=>b.status==="under_sponsor"||b.status==="sponsored").length})` },
               { key: "completed",        label: `Completed (${beneficiaries.filter(b=>b.status==="completed").length})` },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setFilterStatus(key)}
@@ -8080,7 +8080,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {filteredBens.map(b => {
-                const pt = PROGRAM_TYPE_LABELS[b.programType] || { icon: "👤", color: COLORS.primary };
+                const pt = PROGRAM_TYPE_LABELS[b.programType] || { icon: "", color: COLORS.primary };
                 const activeSponsor = b.sponsorships?.[0];
                 return (
                   <div key={b.id} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px #0001", border: `1px solid ${COLORS.border}` }}>
@@ -8093,7 +8093,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
                         </div>
                         <div style={{ fontSize: 15, fontWeight: 800 }}>{b.privateFullName || "Beneficiary"}</div>
                         <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>
-                          📍 {b.publicCity || "—"}{b.publicRegion ? `, ${b.publicRegion}` : ""} · {b.publicAge ? `${b.publicAge} yrs` : ""} {b.publicGender ? `· ${b.publicGender}` : ""}
+                          {b.publicCity || "—"}{b.publicRegion ? `, ${b.publicRegion}` : ""} · {b.publicAge ? `${b.publicAge} yrs` : ""} {b.publicGender ? `· ${b.publicGender}` : ""}
                         </div>
                         <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>
                           Program: <strong>{b.program?.name || "—"}</strong> · Monthly need: <strong style={{ color: COLORS.secondary }}>${b.monthlyNeed}/mo</strong>
@@ -8101,7 +8101,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
                         {activeSponsor && (
                           <div style={{ marginTop: 4, background: "#ECFDF5", borderRadius: 8, padding: "6px 10px" }}>
                             <div style={{ fontSize: 12, color: "#065F46", fontWeight: 700 }}>
-                              ❤️ Sponsored by: {activeSponsor.sponsor?.name || activeSponsor.sponsor?.email || activeSponsor.sponsorId}
+                              Sponsored by: {activeSponsor.sponsor?.name || activeSponsor.sponsor?.email || activeSponsor.sponsorId}
                             </div>
                             <div style={{ fontSize: 11, color: "#065F46" }}>
                               ${activeSponsor.monthlyAmount}/mo · {activeSponsor.monthsCompleted} month{activeSponsor.monthsCompleted !== 1 ? 's' : ''} completed
@@ -8117,56 +8117,56 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
                       {/* Actions */}
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignSelf: "flex-start" }}>
                         {isAdmin && b.status === "pending_verification" && <>
-                          <Btn variant="success" size="sm" onClick={() => handleVerify(b.id, "seeking_sponsor")}>✅ Verify & Publish</Btn>
-                          <Btn variant="danger" size="sm" onClick={() => handleVerify(b.id, "on_hold")}>⏸ Hold</Btn>
+                          <Btn variant="success" size="sm" onClick={() => handleVerify(b.id, "seeking_sponsor")}>Verify & Publish</Btn>
+                          <Btn variant="danger" size="sm" onClick={() => handleVerify(b.id, "on_hold")}>Hold</Btn>
                         </>}
                         {isAdmin && b.status === "verified" && (
-                          <Btn variant="primary" size="sm" onClick={() => handleVerify(b.id, "seeking_sponsor")}>🤝 Seek Sponsor</Btn>
+                          <Btn variant="primary" size="sm" onClick={() => handleVerify(b.id, "seeking_sponsor")}>Seek Sponsor</Btn>
                         )}
                         {isAdmin && (
-                          <Btn variant="outline" size="sm" onClick={() => setReportChild(b)}>📊 Report</Btn>
+                          <Btn variant="outline" size="sm" onClick={() => setReportChild(b)}>Report</Btn>
                         )}
                         {["field_team","program_manager"].some(r => r === currentUser?.role) && (b.status === "sponsored" || b.status === "under_sponsor") && (
-                          <Btn variant="purple" size="sm" onClick={() => setUpdateTarget(b)}>📊 Monthly Update</Btn>
+                          <Btn variant="purple" size="sm" onClick={() => setUpdateTarget(b)}>Monthly Update</Btn>
                         )}
                         {(b.status === "sponsored" || b.status === "under_sponsor") && isAdmin && (
-                          <Btn variant="purple" size="sm" onClick={() => setUpdateTarget(b)}>📊 Submit Update</Btn>
+                          <Btn variant="purple" size="sm" onClick={() => setUpdateTarget(b)}>Submit Update</Btn>
                         )}
                         {isAdmin && (b.status === "sponsored" || b.status === "under_sponsor") && activeSponsor && (
                           <Btn variant="success" size="sm" onClick={async () => {
                             const now = new Date();
                             try {
                               const r = await programsApi.markPaid(activeSponsor.id, { month: now.getMonth()+1, year: now.getFullYear() });
-                              showToast(`✅ Payment marked — Receipt ${r.receiptNo}`);
+                              showToast(`Payment marked — Receipt ${r.receiptNo}`);
                               load();
                             } catch (e) { showToast(e.message || "Failed to mark payment", "error"); }
-                          }}>✅ Mark Paid</Btn>
+                          }}>Mark Paid</Btn>
                         )}
                         {isAdmin && (b.status === "sponsored" || b.status === "under_sponsor") && activeSponsor && (
                           <Btn variant="primary" size="sm" onClick={async () => {
                             if (!window.confirm("Renew this sponsorship contract for another 12 months?")) return;
                             try {
                               await programsApi.renewContract(activeSponsor.id, { months: 12 });
-                              showToast("✅ Contract renewed for 12 more months — donor notified");
+                              showToast("Contract renewed for 12 more months — donor notified");
                               load();
                             } catch (e) { showToast(e.message || "Failed to renew", "error"); }
-                          }}>🔄 Renew Contract</Btn>
+                          }}>Renew Contract</Btn>
                         )}
                         {isAdmin && (b.status === "sponsored" || b.status === "under_sponsor") && (
-                          <Btn variant="muted" size="sm" onClick={() => handleVerify(b.id, "completed")}>🏁 Complete</Btn>
+                          <Btn variant="muted" size="sm" onClick={() => handleVerify(b.id, "completed")}>Complete</Btn>
                         )}
                         {isAdmin && activeSponsor && (
-                          <Btn variant="danger" size="sm" onClick={() => handleEndSponsorship(activeSponsor.id, "")}>🔚 End Sponsorship</Btn>
+                          <Btn variant="danger" size="sm" onClick={() => handleEndSponsorship(activeSponsor.id, "")}>End Sponsorship</Btn>
                         )}
                         {isAdmin && (b.status === "sponsored" || b.status === "under_sponsor" || b.status === "seeking_sponsor") && (
                           <Btn variant="outline" size="sm" style={{ borderColor:"#DC2626", color:"#DC2626" }} onClick={async () => {
                             if (!window.confirm("Move this beneficiary back to Seeking Sponsor? All active sponsorships will be ended.")) return;
                             try {
                               await programsApi.releaseToSeeking(b.id);
-                              showToast("✅ Beneficiary released — now seeking a new sponsor");
+                              showToast("Beneficiary released — now seeking a new sponsor");
                               load();
                             } catch (e) { showToast(e.message || "Failed to release", "error"); }
-                          }}>🔓 Release</Btn>
+                          }}>Release</Btn>
                         )}
                       </div>
                     </div>
@@ -8183,7 +8183,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
         <div>
           {projects.length === 0 ? (
             <div style={{ background: "#fff", borderRadius: 16, padding: 40, textAlign: "center", color: COLORS.muted }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>🏗️</div>
+              <div style={{ fontSize: 40, marginBottom: 8 }}></div>
               No community projects yet.
             </div>
           ) : (
@@ -8203,7 +8203,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
                           </span>
                         </div>
                         <div style={{ fontSize: 15, fontWeight: 800 }}>{p.title}</div>
-                        <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>📍 {p.location}, {p.region} · {p.populationSize ? `${p.populationSize.toLocaleString()} people` : ""}</div>
+                        <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>{p.location}, {p.region} · {p.populationSize ? `${p.populationSize.toLocaleString()} people` : ""}</div>
                         <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
                           <div style={{ background: COLORS.border, borderRadius: 20, height: 6, flex: 1, overflow: "hidden" }}>
                             <div style={{ background: pct >= 100 ? COLORS.secondary : COLORS.primary, width: `${pct}%`, height: "100%", borderRadius: 20 }} />
@@ -8215,13 +8215,13 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
                       {isAdmin && (
                         <div style={{ display: "flex", gap: 6 }}>
                           {p.status === "seeking_funding" && pct >= 100 && (
-                            <Btn variant="success" size="sm" onClick={async () => { await projectsApi.updateStatus(p.id, { status: "funded" }); load(); showToast("✅ Project marked as funded!"); }}>Mark Funded</Btn>
+                            <Btn variant="success" size="sm" onClick={async () => { await projectsApi.updateStatus(p.id, { status: "funded" }); load(); showToast("Project marked as funded!"); }}>Mark Funded</Btn>
                           )}
                           {p.status === "funded" && (
-                            <Btn variant="teal" size="sm" onClick={async () => { await projectsApi.updateStatus(p.id, { status: "in_progress" }); load(); showToast("🔨 Project started!"); }}>Start Project</Btn>
+                            <Btn variant="teal" size="sm" onClick={async () => { await projectsApi.updateStatus(p.id, { status: "in_progress" }); load(); showToast("Project started!"); }}>Start Project</Btn>
                           )}
                           {p.status === "in_progress" && (
-                            <Btn variant="primary" size="sm" onClick={async () => { await projectsApi.updateStatus(p.id, { status: "completed" }); load(); showToast("🏁 Project completed!"); }}>Mark Complete</Btn>
+                            <Btn variant="primary" size="sm" onClick={async () => { await projectsApi.updateStatus(p.id, { status: "completed" }); load(); showToast("Project completed!"); }}>Mark Complete</Btn>
                           )}
                         </div>
                       )}
@@ -8241,23 +8241,23 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
         return (
           <div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, flexWrap:"wrap", gap:8 }}>
-              <div style={{ fontWeight:800, fontSize:16 }}>💳 Pending Sponsorship Payments</div>
+              <div style={{ fontWeight:800, fontSize:16 }}>Pending Sponsorship Payments</div>
               <div style={{ display:"flex", gap:8 }}>
                 <Btn size="sm" variant="primary" onClick={async () => {
                   try {
                     const r = await programsApi.sendReminders({ daysAhead: 5 });
-                    showToast(`✅ ${r.message}`);
+                    showToast(`${r.message}`);
                   } catch { showToast("Failed to send reminders", "error"); }
-                }}>📬 Send Invoice Reminders (5 days)</Btn>
-                <Btn size="sm" variant="outline" onClick={loadPendingPayments}>🔄 Refresh</Btn>
+                }}>Send Invoice Reminders (5 days)</Btn>
+                <Btn size="sm" variant="outline" onClick={loadPendingPayments}>Refresh</Btn>
               </div>
             </div>
             <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:12, color:"#1E40AF" }}>
-              💡 <strong>Auto-reminder:</strong> Donors are automatically notified 5 days before their monthly payment is due (daily at 8 AM). Use the button above to send manually at any time.
+              <strong>Auto-reminder:</strong> Donors are automatically notified 5 days before their monthly payment is due (daily at 8 AM). Use the button above to send manually at any time.
             </div>
             {pendingPayments.length === 0 ? (
               <div style={{ textAlign:"center", padding:40, color:COLORS.muted, background:"#fff", borderRadius:16, boxShadow:"0 2px 8px #0001" }}>
-                <div style={{ fontSize:40, marginBottom:12 }}>✅</div>
+                <div style={{ fontSize:40, marginBottom:12 }}></div>
                 <div style={{ fontWeight:700 }}>No pending payments</div>
                 <div style={{ fontSize:13, marginTop:4 }}>All sponsorship payments have been confirmed.</div>
               </div>
@@ -8286,17 +8286,17 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
                         <div style={{ textAlign:"right" }}>
                           <div style={{ fontSize:22, fontWeight:900, color:COLORS.primary }}>${(p.amount||0).toLocaleString()}</div>
                           <div style={{ fontSize:11, color:COLORS.muted }}>{p.currency || "USD"}</div>
-                          <span style={{ background:"#FEF3C7", color:"#92400E", borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700, display:"inline-block", marginTop:4 }}>⏳ Pending</span>
+                          <span style={{ background:"#FEF3C7", color:"#92400E", borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700, display:"inline-block", marginTop:4 }}>Pending</span>
                         </div>
                       </div>
                       <div style={{ marginTop:14, display:"flex", gap:8, flexWrap:"wrap" }}>
-                        <Btn variant="success" size="sm" onClick={() => confirmSponsorPayment(p.id)}>✅ Confirm Payment Received</Btn>
+                        <Btn variant="success" size="sm" onClick={() => confirmSponsorPayment(p.id)}>Confirm Payment Received</Btn>
                         <Btn variant="outline" size="sm" onClick={async () => {
                           try {
                             const r = await programsApi.sendReminders({ sponsorshipId: sp?.id });
-                            showToast(`✅ ${r.message}`);
+                            showToast(`${r.message}`);
                           } catch { showToast("Failed to send reminder", "error"); }
-                        }}>📬 Send Invoice to Donor</Btn>
+                        }}>Send Invoice to Donor</Btn>
                       </div>
                     </div>
                   );
@@ -8322,7 +8322,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
             const invoiceKeys = ["orgName","orgSub","orgCountry","description","bankName","bankIBAN","bankBIC","mobileNumber","mobileName","footerMsg"];
             const lsInvoice = invoiceKeys.reduce((acc, k) => ({ ...acc, [k]: docEdited[`invoice.${k}`] ?? acc[k] }), {});
             localStorage.setItem("kf_invoice_settings", JSON.stringify(lsInvoice));
-            showToast("✅ Templates saved successfully");
+            showToast("Templates saved successfully");
           } catch (e) { showToast(e.message || "Save failed", "error"); }
           finally { setDocSaving(false); }
         };
@@ -8371,16 +8371,16 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
           <div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, flexWrap:"wrap", gap:10 }}>
               <div>
-                <div style={{ fontWeight:900, fontSize:18 }}>📄 Document Templates</div>
+                <div style={{ fontWeight:900, fontSize:18 }}>Document Templates</div>
                 <div style={{ fontSize:13, color:COLORS.muted, marginTop:2 }}>Edit all letters, invoices, receipts and notification messages sent to donors</div>
               </div>
               <Btn variant="primary" onClick={save} disabled={!changed || docSaving}>
-                {docSaving ? "Saving…" : changed ? "💾 Save All Changes" : "✅ All Saved"}
+                {docSaving ? "Saving…" : changed ? "Save All Changes" : "All Saved"}
               </Btn>
             </div>
 
             <DocSection
-              title="🧾 Invoice Letter"
+              title="Invoice Letter"
               desc="Shown to donors when they click 'Invoice Letter' and used in the printed PDF"
               fields={[
                 { key:"invoice.orgName",     label:"Organization Name" },
@@ -8397,7 +8397,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
             />
 
             <DocSection
-              title="✅ Payment Receipt"
+              title="Payment Receipt"
               desc="Sent to the donor as a notification when an admin clicks 'Mark Paid'"
               fields={[
                 { key:"receipt.title", label:"Notification Title" },
@@ -8407,7 +8407,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
             />
 
             <DocSection
-              title="📋 Payment Reminder (auto, 5 days before due)"
+              title="Payment Reminder (auto, 5 days before due)"
               desc="Sent automatically by the daily cron job when a payment is 5 days away"
               fields={[
                 { key:"reminder.title", label:"Notification Title" },
@@ -8416,7 +8416,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
             />
 
             <DocSection
-              title="📬 Invoice Reminder (manual trigger)"
+              title="Invoice Reminder (manual trigger)"
               desc="Sent when an admin clicks 'Send Invoice Reminders' from the Payments tab"
               fields={[
                 { key:"invoiceReminder.title", label:"Notification Title" },
@@ -8426,7 +8426,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
             />
 
             <DocSection
-              title="🔄 Contract Renewal Reminder (auto, 30 days before end)"
+              title="Contract Renewal Reminder (auto, 30 days before end)"
               desc="Sent automatically by the daily cron job when a sponsorship contract is 30 days from expiry"
               fields={[
                 { key:"renewal.title", label:"Notification Title" },
@@ -8438,7 +8438,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
             {changed && (
               <div style={{ position:"sticky", bottom:16, textAlign:"center" }}>
                 <Btn variant="primary" onClick={save} disabled={docSaving} style={{ padding:"12px 40px", fontSize:15, boxShadow:"0 4px 20px rgba(0,75,150,0.3)" }}>
-                  {docSaving ? "Saving…" : "💾 Save All Changes"}
+                  {docSaving ? "Saving…" : "Save All Changes"}
                 </Btn>
               </div>
             )}
@@ -8462,7 +8462,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
 const ProgramManagerDashboard = ({ currentUser, showToast }) => {
   return (
     <div>
-      <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>🌱 Program Manager Dashboard</h2>
+      <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>Program Manager Dashboard</h2>
       <p style={{ margin: "0 0 24px", color: COLORS.muted }}>Welcome, {currentUser.fullname} — manage long-term beneficiaries and monthly updates</p>
       <ProgramsDashboard currentUser={currentUser} showToast={showToast} />
     </div>
@@ -8493,7 +8493,7 @@ const ProjectManagerDashboard = ({ currentUser, showToast }) => {
     in_progress:     { label: "In Progress",      color: "#8B5CF6", bg: "#EDE9FE" },
     completed:       { label: "Completed",         color: "#10B981", bg: "#D1FAE5" },
   };
-  const CAT_ICONS = { water:"💧", school:"🏫", health:"🏥", agriculture:"🌾", shelter:"🏠", energy:"⚡" };
+  const CAT_ICONS = { water:"", school:"", health:"🏥", agriculture:"", shelter:"🏠", energy:"" };
 
   const totalGoal   = projects.reduce((a, p) => a + (p.fundingGoal  || 0), 0);
   const totalRaised = projects.reduce((a, p) => a + (p.totalRaised   || 0), 0);
@@ -8503,7 +8503,7 @@ const ProjectManagerDashboard = ({ currentUser, showToast }) => {
   const updateProjectStatus = async (projId, status) => {
     try {
       await projectsApi.updateStatus(projId, { status });
-      showToast(`✅ Project status updated to "${STATUS_LABELS[status]?.label || status}"`);
+      showToast(`Project status updated to "${STATUS_LABELS[status]?.label || status}"`);
       load();
     } catch { showToast("Failed to update status", "error"); }
   };
@@ -8513,7 +8513,7 @@ const ProjectManagerDashboard = ({ currentUser, showToast }) => {
       {/* Header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12, marginBottom:24 }}>
         <div>
-          <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:800 }}>🏗️ Project Manager</h2>
+          <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:800 }}>Project Manager</h2>
           <p style={{ margin:0, color:C.muted }}>Welcome, {currentUser.fullname} — create and manage community infrastructure projects</p>
         </div>
         <Btn variant="primary" onClick={() => setShowCreate(true)}>+ New Project</Btn>
@@ -8521,11 +8521,11 @@ const ProjectManagerDashboard = ({ currentUser, showToast }) => {
 
       {/* Stats */}
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:24 }}>
-        <StatCard icon="🏗️" label="Total Projects"    value={projects.length}                  color={C.primary}   />
-        <StatCard icon="🔧" label="In Progress"        value={active}                           color="#8B5CF6"     />
-        <StatCard icon="💰" label="Seeking Funding"    value={seeking}                          color="#F59E0B"     />
-        <StatCard icon="🎯" label="Total Goal"         value={`$${totalGoal.toLocaleString()}`} color={C.secondary} />
-        <StatCard icon="✅" label="Raised So Far"      value={`$${totalRaised.toLocaleString()}`} color="#10B981"  />
+        <StatCard icon="" label="Total Projects"    value={projects.length}                  color={C.primary}   />
+        <StatCard icon="" label="In Progress"        value={active}                           color="#8B5CF6"     />
+        <StatCard icon="" label="Seeking Funding"    value={seeking}                          color="#F59E0B"     />
+        <StatCard icon="" label="Total Goal"         value={`$${totalGoal.toLocaleString()}`} color={C.secondary} />
+        <StatCard icon="" label="Raised So Far"      value={`$${totalRaised.toLocaleString()}`} color="#10B981"  />
       </div>
 
       {/* Filter tabs */}
@@ -8544,7 +8544,7 @@ const ProjectManagerDashboard = ({ currentUser, showToast }) => {
           <div style={{ textAlign:"center", padding:40, color:C.muted }}>Loading projects…</div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign:"center", padding:40, color:C.muted }}>
-            <div style={{ fontSize:48, marginBottom:12 }}>🏘️</div>
+            <div style={{ fontSize:48, marginBottom:12 }}></div>
             <div style={{ fontSize:17, fontWeight:700 }}>{filterStatus ? "No projects in this status" : "No community projects yet"}</div>
             <div style={{ fontSize:13, marginTop:4, marginBottom:20 }}>Click "+ New Project" to register a water well, school, clinic, or other infrastructure project.</div>
             <Btn variant="primary" onClick={() => setShowCreate(true)}>+ Create First Project</Btn>
@@ -8554,7 +8554,7 @@ const ProjectManagerDashboard = ({ currentUser, showToast }) => {
             {filtered.map(p => {
               const pct  = p.fundingGoal > 0 ? Math.min(100, Math.round((p.totalRaised || 0) / p.fundingGoal * 100)) : 0;
               const st   = STATUS_LABELS[p.status] || { label: p.status, color: C.muted, bg: "#F3F4F6" };
-              const icon = CAT_ICONS[p.category] || "🏗️";
+              const icon = CAT_ICONS[p.category] || "";
               const nextStatuses = { seeking_funding:["funded","in_progress"], funded:["in_progress"], in_progress:["completed"] };
               const nextSt = nextStatuses[p.status] || [];
               return (
@@ -8567,7 +8567,7 @@ const ProjectManagerDashboard = ({ currentUser, showToast }) => {
                         <span style={{ background:st.bg, color:st.color, borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>{st.label}</span>
                         <span style={{ background:"#F3F4F6", borderRadius:20, padding:"2px 10px", fontSize:11, color:C.muted, fontWeight:600 }}>{p.category}</span>
                       </div>
-                      <div style={{ fontSize:12, color:C.muted }}>📍 {p.location}{p.region ? `, ${p.region}` : ""} {p.populationSize ? `· 👥 ${p.populationSize.toLocaleString()} people` : ""}</div>
+                      <div style={{ fontSize:12, color:C.muted }}>{p.location}{p.region ? `, ${p.region}` : ""} {p.populationSize ? `· ${p.populationSize.toLocaleString()} people` : ""}</div>
                     </div>
                     <div style={{ textAlign:"right", flexShrink:0 }}>
                       <div style={{ fontWeight:900, fontSize:18, color:C.primary }}>${(p.totalRaised||0).toLocaleString()}</div>
@@ -8623,15 +8623,15 @@ const ROLE_MAP = {
 };
 
 const ROLE_LABELS = {
-  public_user:         { icon: "👤",  label: "User"                  },
-  observer:            { icon: "📝",  label: "Reporter"              },
+  public_user:         { icon: "",  label: "User"                  },
+  observer:            { icon: "",  label: "Reporter"              },
   admin:               { icon: "🟠",  label: "Administrator"         },
-  verification_office: { icon: "🏛️", label: "Admin"   },
-  field_team:          { icon: "🗺️", label: "Field Agent"            },
-  donor:               { icon: "❤️", label: "Donor / Sponsor"        },
-  super_admin:         { icon: "🛡️", label: "Super Administrator"    },
-  program_manager:     { icon: "🌱",  label: "Program Manager"       },
-  project_manager:     { icon: "🏗️", label: "Project Manager"       },
+  verification_office: { icon: "", label: "Admin"   },
+  field_team:          { icon: "", label: "Field Agent"            },
+  donor:               { icon: "", label: "Donor / Sponsor"        },
+  super_admin:         { icon: "", label: "Super Administrator"    },
+  program_manager:     { icon: "",  label: "Program Manager"       },
+  project_manager:     { icon: "", label: "Project Manager"       },
 };
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────
@@ -8958,7 +8958,7 @@ export default function KafaaleQaadApp() {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg }}>
         <div style={{ textAlign: "center", background: "#fff", padding: 40, borderRadius: 20, boxShadow: "0 4px 20px #0001" }}>
-          <div style={{ fontSize: 48 }}>🚫</div>
+          <div style={{ fontSize: 48 }}></div>
           <h2 style={{ color: COLORS.danger }}>Access Denied</h2>
           <p style={{ color: COLORS.muted }}>Your account role ({authUser.role}) does not have dashboard access.</p>
           <button onClick={handleLogout} style={{ padding: "10px 24px", background: COLORS.primary, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", fontWeight: 700 }}>Sign Out</button>
@@ -8967,7 +8967,7 @@ export default function KafaaleQaadApp() {
     );
   }
 
-  const roleInfo = ROLE_LABELS[internalRole] || { icon: "👤", label: "User" };
+  const roleInfo = ROLE_LABELS[internalRole] || { icon: "", label: "User" };
 
   // ─── ROLE DASHBOARDS MAP (locked to real role) ──────────────────────────
   const sharedAdminProps = {
@@ -9064,7 +9064,7 @@ export default function KafaaleQaadApp() {
           {/* Search bar */}
           <div className="kf-search" style={{ margin: "0 8px" }}>
             <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-              placeholder="🔍 Search…"
+              placeholder="Search…"
               style={{ flex: 1, padding: "7px 12px", borderRadius: 10, border: "none", background: "rgba(255,255,255,0.18)", color: "#fff", fontSize: 13, outline: "none", minWidth: 0 }} />
             {!isMobile && (
               <Select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} wrapStyle={{ marginBottom:0 }}>
@@ -9079,8 +9079,7 @@ export default function KafaaleQaadApp() {
             <div style={{ position: "relative" }}>
               <button onClick={() => setShowNotifs(v => !v)}
                 style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, width: 36, height: 36, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                🔔
-                {unreadCount > 0 && (
+                                {unreadCount > 0 && (
                   <span style={{ position: "absolute", top: -4, right: -4, background: "#EF4444", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid " + COLORS.primary }}>
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
@@ -9119,7 +9118,7 @@ export default function KafaaleQaadApp() {
               )}
             </div>
 
-            <a href="/" style={{ padding:"6px 10px", borderRadius:8, background:"rgba(255,255,255,0.12)", color:"#fff", textDecoration:"none", fontSize:12, fontWeight:700, display:"flex", alignItems:"center", gap:4 }}>🌐 {isMobile?"Site":"Visit Site"}</a>
+            <a href="/" style={{ padding:"6px 10px", borderRadius:8, background:"rgba(255,255,255,0.12)", color:"#fff", textDecoration:"none", fontSize:12, fontWeight:700, display:"flex", alignItems:"center", gap:4 }}>{isMobile?"Site":"Visit Site"}</a>
             <Btn variant="muted" size="sm" onClick={handleLogout} style={{ padding: "6px 10px", fontSize: 12 }}>
               {isMobile ? "⏻" : t("exit")}
             </Btn>
@@ -9162,7 +9161,7 @@ export default function KafaaleQaadApp() {
       )}
       {showReport && (
         <ReportCaseModal onClose={() => setShowReport(false)} currentUser={currentUser}
-          onSubmit={c => { showToast("✅ Case submitted! Admin will review shortly."); setShowReport(false); reloadCases(); }} />
+          onSubmit={c => { showToast("Case submitted! Admin will review shortly."); setShowReport(false); reloadCases(); }} />
       )}
       {sponsorCase && (
         <SponsorModal c={sponsorCase} onClose={() => setSponsorCase(null)} onConfirm={handleSponsor} currentUser={currentUser} />
@@ -9195,7 +9194,7 @@ export default function KafaaleQaadApp() {
       )}
       {enrollCase && (
         <EnrollBeneficiaryFromCaseModal caseItem={enrollCase} onClose={() => setEnrollCase(null)}
-          onDone={() => { reloadCases(); showToast("🌱 Child enrolled in program and seeking sponsor!"); }}
+          onDone={() => { reloadCases(); showToast("Child enrolled in program and seeking sponsor!"); }}
           showToast={showToast} />
       )}
       {fieldReportCase && (
@@ -9204,7 +9203,7 @@ export default function KafaaleQaadApp() {
       {deliveryAssign && (
         <AssignDeliveryModal caseItem={deliveryAssign} agents={agents}
           onClose={() => setDeliveryAssign(null)}
-          onDone={() => { setTimeout(reloadCases, 800); showToast("🚚 Delivery started! Field agent has been notified."); }}
+          onDone={() => { setTimeout(reloadCases, 800); showToast("Delivery started! Field agent has been notified."); }}
           showToast={showToast} />
       )}
       {deliveryCase && (
@@ -9223,15 +9222,15 @@ export default function KafaaleQaadApp() {
       {/* ── Toast notification ── */}
       {toast && (
         <div style={{ position: "fixed", bottom: 24, right: 16, background: toast.type === "success" ? COLORS.secondary : COLORS.danger, color: "#fff", borderRadius: 14, padding: "12px 20px", boxShadow: "0 8px 32px #0003", fontSize: 14, fontWeight: 700, zIndex: 2000, maxWidth: 360, left: "auto" }}>
-          {toast.type === "success" ? "✅" : "❌"} {toast.msg}
+          {toast.type === "success" ? "" : ""} {toast.msg}
         </div>
       )}
 
       {/* ── Footer ── */}
       <div style={{ textAlign: "center", padding: "20px 24px", color: COLORS.muted, fontSize: 12, borderTop: `1px solid ${COLORS.border}`, background: "#fff", marginTop: 32 }}>
-        <strong style={{ color: COLORS.primary }}>🤝 KAFAALE QAAD</strong> · Humanitarian Aid Platform · React + Express + PostgreSQL · Claude AI
+        <strong style={{ color: COLORS.primary }}>KAFAALE QAAD</strong> · Humanitarian Aid Platform · React + Express + PostgreSQL · Claude AI
         <br />
-        <span style={{ fontSize: 11, opacity: 0.7 }}>🔐 JWT Auth · Role-Based Access · AI Sanitization · Field Verification · Audit Trails · Real-Time Notifications</span>
+        <span style={{ fontSize: 11, opacity: 0.7 }}>JWT Auth · Role-Based Access · AI Sanitization · Field Verification · Audit Trails · Real-Time Notifications</span>
       </div>
     </div>
   );

@@ -64,7 +64,7 @@ export default function AiAssistant({ caseId = null, context = 'general' }) {
         }}
         title="AI Assistant"
       >
-        {open ? '✕' : '🤖'}
+        {open ? '✕' : ''}
       </button>
 
       {/* Chat Window */}
@@ -84,7 +84,7 @@ export default function AiAssistant({ caseId = null, context = 'general' }) {
         }}>
           {/* Header */}
           <div style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.green})`, color: '#fff', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🤖</div>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}></div>
             <div>
               <div style={{ fontWeight: 700, fontSize: 15 }}>Kafaale AI Assistant</div>
               <div style={{ fontSize: 12, opacity: 0.85 }}>● Online — Ask me anything</div>

@@ -12,7 +12,7 @@ const C = {
 const FAQ_DATA = [
   {
     category: "About Kafaala Qaad",
-    icon: "ℹ️",
+    icon: "",
     items: [
       { q:"What is Kafaala Qaad?", a:"Kafaala Qaad (Hope Society) is a digital humanitarian aid platform that connects people in need in Somalia with verified donors and sponsors worldwide. We use an 11-step verified pipeline to ensure every case is real before funds are collected or distributed." },
       { q:"How is Kafaala Qaad different from other donation platforms?", a:"Unlike general crowdfunding sites, every case on Kafaala Qaad is physically verified by a trained field agent with GPS-tagged photos and a documented field report. Donors see the before and after — not just the request." },
@@ -22,7 +22,7 @@ const FAQ_DATA = [
   },
   {
     category: "For Donors & Sponsors",
-    icon: "❤️",
+    icon: "",
     items: [
       { q:"How do I know my donation is being used properly?", a:"Every case goes through physical field verification before it is published to donors. After aid delivery, field agents upload proof of delivery (photos, GPS coordinates, confirmation signatures). You receive a delivery report for any case you sponsor." },
       { q:"What payment methods are accepted?", a:"We accept credit/debit cards, bank transfers, EVC Plus, Hormuud Tele, and major international payment gateways. Contact us to discuss large or recurring donations." },
@@ -34,7 +34,7 @@ const FAQ_DATA = [
   },
   {
     category: "Reporting a Case",
-    icon: "📝",
+    icon: "",
     items: [
       { q:"Who can report a case?", a:"Any registered user with the Reporter role can submit a case. Registration is free and only requires an email, phone number, and basic profile. Reports can be submitted via the Contact page without login." },
       { q:"What information do I need to report a case?", a:"You need: a description of the need (at least 10 words), the person's general location (district), an urgency level, and ideally a photo. Private contact details for the person in need are kept confidential." },
@@ -45,7 +45,7 @@ const FAQ_DATA = [
   },
   {
     category: "For Field Agents & Volunteers",
-    icon: "🗺️",
+    icon: "",
     items: [
       { q:"How do I become a field agent?", a:"Apply via the Volunteer page. You'll go through a background check, a short orientation call, and platform training. Field agents are assigned to cases in their district." },
       { q:"Are field agents paid?", a:"Yes. Active field agents receive a per-case payment for verified and completed investigations. The rate depends on case type and distance. Contact us for current rates." },
@@ -55,7 +55,7 @@ const FAQ_DATA = [
   },
   {
     category: "Privacy & Security",
-    icon: "🔐",
+    icon: "",
     items: [
       { q:"How is my personal data protected?", a:"All user data is encrypted at rest and in transit (AES-256 + TLS). Personally identifying information about beneficiaries is only accessible to authorized staff. We do not sell or share user data." },
       { q:"How do you prevent duplicate or fraudulent cases?", a:"Our system checks for duplicate descriptions, locations, and reporter patterns. An AI layer scans all submissions for PII and inconsistencies. All cases require physical field verification before publication." },
@@ -118,7 +118,7 @@ export default function FAQ() {
               placeholder="Search questions…"
               style={{ width:"100%", padding:"13px 46px 13px 16px", borderRadius:12, border:"none", fontSize:14, boxSizing:"border-box", outline:"none" }}
             />
-            <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", fontSize:18, opacity:0.5 }}>🔍</span>
+            <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", fontSize:18, opacity:0.5 }}></span>
           </div>
         </div>
       </section>
@@ -130,7 +130,7 @@ export default function FAQ() {
             {sections.map(s => (
               <button key={s} onClick={() => setActiveSection(s)}
                 style={{ padding:"14px 18px", background:"none", border:"none", cursor:"pointer", whiteSpace:"nowrap", fontSize:13, fontWeight:700, color:activeSection===s?C.primary:C.muted, borderBottom:activeSection===s?`3px solid ${C.primary}`:"3px solid transparent", transition:"all .15s" }}>
-                {FAQ_DATA.find(d=>d.category===s)?.icon || "📌"} {s}
+                {FAQ_DATA.find(d=>d.category===s)?.icon || ""} {s}
               </button>
             ))}
           </div>
@@ -142,7 +142,7 @@ export default function FAQ() {
         <div style={wrap}>
           {filteredData.length === 0 && (
             <div style={{ textAlign:"center", padding:"60px 0", color:C.muted }}>
-              <div style={{ fontSize:48, marginBottom:16 }}>🔍</div>
+              <div style={{ fontSize:48, marginBottom:16 }}></div>
               <div style={{ fontSize:18, fontWeight:700 }}>No results found</div>
               <div style={{ fontSize:14, marginTop:8 }}>Try a different search term</div>
             </div>
@@ -160,12 +160,12 @@ export default function FAQ() {
 
           {/* Still have questions */}
           <div style={{ background:`linear-gradient(135deg,${C.primary}10,${C.secondary}10)`, borderRadius:16, padding: isMobile?20:32, textAlign:"center", border:`1px solid ${C.border}`, marginTop:8 }}>
-            <div style={{ fontSize:40, marginBottom:12 }}>💬</div>
+            <div style={{ fontSize:40, marginBottom:12 }}></div>
             <h3 style={{ fontSize:20, fontWeight:800, margin:"0 0 10px" }}>Still have a question?</h3>
             <p style={{ fontSize:14, color:C.muted, marginBottom:20 }}>Our team responds within 24 hours.</p>
             <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-              <Link to="/contact" style={{ padding:"12px 24px", background:C.primary, color:"#fff", borderRadius:10, fontWeight:700, fontSize:14, textDecoration:"none" }}>📬 Contact Us</Link>
-              <a href="mailto:kafaaleqaad@gmail.com" style={{ padding:"12px 24px", background:"none", border:`1.5px solid ${C.primary}`, color:C.primary, borderRadius:10, fontWeight:600, fontSize:14, textDecoration:"none" }}>✉️ Email Support</a>
+              <Link to="/contact" style={{ padding:"12px 24px", background:C.primary, color:"#fff", borderRadius:10, fontWeight:700, fontSize:14, textDecoration:"none" }}>Contact Us</Link>
+              <a href="mailto:kafaaleqaad@gmail.com" style={{ padding:"12px 24px", background:"none", border:`1.5px solid ${C.primary}`, color:C.primary, borderRadius:10, fontWeight:600, fontSize:14, textDecoration:"none" }}>Email Support</a>
             </div>
           </div>
         </div>

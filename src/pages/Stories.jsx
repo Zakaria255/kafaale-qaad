@@ -44,7 +44,7 @@ function StorySubmitSection({ isMobile }) {
       location: form.location,
       beforeDesc: form.what,
       afterDesc: form.outcome,
-      icon: "✍️",
+      icon: "",
       date: new Date().toLocaleDateString("en-GB", { month:"long", year:"numeric" }),
     };
     try {
@@ -72,7 +72,7 @@ function StorySubmitSection({ isMobile }) {
             Community Stories
           </span>
           <h2 style={{ fontSize:"clamp(24px,3.5vw,36px)", fontWeight:900, color:C.navy, margin:"14px 0 10px", letterSpacing:-0.4 }}>
-            ✍️ Share Your Story
+            Share Your Story
           </h2>
           <p style={{ fontSize:15, color:C.muted, maxWidth:520, margin:"0 auto", lineHeight:1.7 }}>
             Are you a beneficiary, volunteer, or community member? Tell us what happened — our team reviews every submission and publishes verified stories to inspire more donors.
@@ -81,7 +81,7 @@ function StorySubmitSection({ isMobile }) {
 
         {phase === "success" ? (
           <div style={{ background:"#fff", borderRadius:20, padding:"48px 32px", textAlign:"center", boxShadow:"0 4px 24px rgba(0,38,81,0.09)", border:`1px solid ${C.border}` }}>
-            <div style={{ fontSize:64, marginBottom:16 }}>🎉</div>
+            <div style={{ fontSize:64, marginBottom:16 }}></div>
             <h3 style={{ fontSize:24, fontWeight:900, color:C.navy, margin:"0 0 12px" }}>Story Submitted!</h3>
             <p style={{ fontSize:15, color:C.muted, maxWidth:400, margin:"0 auto 28px", lineHeight:1.7 }}>
               Thank you for sharing. Our team will review your submission and may reach out for more details before publishing.
@@ -118,7 +118,7 @@ function StorySubmitSection({ isMobile }) {
               <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:6, textTransform:"uppercase", letterSpacing:0.5 }}>Story Title *</label>
               <input value={form.title} onChange={e=>set("title",e.target.value)}
                 placeholder="e.g. My child received the surgery she needed" style={inp()} />
-              {errors.title && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>⚠ {errors.title}</div>}
+              {errors.title && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>{errors.title}</div>}
             </div>
 
             {/* Location */}
@@ -134,7 +134,7 @@ function StorySubmitSection({ isMobile }) {
               <textarea rows={4} value={form.what} onChange={e=>set("what",e.target.value)}
                 placeholder="Describe the situation before help arrived — what was the challenge or hardship?"
                 style={{ ...inp(), resize:"vertical", lineHeight:1.7 }} />
-              {errors.what && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>⚠ {errors.what}</div>}
+              {errors.what && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>{errors.what}</div>}
             </div>
 
             {/* Outcome */}
@@ -143,7 +143,7 @@ function StorySubmitSection({ isMobile }) {
               <textarea rows={4} value={form.outcome} onChange={e=>set("outcome",e.target.value)}
                 placeholder="Describe the outcome — how did the support change the situation?"
                 style={{ ...inp(), resize:"vertical", lineHeight:1.7 }} />
-              {errors.outcome && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>⚠ {errors.outcome}</div>}
+              {errors.outcome && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>{errors.outcome}</div>}
             </div>
 
             {/* Consent */}
@@ -152,7 +152,7 @@ function StorySubmitSection({ isMobile }) {
                 <input type="checkbox" checked={form.consent} onChange={e=>set("consent",e.target.checked)} style={{ marginTop:2, flexShrink:0 }} />
                 <span>I confirm that this story is true and I consent to Kafaala Qaad reviewing and potentially publishing it on their platform and social media. My identity will remain protected unless I chose otherwise.</span>
               </label>
-              {errors.consent && <div style={{ fontSize:12, color:"#C0392B", marginTop:6 }}>⚠ {errors.consent}</div>}
+              {errors.consent && <div style={{ fontSize:12, color:"#C0392B", marginTop:6 }}>{errors.consent}</div>}
             </div>
 
             <button onClick={submit} style={{
@@ -346,7 +346,7 @@ export default function Stories() {
                 placeholder={lang==="so"?"Raadi xikaayo...":"Search stories…"}
                 style={{ width:"100%", padding:"14px 48px 14px 18px", borderRadius:50, border:"none", fontSize:14, boxSizing:"border-box", outline:"none", boxShadow:"0 6px 24px rgba(0,0,0,0.35)" }}
               />
-              <span style={{ position:"absolute", right:18, top:"50%", transform:"translateY(-50%)", fontSize:18, opacity:0.45 }}>🔍</span>
+              <span style={{ position:"absolute", right:18, top:"50%", transform:"translateY(-50%)", fontSize:18, opacity:0.45 }}></span>
             </div>
           </div>
         </div>
@@ -380,12 +380,12 @@ export default function Stories() {
         <section style={sec("#fff")}>
           <div style={wrap}>
             <h2 style={{ fontSize:20, fontWeight:800, color:C.text, marginBottom:24 }}>
-              ⭐ {lang==="so"?"Xikaayada Muhiimka ah":lang==="ar"?"القصص المميزة":lang==="tr"?"Öne Çıkan Hikayeler":lang==="es"?"Historias Destacadas":lang==="fr"?"Histoires à la Une":"Featured Stories"}
+              {lang==="so"?"Xikaayada Muhiimka ah":lang==="ar"?"القصص المميزة":lang==="tr"?"Öne Çıkan Hikayeler":lang==="es"?"Historias Destacadas":lang==="fr"?"Histoires à la Une":"Featured Stories"}
             </h2>
             <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": featured.length===1?"1fr":"1fr 1fr", gap:24 }}>
               {featured.slice(0,2).map(story => {
                 const cs = catStyle(story.category);
-                const ICON = story.category==="Education"?"🎓":story.category==="Medical"?"🩺":story.category==="Press Release"?"📣":story.category==="Partnership"?"🤝":"❤️";
+                const ICON = story.category==="Education"?"":story.category==="Medical"?"":story.category==="Press Release"?"":story.category==="Partnership"?"":"";
                 return (
                   <Link key={story.id} to={`/stories/${story.id}`}
                     style={{ background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 4px 24px rgba(0,38,81,0.10)", border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
@@ -396,7 +396,7 @@ export default function Stories() {
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
                         <span style={{ background:cs.bg, color:cs.text, borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700 }}>{story.category}</span>
                         <span style={{ fontSize:11, color:C.muted }}>{fmt(story.date)}</span>
-                        {story.location && <span style={{ fontSize:11, color:C.muted }}>📍 {story.location}</span>}
+                        {story.location && <span style={{ fontSize:11, color:C.muted }}>{story.location}</span>}
                       </div>
                       <h3 style={{ fontSize:20, fontWeight:800, color:C.text, margin:"0 0 10px", lineHeight:1.3 }}>{story.title}</h3>
                       <p style={{ fontSize:14, color:C.muted, lineHeight:1.7, margin:"0 0 16px" }}>{story.excerpt}</p>
@@ -421,7 +421,7 @@ export default function Stories() {
           )}
           {displayed.length === 0 && (
             <div style={{ textAlign:"center", padding:"60px 0", color:C.muted }}>
-              <div style={{ fontSize:48, marginBottom:16 }}>🔍</div>
+              <div style={{ fontSize:48, marginBottom:16 }}></div>
               <div style={{ fontSize:18, fontWeight:700 }}>No stories found</div>
               <div style={{ fontSize:14, marginTop:8 }}>Try a different search or category</div>
             </div>
@@ -429,7 +429,7 @@ export default function Stories() {
           <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": isTablet?"1fr 1fr":"repeat(3,1fr)", gap: isMobile?16:24 }}>
             {rest.map(story => {
               const cs = catStyle(story.category);
-              const ICON = story.category==="Education"?"🎓":story.category==="Medical"?"🩺":story.category==="Press Release"?"📣":story.category==="Partnership"?"🤝":story.category==="Emergency"?"🚨":"❤️";
+              const ICON = story.category==="Education"?"":story.category==="Medical"?"":story.category==="Press Release"?"":story.category==="Partnership"?"":story.category==="Emergency"?"🚨":"";
               return (
                 <Link key={story.id} to={`/stories/${story.id}`}
                   style={{ background:"#fff", borderRadius:16, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,38,81,0.07)", border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
@@ -441,7 +441,7 @@ export default function Stories() {
                       <span style={{ background:cs.bg, color:cs.text, borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>{story.category}</span>
                       <span style={{ fontSize:11, color:C.muted }}>{fmt(story.date)}</span>
                     </div>
-                    {story.location && <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>📍 {story.location}</div>}
+                    {story.location && <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>{story.location}</div>}
                     <h3 style={{ fontSize:15, fontWeight:800, color:C.text, margin:"0 0 8px", lineHeight:1.35 }}>{story.title}</h3>
                     <p style={{ fontSize:13, color:C.muted, lineHeight:1.65, margin:"0 0 14px", display:"-webkit-box", WebkitLineClamp:3, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
                       {story.excerpt}
@@ -476,7 +476,7 @@ export default function Stories() {
           </p>
           <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
             <Link to="/cases" style={{ padding:"14px 32px", background:C.gold, color:"#fff", borderRadius:12, fontWeight:800, fontSize:15, textDecoration:"none" }}>
-              ❤️ Sponsor a Case
+              Sponsor a Case
             </Link>
           </div>
         </div>

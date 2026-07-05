@@ -92,18 +92,18 @@ const ROLE_GROUPS = [
   {
     label: 'Immediate Access',
     options: [
-      { value: 'reporter', label: '📝 Community Reporter — submit cases' },
-      { value: 'donor',    label: '❤️ Donor / Sponsor — fund verified cases' },
+      { value: 'reporter', label: 'Community Reporter — submit cases' },
+      { value: 'donor',    label: 'Donor / Sponsor — fund verified cases' },
     ],
   },
   {
     label: 'Requires Admin Approval',
     options: [
-      { value: 'field_agent',         label: '🗺️ Field Agent — verify on the ground' },
-      { value: 'verification_office', label: '🏛️ Verification Office — case review team' },
-      { value: 'program_manager',     label: '🌱 Program Manager — child programs' },
-      { value: 'project_manager',     label: '🏗️ Project Manager — community projects' },
-      { value: 'partner',             label: '🤝 Partner Organisation' },
+      { value: 'field_agent',         label: 'Field Agent — verify on the ground' },
+      { value: 'verification_office', label: 'Verification Office — case review team' },
+      { value: 'program_manager',     label: 'Program Manager — child programs' },
+      { value: 'project_manager',     label: 'Project Manager — community projects' },
+      { value: 'partner',             label: 'Partner Organisation' },
     ],
   },
 ];
@@ -242,19 +242,19 @@ export default function Login() {
                   color: tab===tb ? '#fff' : C.muted,
                   transition:'all 0.18s', boxShadow: tab===tb ? `0 2px 8px ${C.primary}35` : 'none',
                 }}>
-                {tb === 'login' ? `🔐 ${t('signIn')}` : `✨ ${t('register')}`}
+                {tb === 'login' ? `${t('signIn')}` : `${t('register')}`}
               </button>
             ))}
           </div>
 
           {error && error !== 'rate_limited' && (
             <div style={{ background:'#FEF2F2', border:`1px solid ${C.error}30`, color:C.error, padding:'11px 15px', borderRadius:10, marginBottom:16, fontSize:13, fontWeight:600 }}>
-              ⚠️ {error}
+              {error}
             </div>
           )}
           {error === 'rate_limited' && (
             <div style={{ background:'#FFF7ED', border:'1px solid #FCD34D', borderRadius:12, padding:'14px 16px', marginBottom:16 }}>
-              <div style={{ fontWeight:800, fontSize:14, color:'#92400E', marginBottom:4 }}>🔒 Too Many Attempts</div>
+              <div style={{ fontWeight:800, fontSize:14, color:'#92400E', marginBottom:4 }}>Too Many Attempts</div>
               <div style={{ fontSize:13, color:'#92400E', lineHeight:1.5 }}>
                 Login is temporarily locked due to too many failed attempts.
               </div>
@@ -295,12 +295,12 @@ export default function Login() {
                 cursor: (loading || rateLocked) ? 'not-allowed' : 'pointer',
               }}>
               {loading
-                ? `⏳ ${t('pleaseWait')}`
+                ? `${t('pleaseWait')}`
                 : rateLocked
-                  ? `🔒 Locked — ${String(Math.floor(countdown/60)).padStart(2,'0')}:${String(countdown%60).padStart(2,'0')}`
+                  ? `Locked — ${String(Math.floor(countdown/60)).padStart(2,'0')}:${String(countdown%60).padStart(2,'0')}`
                   : tab === 'login'
-                    ? `🔐 ${t('signIn')}`
-                    : `✨ ${t('createAccount')}`}
+                    ? `${t('signIn')}`
+                    : `${t('createAccount')}`}
             </button>
           </form>
 
@@ -310,12 +310,12 @@ export default function Login() {
               <div style={{ fontSize:11, fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:1, marginBottom:10, textAlign:'center' }}>Quick Demo Access</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                 {[
-                  { icon:"🛡️", label:"Super Admin", email:"superadmin@kafaale.org", color:"#991B1B", bg:"#FEF2F2" },
+                  { icon:"", label:"Super Admin", email:"superadmin@kafaale.org", color:"#991B1B", bg:"#FEF2F2" },
                   { icon:"🟠", label:"Admin",        email:"admin@kafaale.org",      color:"#92400E", bg:"#FFFBEB" },
-                  { icon:"🏛️", label:"Verifier",    email:"verifier@kafaale.org",   color:"#1E40AF", bg:"#EFF6FF" },
-                  { icon:"🗺️", label:"Field Agent",  email:"agent@kafaale.org",      color:"#5B21B6", bg:"#F5F3FF" },
-                  { icon:"❤️", label:"Donor",        email:"donor@kafaale.org",      color:"#9D174D", bg:"#FDF2F8" },
-                  { icon:"📝", label:"Reporter",     email:"reporter@kafaale.org",   color:"#065F46", bg:"#ECFDF5" },
+                  { icon:"", label:"Verifier",    email:"verifier@kafaale.org",   color:"#1E40AF", bg:"#EFF6FF" },
+                  { icon:"", label:"Field Agent",  email:"agent@kafaale.org",      color:"#5B21B6", bg:"#F5F3FF" },
+                  { icon:"", label:"Donor",        email:"donor@kafaale.org",      color:"#9D174D", bg:"#FDF2F8" },
+                  { icon:"", label:"Reporter",     email:"reporter@kafaale.org",   color:"#065F46", bg:"#ECFDF5" },
                 ].map(d => (
                   <button key={d.email} type="button"
                     onClick={() => { setForm(f => ({ ...f, email:d.email, password:'Kafaale123!' })); }}

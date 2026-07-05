@@ -251,7 +251,7 @@ const SponsorBeneficiaryModal = ({ beneficiary, onClose, onDone }) => {
   if (done) return (
     <div style={{ position: "fixed", inset: 0, background: "#0007", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div style={{ background: "#fff", borderRadius: 20, padding: 40, maxWidth: 440, width: "100%", textAlign: "center" }} onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+        <div style={{ fontSize: 40, marginBottom: 12 }}></div>
         <h3 style={{ margin: "0 0 12px", color: C.secondary }}>Sponsorship Created!</h3>
         <p style={{ color: C.muted, fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
           Your monthly sponsorship of <strong>${parseFloat(amount)}/month</strong> for <strong>{parseInt(commitmentMonths)} months</strong> has been set up.
@@ -428,7 +428,7 @@ const ContributeModal = ({ project, onClose, onDone }) => {
   if (done) return (
     <div style={{ position: "fixed", inset: 0, background: "#0007", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div style={{ background: "#fff", borderRadius: 20, padding: 40, maxWidth: 440, width: "100%", textAlign: "center" }} onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div>
+        <div style={{ fontSize: 40, marginBottom: 12 }}></div>
         <h3 style={{ margin: "0 0 12px", color: C.secondary }}>Thank You!</h3>
         <p style={{ color: C.muted, fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
           Your contribution of <strong>${parseFloat(amount).toLocaleString()}</strong> to <strong>{project.title}</strong> has been received.

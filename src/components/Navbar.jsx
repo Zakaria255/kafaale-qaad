@@ -64,33 +64,33 @@ export default function Navbar() {
     {
       id: "about", label: "About",
       items: [
-        show("about")      && { to: "/about",        label: "About Us",    icon: "🏛️", desc: "Our mission, team & values" },
-        show("howItWorks") && { to: "/how-it-works",  label: "How We Work", icon: "⚙️", desc: "The 11-step verification pipeline" },
+        show("about")      && { to: "/about",        label: "About Us",    icon: "", desc: "Our mission, team & values" },
+        show("howItWorks") && { to: "/how-it-works",  label: "How We Work", icon: "", desc: "The 11-step verification pipeline" },
       ].filter(Boolean),
     },
     {
       id: "ops", label: "Operations",
       items: [
-        show("cases")    && { to: "/cases",    label: "Cases",    icon: "📋", desc: "Verified emergency cases" },
-        show("programs") && { to: "/programs", label: "Programs", icon: "🌱", desc: "Group sponsorship programs" },
-        show("projects") && { to: "/projects", label: "Projects", icon: "🏗️", desc: "Community infrastructure" },
+        show("cases")    && { to: "/cases",    label: "Cases",    icon: "", desc: "Verified emergency cases" },
+        show("programs") && { to: "/programs", label: "Programs", icon: "", desc: "Group sponsorship programs" },
+        show("projects") && { to: "/projects", label: "Projects", icon: "", desc: "Community infrastructure" },
       ].filter(Boolean),
     },
     {
       id: "give", label: "Give",
       items: [
-        show("donate")   && { to: "/donate",   label: "Donate",   icon: "❤️", desc: "Sponsor a case directly" },
-        show("partners") && { to: "/partners", label: "Partners", icon: "🌐", desc: "Join as an NGO partner" },
+        show("donate")   && { to: "/donate",   label: "Donate",   icon: "", desc: "Sponsor a case directly" },
+        show("partners") && { to: "/partners", label: "Partners", icon: "", desc: "Join as an NGO partner" },
       ].filter(Boolean),
     },
     {
       id: "more", label: "More",
       items: [
-        show("stories")      && { to: "/stories",      label: "Stories",      icon: "📰", desc: "Impact & success stories" },
-        show("volunteer")    && { to: "/volunteer",     label: "Volunteer",    icon: "🤝", desc: "Join our field team" },
-        show("faq")          && { to: "/faq",           label: "FAQ",          icon: "❓", desc: "Frequently asked questions" },
+        show("stories")      && { to: "/stories",      label: "Stories",      icon: "", desc: "Impact & success stories" },
+        show("volunteer")    && { to: "/volunteer",     label: "Volunteer",    icon: "", desc: "Join our field team" },
+        show("faq")          && { to: "/faq",           label: "FAQ",          icon: "", desc: "Frequently asked questions" },
         show("updates")      && { to: "/updates",        label: "Updates",      icon: "🚨", desc: "Field updates & emergency alerts" },
-                                 { to: "/media",          label: "Media",        icon: "📱", desc: "Photos, videos & community posts" },
+                                 { to: "/media",          label: "Media",        icon: "", desc: "Photos, videos & community posts" },
       ].filter(Boolean),
     },
     show("contact") && { id: "contact", label: "Contact", to: "/contact", direct: true },
@@ -306,17 +306,17 @@ export default function Navbar() {
                       </div>
                       <button onClick={() => { navigate("/dashboard"); setOpenDrop(null); }}
                         style={{ width: "100%", padding: "10px 14px", background: "none", border: "none", textAlign: "left", cursor: "pointer", borderRadius: 8, fontSize: 14, fontWeight: 600, color: B.blue }}>
-                        📊 {t("dashboard")}
+                        {t("dashboard")}
                       </button>
                       {(user.role === "super_admin" || user.role === "admin") && (
                         <button onClick={() => { navigate("/dashboard?tab=settings"); setOpenDrop(null); }}
                           style={{ width: "100%", padding: "10px 14px", background: "none", border: "none", textAlign: "left", cursor: "pointer", borderRadius: 8, fontSize: 14, fontWeight: 600, color: B.muted }}>
-                          ⚙️ Site Settings
+                          Site Settings
                         </button>
                       )}
                       <button onClick={() => { logout(); navigate("/"); setOpenDrop(null); }}
                         style={{ width: "100%", padding: "10px 14px", background: "none", border: "none", textAlign: "left", cursor: "pointer", borderRadius: 8, fontSize: 14, color: "#C0392B" }}>
-                        🚪 {t("signOut")}
+                        {t("signOut")}
                       </button>
                     </div>
                   )}
@@ -385,11 +385,11 @@ export default function Navbar() {
                   </div>
                   <button onClick={() => { navigate("/dashboard"); closeAll(); }}
                     style={{ width: "100%", padding: "13px 16px", background: B.blue + "10", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", color: B.blue, textAlign: "left", marginBottom: 8 }}>
-                    📊 {t("dashboard")}
+                    {t("dashboard")}
                   </button>
                   <button onClick={() => { logout(); navigate("/"); closeAll(); }}
                     style={{ width: "100%", padding: "13px 16px", background: "#FEF2F2", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: "pointer", color: "#C0392B", textAlign: "left" }}>
-                    🚪 {t("signOut")}
+                    {t("signOut")}
                   </button>
                 </>
               ) : (

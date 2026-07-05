@@ -31,8 +31,8 @@ function getCaseImg(c) {
 }
 
 const STATUS_LABEL = {
-  waiting_for_sponsor: "🤝 Open for Sponsorship", sponsored: "❤️ Sponsored", delivering: "📦 Aid in Delivery",
-  proof_uploaded: "📸 Proof Uploaded", completed: "🏁 Completed",
+  waiting_for_sponsor: "Open for Sponsorship", sponsored: "Sponsored", delivering: "Aid in Delivery",
+  proof_uploaded: "Proof Uploaded", completed: "Completed",
 };
 const CAT_ICON = { food: "🍚", medical: "🏥", shelter: "🏠", orphan: "👶", disaster: "🌪️", education: "📚", other: "🌍" };
 
@@ -63,7 +63,7 @@ function CaseCard({ c, P, vis = {} }) {
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#fff", lineHeight: 1.35, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
             {c.publicTitle || "Emergency Case"}
           </h3>
-          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 3 }}>📍 {c.publicCity || "Somalia"}</div>
+          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 3 }}>{c.publicCity || "Somalia"}</div>
         </div>
       </div>
 
@@ -89,7 +89,7 @@ function CaseCard({ c, P, vis = {} }) {
               <div style={{ width: `${pct}%`, height: "100%", background: barColor, borderRadius: 10, transition: "width 0.6s ease" }} />
             </div>
             {full && (
-              <div style={{ marginTop: 5, fontSize: 11, color: C.secondary, fontWeight: 700 }}>🎉 Fully Funded</div>
+              <div style={{ marginTop: 5, fontSize: 11, color: C.secondary, fontWeight: 700 }}>Fully Funded</div>
             )}
           </div>
         )}
@@ -170,10 +170,10 @@ export default function Cases() {
     });
 
   const TRUST_BADGES = [
-    ["🔍", P.badge_verified],
-    ["🏢", P.badge_approved],
-    ["🔐", P.badge_privacy],
-    ["💳", P.badge_escrow],
+    ["", P.badge_verified],
+    ["", P.badge_approved],
+    ["", P.badge_privacy],
+    ["", P.badge_escrow],
   ];
 
   return (
@@ -259,7 +259,7 @@ export default function Cases() {
                   <tr key={c.id} style={{ background: i%2===0 ? "#fff" : C.bg, borderBottom: `1px solid ${C.border}` }}>
                     <td style={{ padding: "12px 16px" }}>{CAT_ICON[c.category]} {c.category}</td>
                     <td style={{ padding: "12px 16px", maxWidth: 200, fontSize: 13 }}>{c.publicTitle || "—"}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 13 }}>📍 {c.publicCity}</td>
+                    <td style={{ padding: "12px 16px", fontSize: 13 }}>{c.publicCity}</td>
                     <td style={{ padding: "12px 16px" }}><span style={{ color: URGENCY_COLOR[c.emergencyLevel], fontWeight: 700, textTransform: "capitalize" }}>{c.emergencyLevel}</span></td>
                     <td style={{ padding: "12px 16px", fontSize: 13 }}>
                       <span style={{ fontSize: 15, fontWeight: 800, color: tpct >= 100 ? C.secondary : C.primary }}>{tpct}%</span>

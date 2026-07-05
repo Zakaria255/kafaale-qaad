@@ -57,9 +57,9 @@ export default function Footer() {
             <p style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.65, maxWidth: 280, marginTop: 4 }}>{P.tagline}</p>
             <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
               {[
-                { icon: "📘", label: "Facebook",  href: "https://facebook.com/kafaaleqaad" },
-                { icon: "🐦", label: "Twitter",   href: "https://twitter.com/kafaaleqaad"  },
-                { icon: "💼", label: "LinkedIn",  href: "https://linkedin.com/company/kafaaleqaad" },
+                { icon: "", label: "Facebook",  href: "https://facebook.com/kafaaleqaad" },
+                { icon: "", label: "Twitter",   href: "https://twitter.com/kafaaleqaad"  },
+                { icon: "", label: "LinkedIn",  href: "https://linkedin.com/company/kafaaleqaad" },
               ].map(s => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" style={{
                   background: "rgba(255,255,255,0.07)",
@@ -105,7 +105,7 @@ export default function Footer() {
                   onMouseOver={e => e.currentTarget.style.color = B.gold}
                   onMouseOut={e  => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
                 >
-                  <span style={{ color: B.green, fontSize: 10 }}>▶</span> {label}
+                  <span style={{ color: B.green, fontSize: 10 }}></span> {label}
                 </Link>
               </div>
             ))}
@@ -118,10 +118,10 @@ export default function Footer() {
             </div>
             <div style={{ fontSize: 14, lineHeight: 2.4 }}>
               {[
-                ["📧", "kafaaleqaad@gmail.com"],
-                ["📞", "+252 61 502 4050"],
-                ["📍", "Juma Tower, Room 403, Howl-wadaag, Mogadishu"],
-                ["🌐", "kafaale.so"],
+                ["", "kafaaleqaad@gmail.com"],
+                ["", "+252 61 502 4050"],
+                ["", "Juma Tower, Room 403, Howl-wadaag, Mogadishu"],
+                ["", "kafaale.so"],
               ].map(([icon, text]) => (
                 <div key={text} style={{ display: "flex", alignItems: "center", gap: 8, opacity: 0.75 }}>
                   <span>{icon}</span>
@@ -139,7 +139,7 @@ export default function Footer() {
               fontSize: 13, fontWeight: 800,
               boxShadow: `0 4px 16px ${B.gold}40`,
             }}>
-              ❤️ Sponsor a Case
+              Sponsor a Case
             </Link>
           </div>
         </div>
@@ -157,13 +157,13 @@ export default function Footer() {
         }}>
           <span style={{ opacity: 0.45 }}>{P.copyright}</span>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", opacity: 0.45 }}>
-            <span>🔐 OTP Auth</span>
+            <span>Field-Verified Cases</span>
             <span>·</span>
-            <span>😶 Face Verify</span>
+            <span>Role-Based Access</span>
             <span>·</span>
-            <span>💳 PCI DSS Level 1</span>
+            <span>HTTPS Encrypted</span>
             <span>·</span>
-            <span>🤖 AI Fraud Detection</span>
+            <span>Audit Logged</span>
           </div>
         </div>
       </div>

@@ -25,13 +25,13 @@ const CAT_ICON      = { food: "🍚", medical: "🏥", shelter: "🏠", orphan: 
 const CAT_LABEL     = { food: "Food Security", medical: "Medical", shelter: "Shelter", orphan: "Orphan Support", disaster: "Disaster Relief", education: "Education", other: "Emergency" };
 
 const STEP_LABELS = [
-  { key: "reported",   icon: "📝", label: "Case Reported",     sub: "Submitted by community reporter" },
-  { key: "reviewed",   icon: "🏛️", label: "Office Review",     sub: "Verified by Kafaale Qaad office" },
-  { key: "field",      icon: "🕵️", label: "Field Investigation", sub: "Physical visit by our field team" },
-  { key: "verified",   icon: "✅", label: "Verified & Published", sub: "Confirmed real and safe to show donors" },
-  { key: "sponsored",  icon: "❤️", label: "Sponsorship",        sub: "Donor funds secured in escrow" },
-  { key: "delivered",  icon: "📦", label: "Aid Delivered",      sub: "Field team delivered with GPS proof" },
-  { key: "completed",  icon: "🏁", label: "Completed",          sub: "Impact report generated" },
+  { key: "reported",   icon: "", label: "Case Reported",     sub: "Submitted by community reporter" },
+  { key: "reviewed",   icon: "", label: "Office Review",     sub: "Verified by Kafaale Qaad office" },
+  { key: "field",      icon: "", label: "Field Investigation", sub: "Physical visit by our field team" },
+  { key: "verified",   icon: "", label: "Verified & Published", sub: "Confirmed real and safe to show donors" },
+  { key: "sponsored",  icon: "", label: "Sponsorship",        sub: "Donor funds secured in escrow" },
+  { key: "delivered",  icon: "", label: "Aid Delivered",      sub: "Field team delivered with GPS proof" },
+  { key: "completed",  icon: "", label: "Completed",          sub: "Impact report generated" },
 ];
 
 function getActiveStep(status) {
@@ -65,7 +65,7 @@ export default function CaseDetail() {
   if (loading) return (
     <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg }}>
       <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 16, animation: "spin 1s linear infinite" }}>⏳</div>
+        <div style={{ fontSize: 48, marginBottom: 16, animation: "spin 1s linear infinite" }}></div>
         <div style={{ fontSize: 18, color: C.muted }}>Loading case details…</div>
       </div>
     </div>
@@ -74,7 +74,7 @@ export default function CaseDetail() {
   if (error || !kase) return (
     <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg }}>
       <div style={{ textAlign: "center", maxWidth: 440, padding: 24 }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>😔</div>
+        <div style={{ fontSize: 64, marginBottom: 16 }}></div>
         <h2 style={{ color: C.primary, marginBottom: 8 }}>Case not found or no longer available.</h2>
         <p style={{ color: C.muted, marginBottom: 24 }}>The case may have been archived or removed.</p>
         <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
@@ -117,18 +117,18 @@ export default function CaseDetail() {
               {CAT_LABEL[kase.category] || kase.category}
             </span>
             <span style={{ background: "#D1FAE5", color: "#065F46", borderRadius: 20, padding: "5px 14px", fontSize: 13, fontWeight: 700 }}>
-              ✅ Field Verified
+              Field Verified
             </span>
           </div>
           <h1 style={{ fontSize: "clamp(22px, 4vw, 36px)", fontWeight: 900, margin: "0 0 10px", lineHeight: 1.3 }}>
             {kase.publicTitle || "Verified Emergency Case"}
           </h1>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap", fontSize: 14, opacity: 0.85 }}>
-            <span>📍 {kase.publicCity || "Somalia"}, {kase.publicCountry || "Somalia"}</span>
+            <span>{kase.publicCity || "Somalia"}, {kase.publicCountry || "Somalia"}</span>
             {kase.adminPublishedAt && (
-              <span>📅 Published {new Date(kase.adminPublishedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</span>
+              <span>Published {new Date(kase.adminPublishedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</span>
             )}
-            <span>🆔 Ref: {kase.id?.slice(0, 12)}…</span>
+            <span>Ref: {kase.id?.slice(0, 12)}…</span>
           </div>
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function CaseDetail() {
           {/* Case Story */}
           <div style={{ background: "#fff", borderRadius: 20, padding: 32, boxShadow: "0 2px 16px #0001" }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: C.text, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 10 }}>
-              📖 Case Story
+              Case Story
             </h2>
             <p style={{ fontSize: 15, lineHeight: 1.9, color: "#374151", margin: 0, whiteSpace: "pre-wrap" }}>
               {kase.publicStory || "Case details are being finalized."}
@@ -150,7 +150,7 @@ export default function CaseDetail() {
 
             {/* Privacy notice */}
             <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "12px 16px", marginTop: 20, fontSize: 13, color: C.primary, display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>🔐</span>
+              <span style={{ fontSize: 16, flexShrink: 0 }}></span>
               <span>All personally identifiable information (names, addresses, phone numbers, GPS) has been removed to protect the beneficiary's privacy. This story was AI-sanitized by Kafaale Qaad before publication.</span>
             </div>
           </div>
@@ -158,7 +158,7 @@ export default function CaseDetail() {
           {/* Verification Timeline */}
           <div style={{ background: "#fff", borderRadius: 20, padding: 32, boxShadow: "0 2px 16px #0001" }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: C.text, margin: "0 0 24px", display: "flex", alignItems: "center", gap: 10 }}>
-              🗂️ Verification Timeline
+              Verification Timeline
             </h2>
             <div style={{ position: "relative" }}>
               {STEP_LABELS.map((step, i) => {
@@ -192,13 +192,13 @@ export default function CaseDetail() {
           {fi && (
             <div style={{ background: "#fff", borderRadius: 20, padding: 32, boxShadow: "0 2px 16px #0001" }}>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: C.text, margin: "0 0 20px", display: "flex", alignItems: "center", gap: 10 }}>
-                🕵️ Field Investigation Report
+                Field Investigation Report
               </h2>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 20 }}>
                 {[
-                  { label: "Victim Verified On-Site", val: fi.victimVerified ? "✅ Yes" : "❌ No", ok: fi.victimVerified },
-                  { label: "Situation Matches Report", val: fi.situationAccurate ? "✅ Yes" : "❌ No", ok: fi.situationAccurate },
-                  { label: "Delivery Feasible", val: fi.deliveryFeasible ? "✅ Yes" : "❌ No", ok: fi.deliveryFeasible },
+                  { label: "Victim Verified On-Site", val: fi.victimVerified ? "Yes" : "No", ok: fi.victimVerified },
+                  { label: "Situation Matches Report", val: fi.situationAccurate ? "Yes" : "No", ok: fi.situationAccurate },
+                  { label: "Delivery Feasible", val: fi.deliveryFeasible ? "Yes" : "No", ok: fi.deliveryFeasible },
                   { label: "Fraud Risk Level", val: `${fi.fraudRiskLevel?.toUpperCase() || "LOW"}`, ok: fi.fraudRiskLevel === "low" },
                   { label: "Urgency Confirmed", val: fi.urgencyConfirmed ? (fi.urgencyConfirmed.charAt(0).toUpperCase() + fi.urgencyConfirmed.slice(1)) : "—", ok: true },
                   { label: "Estimated Need", val: fi.estimatedAmountNeeded ? `$${fi.estimatedAmountNeeded.toLocaleString()}` : "—", ok: true },
@@ -211,16 +211,16 @@ export default function CaseDetail() {
               </div>
               {fi.deliveryMethod && (
                 <div style={{ background: "#EFF6FF", borderRadius: 12, padding: "14px 16px", marginBottom: 14, fontSize: 14 }}>
-                  <strong>📦 Delivery Method:</strong> {fi.deliveryMethod}
+                  <strong>Delivery Method:</strong> {fi.deliveryMethod}
                 </div>
               )}
               {fi.officialNotes && (
                 <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "14px 16px", fontSize: 14, lineHeight: 1.6, color: "#166534" }}>
-                  <strong>🏛️ Official Notes:</strong> {fi.officialNotes}
+                  <strong>Official Notes:</strong> {fi.officialNotes}
                 </div>
               )}
               <div style={{ marginTop: 16, background: "#D1FAE5", borderRadius: 12, padding: "12px 16px", fontSize: 13, color: "#065F46", display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 18 }}>✅</span>
+                <span style={{ fontSize: 18 }}></span>
                 <strong>This case was physically verified by a Kafaale Qaad field agent who visited the location in person.</strong>
               </div>
             </div>
@@ -230,15 +230,15 @@ export default function CaseDetail() {
           {dp && (
             <div style={{ background: "#fff", borderRadius: 20, padding: 32, boxShadow: "0 2px 16px #0001" }}>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: C.text, margin: "0 0 20px", display: "flex", alignItems: "center", gap: 10 }}>
-                📦 Proof of Aid Delivery
-                <span style={{ fontSize: 13, fontWeight: 600, background: "#D1FAE5", color: "#065F46", borderRadius: 8, padding: "4px 10px" }}>Delivered ✅</span>
+                Proof of Aid Delivery
+                <span style={{ fontSize: 13, fontWeight: 600, background: "#D1FAE5", color: "#065F46", borderRadius: 8, padding: "4px 10px" }}>Delivered </span>
               </h2>
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
                 {[
                   { label: "Delivery Date", val: new Date(dp.deliveryDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) },
                   { label: "Delivery Method", val: dp.deliveryMethod },
                   { label: "Amount Delivered", val: `$${dp.amountDelivered?.toLocaleString()}` },
-                  { label: "Admin Confirmed", val: dp.adminConfirmed ? "✅ Yes" : "⏳ Pending" },
+                  { label: "Admin Confirmed", val: dp.adminConfirmed ? "Yes" : "Pending" },
                 ].map(({ label, val }) => (
                   <div key={label} style={{ background: C.bg, borderRadius: 12, padding: "14px 16px" }}>
                     <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, marginBottom: 4 }}>{label}</div>
@@ -248,7 +248,7 @@ export default function CaseDetail() {
               </div>
               {dp.deliveryNotes && (
                 <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "14px 16px", marginTop: 14, fontSize: 14, color: "#166534" }}>
-                  <strong>📝 Notes:</strong> {dp.deliveryNotes}
+                  <strong>Notes:</strong> {dp.deliveryNotes}
                 </div>
               )}
             </div>
@@ -256,13 +256,13 @@ export default function CaseDetail() {
 
           {/* Trust & Transparency */}
           <div style={{ background: "linear-gradient(135deg, #004B96, #4B7D19)", borderRadius: 20, padding: 32, color: "#fff" }}>
-            <h3 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 800 }}>🔐 Our Guarantee to Donors</h3>
+            <h3 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 800 }}>Our Guarantee to Donors</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {[
-                { icon: "✅", title: "100% Verified", desc: "Every case physically visited before being shown to donors" },
-                { icon: "🔐", title: "Secure Escrow", desc: "Your money is held until delivery is confirmed" },
-                { icon: "📸", title: "Proof of Delivery", desc: "GPS-tagged photos when aid reaches the person" },
-                { icon: "📊", title: "Impact Report", desc: "You receive a full report after delivery is complete" },
+                { icon: "", title: "100% Verified", desc: "Every case physically visited before being shown to donors" },
+                { icon: "", title: "Secure Escrow", desc: "Your money is held until delivery is confirmed" },
+                { icon: "", title: "Proof of Delivery", desc: "GPS-tagged photos when aid reaches the person" },
+                { icon: "", title: "Impact Report", desc: "You receive a full report after delivery is complete" },
               ].map(t => (
                 <div key={t.title} style={{ background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: 16 }}>
                   <div style={{ fontSize: 22, marginBottom: 6 }}>{t.icon}</div>
@@ -284,7 +284,7 @@ export default function CaseDetail() {
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <div style={{ fontSize: 52, fontWeight: 900, lineHeight: 1, color: pct >= 100 ? C.secondary : C.primary }}>{pct}%</div>
               <div style={{ fontSize: 13, color: C.muted, marginTop: 4, fontWeight: 600 }}>
-                {pct >= 100 ? "Fully Funded 🎉" : "funded so far"}
+                {pct >= 100 ? "Fully Funded " : "funded so far"}
               </div>
               {/* Goal amount always shown */}
               {kase.targetGoal > 0 && (
@@ -303,15 +303,15 @@ export default function CaseDetail() {
             {(kase.status === "waiting_for_sponsor" || kase.status === "sponsored") && remaining > 0 ? (
               <Link to={`/donate?caseId=${kase.id}`}
                 style={{ display: "block", textAlign: "center", background: C.accent, color: "#fff", padding: "16px 20px", borderRadius: 14, fontWeight: 800, fontSize: 16, textDecoration: "none", boxShadow: `0 6px 20px ${C.accent}50`, marginBottom: 12 }}>
-                ❤️ Sponsor This Case
+                Sponsor This Case
               </Link>
             ) : kase.status === "completed" ? (
               <div style={{ background: "#D1FAE5", color: "#065F46", padding: "14px 20px", borderRadius: 14, fontWeight: 700, fontSize: 14, textAlign: "center", marginBottom: 12 }}>
-                🏁 This case has been completed
+                This case has been completed
               </div>
             ) : (
               <div style={{ background: "#FEF3C7", color: "#92400E", padding: "14px 20px", borderRadius: 14, fontSize: 13, fontWeight: 600, textAlign: "center", marginBottom: 12 }}>
-                ⏳ This case is still being verified
+                This case is still being verified
               </div>
             )}
 
@@ -323,14 +323,14 @@ export default function CaseDetail() {
 
           {/* Case Quick Facts */}
           <div style={{ background: "#fff", borderRadius: 20, padding: 24, boxShadow: "0 2px 12px #0001" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 16px", color: C.text }}>📋 Quick Facts</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 16px", color: C.text }}>Quick Facts</h3>
             {[
               { label: "Category",   val: `${CAT_ICON[kase.category] || "🌍"} ${CAT_LABEL[kase.category] || kase.category}` },
               { label: "Urgency",    val: URGENCY_LABEL[urgKey] || kase.emergencyLevel },
-              { label: "Location",   val: `📍 ${kase.publicCity || "Somalia"}` },
+              { label: "Location",   val: `${kase.publicCity || "Somalia"}` },
               { label: "Status",     val: kase.status?.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()) },
-              ...(fi ? [{ label: "Field Verified", val: "✅ Yes — physically visited" }] : []),
-              ...(dp ? [{ label: "Aid Delivered",  val: `✅ $${dp.amountDelivered?.toLocaleString()} delivered` }] : []),
+              ...(fi ? [{ label: "Field Verified", val: "Yes — physically visited" }] : []),
+              ...(dp ? [{ label: "Aid Delivered",  val: `$${dp.amountDelivered?.toLocaleString()} delivered` }] : []),
             ].map(({ label, val }) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                 <span style={{ color: C.muted, fontWeight: 600 }}>{label}</span>
@@ -341,10 +341,10 @@ export default function CaseDetail() {
 
           {/* AI Assistant shortcut */}
           <div style={{ background: `linear-gradient(135deg, ${C.primary}15, ${C.secondary}15)`, border: `1px solid ${C.border}`, borderRadius: 16, padding: 20, textAlign: "center" }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>🤖</div>
+            <div style={{ fontSize: 28, marginBottom: 8 }}></div>
             <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Questions about this case?</div>
             <div style={{ fontSize: 12, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>Our AI assistant can explain the verification process, how your money is used, and more.</div>
-            <div style={{ fontSize: 12, color: C.primary, fontWeight: 600 }}>Click the 🤖 button in the bottom-right ↘</div>
+            <div style={{ fontSize: 12, color: C.primary, fontWeight: 600 }}>Click the button in the bottom-right </div>
           </div>
         </div>
       </div>
@@ -359,7 +359,7 @@ export default function CaseDetail() {
             </p>
             <Link to={`/donate?caseId=${kase.id}`}
               style={{ display: "inline-block", background: C.accent, color: "#fff", padding: "16px 40px", borderRadius: 14, fontWeight: 800, fontSize: 16, textDecoration: "none", boxShadow: `0 6px 24px ${C.accent}60` }}>
-              ❤️ Sponsor This Case — ${(kase.targetGoal || 0).toLocaleString()} Goal
+              Sponsor This Case — ${(kase.targetGoal || 0).toLocaleString()} Goal
             </Link>
           </div>
         </div>

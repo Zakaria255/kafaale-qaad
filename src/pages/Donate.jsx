@@ -6,10 +6,10 @@ import { cases as casesApi, donations } from "../api/client.js";
 import { C, URGENCY_COLOR, URGENCY_LABEL } from "../theme.js";
 
 const METHOD_MAP = {
-  mobile_money:  "📱 Mobile Money (EVC/Zaad/Sahal)",
-  bank_transfer: "🏦 Bank Transfer",
-  card:          "💳 Debit / Credit Card",
-  wallet:        "💰 Digital Wallet",
+  mobile_money:  "Mobile Money (EVC/Zaad/Sahal)",
+  bank_transfer: "Bank Transfer",
+  card:          "Debit / Credit Card",
+  wallet:        "Digital Wallet",
 };
 
 export default function Donate() {
@@ -152,7 +152,7 @@ export default function Donate() {
     return (
       <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg, padding: 24, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
         <div style={{ background: "#fff", borderRadius: 24, padding: "48px 40px", maxWidth: 540, width: "100%", textAlign: "center", boxShadow: "0 16px 48px #0001" }}>
-          <div style={{ fontSize: 72, marginBottom: 16 }}>🎉</div>
+          <div style={{ fontSize: 72, marginBottom: 16 }}></div>
           <h2 style={{ fontSize: 26, fontWeight: 900, color: C.secondary, margin: "0 0 10px" }}>Thank You!</h2>
           <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, marginBottom: 28 }}>
             Your donation of <strong style={{ color: C.secondary }}>${doneDetails.amount.toLocaleString()}</strong> has been received.
@@ -161,12 +161,12 @@ export default function Donate() {
 
           {/* Receipt card */}
           <div style={{ background: "#F0FDF4", border: "1px solid #A7F3D0", borderRadius: 16, padding: "20px 24px", marginBottom: 28, textAlign: "left", fontSize: 14, lineHeight: 1.9 }}>
-            <div>📋 Case: <strong>{c.publicTitle?.slice(0, 50) || c.id}</strong></div>
-            <div>📍 Location: <strong>{c.publicCity || "Somalia"}</strong></div>
-            <div>💰 Amount: <strong>${doneDetails.amount.toLocaleString()}</strong></div>
-            <div>💳 Method: <strong>{METHOD_MAP[doneDetails.method] || doneDetails.method}</strong></div>
-            <div>📅 Date: <strong>{new Date().toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })}</strong></div>
-            <div>🆔 Ref: <strong style={{ fontSize: 12, color: C.muted }}>{doneDetails.donationId?.slice(0,16)}…</strong></div>
+            <div>Case: <strong>{c.publicTitle?.slice(0, 50) || c.id}</strong></div>
+            <div>Location: <strong>{c.publicCity || "Somalia"}</strong></div>
+            <div>Amount: <strong>${doneDetails.amount.toLocaleString()}</strong></div>
+            <div>Method: <strong>{METHOD_MAP[doneDetails.method] || doneDetails.method}</strong></div>
+            <div>Date: <strong>{new Date().toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" })}</strong></div>
+            <div>Ref: <strong style={{ fontSize: 12, color: C.muted }}>{doneDetails.donationId?.slice(0,16)}…</strong></div>
           </div>
 
           {/* What happens next */}
@@ -180,7 +180,7 @@ export default function Donate() {
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <button onClick={() => { setDone(false); setSelectedCase(null); setAmount(""); setMessage(""); }}
               style={{ flex: 1, padding: 14, background: C.secondary, color: "#fff", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-              ❤️ Sponsor Another
+              Sponsor Another
             </button>
             {user && (
               <button onClick={() => navigate("/dashboard")}
@@ -226,7 +226,7 @@ export default function Donate() {
 
           {!user && (
             <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 14, padding: "11px 20px", fontSize: 13, display: "inline-block", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)" }}>
-              💡 <Link to="/login" style={{ color: "#FCD34D", fontWeight: 800 }}>Sign in</Link> to track your donations and receive delivery reports
+              <Link to="/login" style={{ color: "#FCD34D", fontWeight: 800 }}>Sign in</Link> to track your donations and receive delivery reports
             </div>
           )}
         </div>
@@ -242,7 +242,7 @@ export default function Donate() {
             {/* Pipeline info */}
             {!loading && pipelineCount > 0 && (
               <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: 12, padding: "12px 16px", marginBottom: 16, fontSize: 13, color: "#92400E", lineHeight: 1.6 }}>
-                <strong>ℹ️ {pipelineCount} more {pipelineCount === 1 ? "case is" : "cases are"} currently being investigated</strong> by our field teams and not yet ready for sponsorship. They will appear here once verified and approved by our admin team.
+                <strong>{pipelineCount} more {pipelineCount === 1 ? "case is" : "cases are"} currently being investigated</strong> by our field teams and not yet ready for sponsorship. They will appear here once verified and approved by our admin team.
               </div>
             )}
 
@@ -262,19 +262,19 @@ export default function Donate() {
               <div style={{ background: "#fff", borderRadius: 16, padding: 40, textAlign: "center", border: `1px solid ${C.border}` }}>
                 {fetchError ? (
                   <>
-                    <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}></div>
                     <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: C.danger }}>Could not load cases</div>
                     <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: "0 0 16px" }}>
                       Error: {fetchError}
                     </p>
                     <button onClick={() => { setFetchError(""); setLoading(true); casesApi.list({ limit: 50 }).then(d => { const all = d?.cases || []; setReadyCases(all.filter(c => c.status === "waiting_for_sponsor" || c.status === "sponsored")); setPipelineCount(Math.max(0, all.length - all.filter(c => c.status === "waiting_for_sponsor" || c.status === "sponsored").length)); }).catch(e => setFetchError(e?.message || "Failed")).finally(() => setLoading(false)); }}
                       style={{ padding: "10px 24px", background: C.primary, color: "#fff", borderRadius: 12, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>
-                      🔄 Retry
+                      Retry
                     </button>
                   </>
                 ) : (
                   <>
-                    <div style={{ fontSize: 48, marginBottom: 12 }}>🕐</div>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}></div>
                     <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No cases ready for sponsorship yet</div>
                     <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: "0 0 20px" }}>
                       {pipelineCount > 0
@@ -310,7 +310,7 @@ export default function Donate() {
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 11, color: C.muted, fontWeight: 700, marginBottom: 2 }}>{c.caseRef || c.id?.slice(0,12)}</div>
                           <div style={{ fontSize: 15, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.publicTitle || "Verified Case"}</div>
-                          <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>📍 {c.publicCity || "Somalia"}</div>
+                          <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{c.publicCity || "Somalia"}</div>
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end", flexShrink: 0, maxWidth: "45%" }}>
                           <span style={{ background: (URGENCY_COLOR[urgKey] || "#999") + "20", color: URGENCY_COLOR[urgKey] || "#999", borderRadius: 20, padding: "3px 8px", fontSize: 10, fontWeight: 700, whiteSpace: "nowrap" }}>
@@ -318,7 +318,7 @@ export default function Donate() {
                           </span>
                           {goal > 0 && (
                             <span style={{ fontSize: 12, fontWeight: 800, color: remain > 0 ? C.danger : C.secondary, textAlign: "right" }}>
-                              {remain > 0 ? `$${remain.toLocaleString()}` : "✅ Funded"}
+                              {remain > 0 ? `$${remain.toLocaleString()}` : "Funded"}
                             </span>
                           )}
                         </div>
@@ -347,13 +347,13 @@ export default function Donate() {
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.muted, marginTop: 3 }}>
                             <span>${raised.toLocaleString()} raised</span>
-                            {pct < 100 ? <span>${remain.toLocaleString()} remaining</span> : <span style={{ color: C.secondary, fontWeight: 700 }}>🎉 Fully Funded</span>}
+                            {pct < 100 ? <span>${remain.toLocaleString()} remaining</span> : <span style={{ color: C.secondary, fontWeight: 700 }}>Fully Funded</span>}
                           </div>
                         </div>
                       )}
 
                       {isSelected && (
-                        <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: C.accent }}>✅ Selected — fill in details →</div>
+                        <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: C.accent }}>Selected — fill in details →</div>
                       )}
                     </div>
                   );
@@ -373,9 +373,9 @@ export default function Donate() {
             {/* ── Project mode: locked project banner ── */}
             {isProjectMode && (
               <div style={{ background: "linear-gradient(135deg, #004B96 0%, #4B7D19 100%)", borderRadius: 14, padding: "18px 20px", marginBottom: 24, color: "#fff" }}>
-                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.75, marginBottom: 6 }}>🏗 Community Project</div>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.75, marginBottom: 6 }}>Community Project</div>
                 <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.35, marginBottom: 4 }}>{preProjectTitle}</div>
-                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: preProjectGoal ? 12 : 0 }}>📍 {preProjectLoc}</div>
+                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: preProjectGoal ? 12 : 0 }}>{preProjectLoc}</div>
                 {preProjectGoal > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, background: "rgba(255,255,255,0.15)", borderRadius: 10, padding: "8px 12px" }}>
                     <span>Goal</span>
@@ -391,7 +391,7 @@ export default function Donate() {
                 <div style={{ fontSize: 14, fontWeight: 800, lineHeight: 1.4, wordBreak: "break-word", marginBottom: 4 }}>
                   {isMobile ? (selectedCase.publicTitle?.slice(0, 40) + (selectedCase.publicTitle?.length > 40 ? "…" : "")) : selectedCase.publicTitle}
                 </div>
-                <div style={{ fontSize: 11, opacity: 0.8 }}>📍 {selectedCase.publicCity || "Somalia"}</div>
+                <div style={{ fontSize: 11, opacity: 0.8 }}>{selectedCase.publicCity || "Somalia"}</div>
                 {(selectedCase.targetGoal || 0) > 0 && (() => {
                   const g = selectedCase.targetGoal;
                   const r = selectedCase.totalRaised || 0;
@@ -411,7 +411,7 @@ export default function Donate() {
               </div>
             ) : !isProjectMode && (
               <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: 12, padding: 14, marginBottom: 24, fontSize: 13, color: "#92400E" }}>
-                👈 Select a case from the list to begin
+                Select a case from the list to begin
               </div>
             )}
 
@@ -493,12 +493,12 @@ export default function Donate() {
 
               {/* Security note */}
               <div style={{ background: "#F0FDF4", border: "1px solid #A7F3D0", borderRadius: 10, padding: "10px 14px", marginBottom: 20, fontSize: 12, color: C.secondary, lineHeight: 1.6 }}>
-                🔐 <strong>Secure & transparent.</strong> Every donation is tracked. You receive a receipt and proof of aid delivery.
+                <strong>Secure & transparent.</strong> Every donation is tracked. You receive a receipt and proof of aid delivery.
               </div>
 
               {error && (
                 <div style={{ background: "#FEF2F2", color: C.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
-                  ⚠️ {error}
+                  {error}
                 </div>
               )}
 
@@ -509,7 +509,7 @@ export default function Donate() {
                     style={{ width: "100%", padding: 16, background: !ready ? "#D1D5DB" : C.accent,
                       color: "#fff", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 800, cursor: !ready ? "not-allowed" : "pointer",
                       boxShadow: !ready ? "none" : `0 6px 20px ${C.accent}50`, transition: "all .2s" }}>
-                    {submitting ? "Processing…" : amount ? `❤️ Confirm $${parseFloat(amount||0).toLocaleString()} Donation` : "❤️ Confirm Sponsorship"}
+                    {submitting ? "Processing…" : amount ? `Confirm $${parseFloat(amount||0).toLocaleString()} Donation` : "Confirm Sponsorship"}
                   </button>
                 );
               })()}
@@ -524,10 +524,10 @@ export default function Donate() {
           <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 32 }}>Why Donors Trust Kafaale Qaad</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 20 }}>
             {[
-              { icon: "✅", title: "Verified Cases",    desc: "Every case is field-investigated before you see it" },
-              { icon: "📸", title: "Proof of Delivery", desc: "Photo + GPS confirmation when aid is delivered" },
-              { icon: "📊", title: "Full Transparency",  desc: "Complete transaction history & impact reports" },
-              { icon: "🔐", title: "Secure Payments",   desc: "All transactions encrypted and audited" },
+              { icon: "", title: "Verified Cases",    desc: "Every case is field-investigated before you see it" },
+              { icon: "", title: "Proof of Delivery", desc: "Photo + GPS confirmation when aid is delivered" },
+              { icon: "", title: "Full Transparency",  desc: "Complete transaction history & impact reports" },
+              { icon: "", title: "Secure Payments",   desc: "All transactions encrypted and audited" },
             ].map((t, i) => (
               <div key={i} style={{ padding: 24, borderRadius: 16, background: C.bg, border: `1px solid ${C.border}` }}>
                 <div style={{ fontSize: 32, marginBottom: 10 }}>{t.icon}</div>

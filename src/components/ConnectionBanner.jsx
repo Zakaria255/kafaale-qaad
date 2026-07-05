@@ -38,7 +38,7 @@ export default function ConnectionBanner() {
       fontFamily: "'Source Sans 3','Inter',system-ui,sans-serif",
       letterSpacing: 0.2, lineHeight: 1.4,
     }}>
-      ⚠️ {msg}
+      {msg}
     </div>
   );
 }

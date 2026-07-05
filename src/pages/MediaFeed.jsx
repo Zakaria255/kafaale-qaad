@@ -57,7 +57,7 @@ function PostCard({ post, currentUser, onLike, onComment, onDelete }) {
         )}
         {(isOwner || isAdmin) && (
           <button onClick={() => onDelete(post.id)} title="Delete post"
-            style={{ background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 18, padding: "4px 8px", borderRadius: 8 }}>🗑</button>
+            style={{ background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 18, padding: "4px 8px", borderRadius: 8 }}></button>
         )}
       </div>
 
@@ -91,15 +91,15 @@ function PostCard({ post, currentUser, onLike, onComment, onDelete }) {
       <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "10px 16px", borderTop: `1px solid ${C.border}` }}>
         <button onClick={() => onLike(post.id)}
           style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 20, border: "none", background: hasLiked ? "#FEF2F2" : "#F8FAFC", cursor: "pointer", fontWeight: 700, fontSize: 14, color: hasLiked ? "#DC2626" : C.muted }}>
-          {hasLiked ? "❤️" : "🤍"} {post.likes?.length || 0}
+          {hasLiked ? "" : ""} {post.likes?.length || 0}
         </button>
         <button onClick={() => setShowComments(v => !v)}
           style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 20, border: "none", background: showComments ? C.primary + "12" : "#F8FAFC", cursor: "pointer", fontWeight: 700, fontSize: 14, color: showComments ? C.primary : C.muted }}>
-          💬 {post.comments?.length || 0}
+          {post.comments?.length || 0}
         </button>
         <button onClick={() => { try { navigator.share({ title: post.title, text: post.body, url: window.location.href }); } catch { navigator.clipboard?.writeText(window.location.href); } }}
           style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 20, border: "none", background: "#F8FAFC", cursor: "pointer", fontWeight: 700, fontSize: 14, color: C.muted }}>
-          📤 Share
+          Share
         </button>
       </div>
 
@@ -314,7 +314,7 @@ export default function MediaFeed() {
         {isAdmin && !showForm && (
           <button onClick={() => setShowForm(true)}
             style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderRadius: 16, background: C.card, border: `1.5px dashed ${C.border}`, cursor: "pointer", marginBottom: 20, textAlign: "left" }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: `linear-gradient(135deg,${C.primary},${C.secondary})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#fff" }}>✍️</div>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: `linear-gradient(135deg,${C.primary},${C.secondary})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#fff" }}></div>
             <span style={{ fontSize: 15, color: C.muted, fontWeight: 600 }}>Share an update, photo, video or story…</span>
           </button>
         )}
@@ -322,7 +322,7 @@ export default function MediaFeed() {
         {/* ── Compose form ── */}
         {isAdmin && showForm && (
           <div style={{ background: C.card, borderRadius: 20, border: `1px solid ${C.border}`, padding: 20, marginBottom: 20, boxShadow: "0 4px 20px #0002" }}>
-            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>📝 Create New Post</div>
+            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>Create New Post</div>
 
             <input value={form.title} onChange={e => set("title", e.target.value)} placeholder="Title (optional)"
               style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.border}`, fontSize: 15, boxSizing: "border-box", marginBottom: 10, fontFamily: "inherit" }} />
@@ -360,7 +360,7 @@ export default function MediaFeed() {
             <div style={{ border: `1.5px solid ${C.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 14 }}>
               {/* Tab switcher */}
               <div style={{ display: "flex", borderBottom: `1px solid ${C.border}` }}>
-                {[["file","🎬 From Device"],["youtube","🔗 YouTube / URL"]].map(([key, label]) => (
+                {[["file","From Device"],["youtube","YouTube / URL"]].map(([key, label]) => (
                   <button key={key} onClick={() => { setVideoTab(key); removeVideo(); }}
                     style={{ flex: 1, padding: "10px 0", border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, background: videoTab === key ? C.primary + "10" : "#fff", color: videoTab === key ? C.primary : C.muted, borderBottom: videoTab === key ? `2px solid ${C.primary}` : "2px solid transparent" }}>
                     {label}
@@ -375,7 +375,7 @@ export default function MediaFeed() {
                     <div>
                       <video src={videoSrc} controls style={{ width: "100%", maxHeight: 240, borderRadius: 8, background: "#000", display: "block" }} />
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                        <span style={{ fontSize: 12, color: C.muted, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📹 {videoName}</span>
+                        <span style={{ fontSize: 12, color: C.muted, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{videoName}</span>
                         <button onClick={removeVideo} style={{ padding: "4px 12px", borderRadius: 8, background: "#FEE2E2", color: C.danger, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>Remove</button>
                       </div>
                     </div>
@@ -397,10 +397,10 @@ export default function MediaFeed() {
                       }}
                     >
                       {videoLoading ? (
-                        <div style={{ color: C.muted, fontSize: 14 }}>⏳ Loading video…</div>
+                        <div style={{ color: C.muted, fontSize: 14 }}>Loading video…</div>
                       ) : (
                         <>
-                          <div style={{ fontSize: 36, marginBottom: 6 }}>🎬</div>
+                          <div style={{ fontSize: 36, marginBottom: 6 }}></div>
                           <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Click to choose a video</div>
                           <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>or drag and drop here · MP4, MOV, AVI, WebM · max 50 MB</div>
                         </>
@@ -434,12 +434,12 @@ export default function MediaFeed() {
               {images.length === 0 && (
                 <button onClick={() => imgRef.current?.click()}
                   style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: "#fff", cursor: "pointer", fontWeight: 700, fontSize: 13, color: C.primary }}>
-                  📷 Add Photos
+                  Add Photos
                 </button>
               )}
               <button onClick={submit} disabled={!canPost}
                 style={{ padding: "9px 28px", borderRadius: 10, background: C.primary, color: "#fff", border: "none", cursor: canPost ? "pointer" : "default", fontWeight: 800, fontSize: 14, opacity: canPost ? 1 : 0.45 }}>
-                📤 Post
+                Post
               </button>
               <button onClick={resetForm}
                 style={{ padding: "9px 18px", borderRadius: 10, background: "#F3F4F6", color: C.muted, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13 }}>
@@ -490,7 +490,7 @@ export default function MediaFeed() {
         {/* ── Feed ── */}
         {filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 24px", color: C.muted }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+            <div style={{ fontSize: 48, marginBottom: 12 }}></div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>No posts yet</div>
             <div style={{ fontSize: 13, marginTop: 6 }}>
               {isAdmin ? "Share the first update with your community" : "Check back soon for updates from Kafaale Qaad"}

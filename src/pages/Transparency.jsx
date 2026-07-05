@@ -16,12 +16,12 @@ const FUND_BREAKDOWN = [
 ];
 
 const STATS = [
-  { value:"500+",   label:"Cases Verified & Delivered", icon:"✅" },
-  { value:"$380K+", label:"Total Aid Distributed",       icon:"💰" },
-  { value:"12",     label:"Regions Covered",             icon:"🗺️" },
-  { value:"97%",    label:"Delivery Verified Rate",      icon:"📦" },
-  { value:"14 days",label:"Average Time to Delivery",    icon:"⚡" },
-  { value:"0",      label:"Unresolved Fraud Cases",      icon:"🔐" },
+  { value:"500+",   label:"Cases Verified & Delivered", icon:"" },
+  { value:"$380K+", label:"Total Aid Distributed",       icon:"" },
+  { value:"12",     label:"Regions Covered",             icon:"" },
+  { value:"97%",    label:"Delivery Verified Rate",      icon:"" },
+  { value:"14 days",label:"Average Time to Delivery",    icon:"" },
+  { value:"0",      label:"Unresolved Fraud Cases",      icon:"" },
 ];
 
 const REPORTS = [
@@ -32,12 +32,12 @@ const REPORTS = [
 ];
 
 const PRINCIPLES = [
-  { icon:"📊", title:"Open Financials",    desc:"Every quarter we publish a full breakdown of income, expenditure, and aid delivered. No hidden fees." },
-  { icon:"📸", title:"Photo Proof",        desc:"Every case includes before/after photos, GPS coordinates, and delivery confirmation uploaded by field agents." },
-  { icon:"🔍", title:"Independent Audit",  desc:"Annual audit by an independent accounting firm. Results are published publicly on this page." },
-  { icon:"📋", title:"Case Audit Trail",   desc:"Every action on every case is logged with timestamps. Full audit trail is preserved for 7 years." },
-  { icon:"🚫", title:"Zero Tolerance Fraud", desc:"Automated fraud detection + manual review for all cases. Any confirmed fraud case is immediately rejected and reported." },
-  { icon:"🌐", title:"Multi-language Reporting", desc:"Impact reports published in Somali, English, Arabic, and Turkish to serve all stakeholders." },
+  { icon:"", title:"Open Financials",    desc:"Every quarter we publish a full breakdown of income, expenditure, and aid delivered. No hidden fees." },
+  { icon:"", title:"Photo Proof",        desc:"Every case includes before/after photos, GPS coordinates, and delivery confirmation uploaded by field agents." },
+  { icon:"", title:"Independent Audit",  desc:"Annual audit by an independent accounting firm. Results are published publicly on this page." },
+  { icon:"", title:"Case Audit Trail",   desc:"Every action on every case is logged with timestamps. Full audit trail is preserved for 7 years." },
+  { icon:"", title:"Zero Tolerance Fraud", desc:"Automated fraud detection + manual review for all cases. Any confirmed fraud case is immediately rejected and reported." },
+  { icon:"", title:"Multi-language Reporting", desc:"Impact reports published in Somali, English, Arabic, and Turkish to serve all stakeholders." },
 ];
 
 export default function Transparency() {
@@ -111,7 +111,7 @@ export default function Transparency() {
               {FUND_BREAKDOWN.map(item => (
                 <div key={item.label} style={{ display:"flex", alignItems:"center", gap:14, background:"#fff", borderRadius:12, padding:"16px 20px", border:`1px solid ${C.border}` }}>
                   <div style={{ width:48, height:48, borderRadius:12, background:item.color+"18", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>
-                    {item.pct >= 60 ? "❤️" : item.pct >= 12 ? "🔍" : item.pct >= 7 ? "💻" : "📋"}
+                    {item.pct >= 60 ? "" : item.pct >= 12 ? "" : item.pct >= 7 ? "" : ""}
                   </div>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight:800, color:C.text }}>{item.label}</div>
@@ -155,7 +155,7 @@ export default function Transparency() {
             {REPORTS.map(r => (
               <div key={r.title} style={{ background:"#fff", borderRadius:14, padding:"18px 22px", marginBottom:12, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:14 }}>
                 <div style={{ width:44, height:44, borderRadius:10, background:r.available?C.primary+"15":"#F3F4F6", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>
-                  {r.available ? "📄" : "⏳"}
+                  {r.available ? "" : ""}
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:14, fontWeight:700, color:C.text }}>{r.title}</div>
@@ -164,7 +164,7 @@ export default function Transparency() {
                 {r.available
                   ? <a href={`mailto:reports@kafaale.so?subject=Request: ${r.title}`}
                       style={{ padding:"8px 18px", background:C.primary, color:"#fff", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", whiteSpace:"nowrap" }}>
-                      ⬇ Request
+                      Request
                     </a>
                   : <span style={{ fontSize:12, color:C.muted, fontStyle:"italic" }}>Coming soon</span>
                 }
@@ -186,8 +186,8 @@ export default function Transparency() {
             Every dollar is tracked, verified, and reported. You'll receive a delivery confirmation for every case you sponsor.
           </p>
           <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
-            <Link to="/cases" style={{ padding:"14px 32px", background:C.gold, color:"#fff", borderRadius:12, fontWeight:800, fontSize:15, textDecoration:"none" }}>❤️ Sponsor a Case</Link>
-            <Link to="/contact" style={{ padding:"14px 32px", background:"rgba(255,255,255,0.15)", color:"#fff", borderRadius:12, fontWeight:700, fontSize:15, textDecoration:"none", border:"1px solid rgba(255,255,255,0.3)" }}>📬 Ask a Question</Link>
+            <Link to="/cases" style={{ padding:"14px 32px", background:C.gold, color:"#fff", borderRadius:12, fontWeight:800, fontSize:15, textDecoration:"none" }}>Sponsor a Case</Link>
+            <Link to="/contact" style={{ padding:"14px 32px", background:"rgba(255,255,255,0.15)", color:"#fff", borderRadius:12, fontWeight:700, fontSize:15, textDecoration:"none", border:"1px solid rgba(255,255,255,0.3)" }}>Ask a Question</Link>
           </div>
         </div>
       </section>

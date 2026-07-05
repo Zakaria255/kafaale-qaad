@@ -13,7 +13,7 @@ export default function HowItWorks() {
   const [activeStep, setActiveStep] = useState(null);
 
   const STEPS = [
-    { n:1, icon:"📝", color:STEP_COLORS[0],
+    { n:1, icon:"", color:STEP_COLORS[0],
       label:  lang==="so"?"Abuurista Warbixinta" :lang==="ar"?"إنشاء التقرير"    :lang==="tr"?"Rapor Oluşturma"     :lang==="es"?"Creación del Reporte"  :lang==="fr"?"Création du Rapport"    :"Report Creation",
       who:    lang==="so"?"Warbixiye"            :lang==="ar"?"مراسل"             :lang==="tr"?"Muhabir"             :lang==="es"?"Reportero"              :lang==="fr"?"Rapporteur"              :"Reporter",
       detail: lang==="so"?"Warbixiye (xubinta bulshada ama shaqaale NGO) wuxuu soo gudbiyaa xaalad iyada oo ah web ama app mobile. Waxay buuxiyaan magaca faa'iideyaha, da'da, goobta, heerka deg-degga, sharraxaadda xaaladda, oo soo raraan sawirro."
@@ -24,7 +24,7 @@ export default function HowItWorks() {
              :"A reporter submits a case through the web or mobile app with beneficiary details, urgency level, and supporting photos.",
       actions:["Fill in beneficiary details","Upload supporting photos","Set urgency level","Submit — case enters review"],
     },
-    { n:2, icon:"🏛️", color:STEP_COLORS[1],
+    { n:2, icon:"", color:STEP_COLORS[1],
       label:  lang==="so"?"Xafiiska Xaqiijinta"  :lang==="ar"?"مكتب التحقق"       :lang==="tr"?"Doğrulama Ofisi"    :lang==="es"?"Oficina de Verificación":lang==="fr"?"Bureau de Vérification" :"Verification Office",
       who:    lang==="so"?"Xaqiijiye"            :lang==="ar"?"محقق"              :lang==="tr"?"Doğrulayıcı"        :lang==="es"?"Verificador"            :lang==="fr"?"Vérificateur"           :"Verifier",
       detail: lang==="so"?"Saraakiisha xaqiijinta waxay dib u eegayaan warbixinta, hubiyaan xaaladaha laba jibbaaran iyaga oo kaalmaysanaya AI, waxayna go'aaminayaan inay ansixiyaan ama diiyo."
@@ -35,7 +35,7 @@ export default function HowItWorks() {
              :"A verification officer reviews the report, AI-checks for duplicates, and approves or rejects the case.",
       actions:["Review report details and photos","Check for duplicates (AI-assisted)","Approve → assign field team","Reject → archive with reason"],
     },
-    { n:3, icon:"🔍", color:STEP_COLORS[2],
+    { n:3, icon:"", color:STEP_COLORS[2],
       label:  lang==="so"?"Baarista Goobta"      :lang==="ar"?"التحقيق الميداني"  :lang==="tr"?"Saha Soruşturması"  :lang==="es"?"Investigación de Campo":lang==="fr"?"Enquête de Terrain"    :"Field Investigation",
       who:    lang==="so"?"Kooxda Goobta"        :lang==="ar"?"الفريق الميداني"   :lang==="tr"?"Saha Ekibi"         :lang==="es"?"Equipo de Campo"       :lang==="fr"?"Équipe de Terrain"     :"Field Team",
       detail: lang==="so"?"Xubinta kooxda goobta ee loo xilsaaray waxay ku socodsiisaa goobta adeegsanaysa socodsiinta GPS. Waxay si jireed u xaqiijinayaan xaaladda oo soo raraan sawirro/muuqaal caddayn ahaan."
@@ -46,7 +46,7 @@ export default function HowItWorks() {
              :"Field agent travels to the location via GPS, physically verifies the situation, and uploads photo/video evidence.",
       actions:["Receive mission on mobile app","Navigate to location via GPS","Conduct investigation + take photos","Upload findings with GPS coordinates"],
     },
-    { n:4, icon:"✅", color:STEP_COLORS[3],
+    { n:4, icon:"", color:STEP_COLORS[3],
       label:  lang==="so"?"Xaqiijisan"           :lang==="ar"?"تم التحقق"         :lang==="tr"?"Doğrulandı"         :lang==="es"?"Verificado"            :lang==="fr"?"Vérifié"               :"Verified",
       who:    lang==="so"?"Xaqiijiye"            :lang==="ar"?"محقق"              :lang==="tr"?"Doğrulayıcı"        :lang==="es"?"Verificador"           :lang==="fr"?"Vérificateur"          :"Verifier",
       detail: lang==="so"?"Saraakiisha xaqiijintu waxay dib u eegayaan caddaynta goobta. Haddii la xaqiijiyo, xaaladda waxaa la calaamadeeyaa 'Xaqiijisan' oo waxay u muuqdaa deeq-bixiyeyaasha."
@@ -57,7 +57,7 @@ export default function HowItWorks() {
              :"Officers review field evidence, confirm GPS coordinates, and mark the case Verified — making it visible to donors.",
       actions:["Review field findings and photos","Confirm GPS coordinates","Mark case as Verified","Case becomes visible to donors"],
     },
-    { n:5, icon:"👥", color:STEP_COLORS[4],
+    { n:5, icon:"", color:STEP_COLORS[4],
       label:  lang==="so"?"Safka Deeq-bixiyeyaasha":lang==="ar"?"قائمة المانحين":lang==="tr"?"Bağışçı Kuyruğu"    :lang==="es"?"Cola de Donantes"     :lang==="fr"?"File des Donateurs"    :"Donor Queue",
       who:    lang==="so"?"Deeq-bixiye"           :lang==="ar"?"متبرع"            :lang==="tr"?"Bağışçı"            :lang==="es"?"Donante"              :lang==="fr"?"Donateur"              :"Donor",
       detail: lang==="so"?"Xaaladaha xaqiijisan waxay ka muuqdaan xaashida deeq-bixiyeyaasha. Deeq-bixiyeyaashu waxay ka baadhi karaan deg-deg, goob, da', ama nooca baahida."
@@ -68,7 +68,7 @@ export default function HowItWorks() {
              :"Verified cases appear in the donor dashboard, filterable by urgency, location, age, or type of need.",
       actions:["Browse verified cases in donor dashboard","Filter by urgency, location, type","View full case details + evidence","Choose sponsorship type"],
     },
-    { n:6, icon:"❤️", color:STEP_COLORS[5],
+    { n:6, icon:"", color:STEP_COLORS[5],
       label:  lang==="so"?"Taageerada"            :lang==="ar"?"الرعاية"          :lang==="tr"?"Sponsorluk"         :lang==="es"?"Apadrinamiento"        :lang==="fr"?"Parrainage"            :"Sponsorship",
       who:    lang==="so"?"Deeq-bixiye"           :lang==="ar"?"متبرع"            :lang==="tr"?"Bağışçı"            :lang==="es"?"Donante"              :lang==="fr"?"Donateur"              :"Donor",
       detail: lang==="so"?"Deeq-bixiyuhu wuxuu dooranayaa xaalad oo lacag bixinayaa si amaahdan iyada oo loo marayo Stripe, PayPal, Wareejinta Bangiga, ama Ama Gateway."
@@ -79,7 +79,7 @@ export default function HowItWorks() {
              :"The donor selects a case and makes a secure payment via Stripe, PayPal, Bank Transfer, or Ama Gateway.",
       actions:["Select case to sponsor","Choose sponsorship type (Full / Partial)","Make secure payment","Receive confirmation + tax certificate"],
     },
-    { n:7, icon:"📦", color:STEP_COLORS[6],
+    { n:7, icon:"", color:STEP_COLORS[6],
       label:  lang==="so"?"Gaarsiinta Gargaarka" :lang==="ar"?"تسليم المساعدة"   :lang==="tr"?"Yardım Teslimatı"   :lang==="es"?"Entrega de Ayuda"     :lang==="fr"?"Livraison de l'Aide"   :"Aid Delivery",
       who:    lang==="so"?"Kooxda Goobta"        :lang==="ar"?"الفريق الميداني"   :lang==="tr"?"Saha Ekibi"         :lang==="es"?"Equipo de Campo"      :lang==="fr"?"Équipe de Terrain"     :"Field Team",
       detail: lang==="so"?"Kooxda goobta ama kooxda qaybinta gargaarka waxay gaarsiisaa gargaarka faa'iideyaha. Waxay soo raraan caddaynta gaarsiinta — sawirro goobta, xariiqa GPS, iyo saxeexa faa'iideyaha."
@@ -90,7 +90,7 @@ export default function HowItWorks() {
              :"Field team delivers aid and uploads GPS-tagged proof of delivery — photos, coordinates, beneficiary confirmation.",
       actions:["Receive delivery assignment","Navigate to beneficiary location","Deliver aid + take proof photos","Upload GPS-tagged delivery confirmation"],
     },
-    { n:8, icon:"🏁", color:STEP_COLORS[7],
+    { n:8, icon:"", color:STEP_COLORS[7],
       label:  lang==="so"?"La Dhammeeyay"        :lang==="ar"?"مكتملة"           :lang==="tr"?"Tamamlandı"         :lang==="es"?"Completado"           :lang==="fr"?"Terminé"               :"Completed",
       who:    lang==="so"?"Nidaamka"              :lang==="ar"?"النظام"           :lang==="tr"?"Sistem"             :lang==="es"?"Sistema"              :lang==="fr"?"Système"               :"System",
       detail: lang==="so"?"Xaaladda waxaa la calaamadeeyaa inay dhammaatay. Warbixin saameyn ah ayaa si toos ah loo sameeyaa oo muujinaysa safarka oo dhan — soo gudbinta ilaa gaarsiinta. Deeq-bixiyuhu wuxuu helayaa warbirin ugu dambayn."
@@ -104,22 +104,22 @@ export default function HowItWorks() {
   ];
 
   const ROLES_FLOW = [
-    { icon:"📝", color:"#3B82F6", steps:[1],   role:"Reporter",     desc:"Submits the case and tracks its progress" },
-    { icon:"🏛️", color:"#8B5CF6", steps:[2,4], role:"Verifier",    desc:"Approves/rejects, assigns teams, releases to donors" },
-    { icon:"🗺️", color:"#F59E0B", steps:[3,7], role:"Field Team",  desc:"Investigates on-site, delivers aid" },
-    { icon:"❤️", color:"#EC4899", steps:[5,6], role:"Donor",       desc:"Browses verified cases, makes secure payments" },
-    { icon:"🛡️", color:"#C0392B", steps:[8],   role:"Admin",       desc:"Oversees everything, monitors fraud, generates reports" },
+    { icon:"", color:"#3B82F6", steps:[1],   role:"Reporter",     desc:"Submits the case and tracks its progress" },
+    { icon:"", color:"#8B5CF6", steps:[2,4], role:"Verifier",    desc:"Approves/rejects, assigns teams, releases to donors" },
+    { icon:"", color:"#F59E0B", steps:[3,7], role:"Field Team",  desc:"Investigates on-site, delivers aid" },
+    { icon:"", color:"#EC4899", steps:[5,6], role:"Donor",       desc:"Browses verified cases, makes secure payments" },
+    { icon:"", color:"#C0392B", steps:[8],   role:"Admin",       desc:"Oversees everything, monitors fraud, generates reports" },
   ];
 
   const SECURITY = [
-    { icon:"🔑", title:"OTP 2FA",             color:"#3B82F6", desc:"Every login requires a one-time password sent to your phone." },
-    { icon:"🪪", title:"ID Verification",     color:"#8B5CF6", desc:"All users identity-verified before gaining platform access." },
-    { icon:"😶", title:"Face Verification",   color:"#10B981", desc:"AWS Rekognition powers biometric login checks." },
-    { icon:"🔐", title:"AES-256 Encryption",  color:"#F59E0B", desc:"All data encrypted at rest and in transit via TLS 1.3." },
-    { icon:"🤖", title:"AI Fraud Detection",  color:"#C0392B", desc:"Real-time anomaly detection flags suspicious patterns." },
-    { icon:"📜", title:"Immutable Audit Log", color:"#06B6D4", desc:"Every action logged with timestamp, user ID, and hash." },
-    { icon:"🌐", title:"GDPR Compliant",      color:"#065F46", desc:"Full data privacy compliance — right to erasure supported." },
-    { icon:"💳", title:"Secure Payments",     color:"#D97706", desc:"Stripe, PayPal, and bank transfers — end-to-end encrypted." },
+    { icon:"", title:"OTP 2FA",             color:"#3B82F6", desc:"Every login requires a one-time password sent to your phone." },
+    { icon:"", title:"ID Verification",     color:"#8B5CF6", desc:"All users identity-verified before gaining platform access." },
+    { icon:"", title:"Face Verification",   color:"#10B981", desc:"AWS Rekognition powers biometric login checks." },
+    { icon:"", title:"AES-256 Encryption",  color:"#F59E0B", desc:"All data encrypted at rest and in transit via TLS 1.3." },
+    { icon:"", title:"AI Fraud Detection",  color:"#C0392B", desc:"Real-time anomaly detection flags suspicious patterns." },
+    { icon:"", title:"Immutable Audit Log", color:"#06B6D4", desc:"Every action logged with timestamp, user ID, and hash." },
+    { icon:"", title:"GDPR Compliant",      color:"#065F46", desc:"Full data privacy compliance — right to erasure supported." },
+    { icon:"", title:"Secure Payments",     color:"#D97706", desc:"Stripe, PayPal, and bank transfers — end-to-end encrypted." },
   ];
 
   return (
@@ -229,7 +229,7 @@ export default function HowItWorks() {
       <section style={{ padding:"80px 24px", background:`linear-gradient(135deg, ${C.navy} 0%, #0a1e3d 50%, #071428 100%)` }}>
         <div style={{ maxWidth:1280, margin:"0 auto" }}>
           <div style={{ textAlign:"center", marginBottom:56 }}>
-            <div style={{ fontSize:52, marginBottom:16 }}>🛡️</div>
+            <div style={{ fontSize:52, marginBottom:16 }}></div>
             <span style={{ display:"inline-block", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:"rgba(255,255,255,0.7)", borderRadius:20, padding:"5px 16px", fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase", marginBottom:16 }}>ENTERPRISE GRADE</span>
             <h2 style={{ fontSize:"clamp(26px,3.5vw,44px)", fontWeight:900, margin:"0 0 14px", color:"#fff", letterSpacing:-0.5 }}>Security at Every Step</h2>
             <p style={{ fontSize:16, color:"rgba(255,255,255,0.6)", maxWidth:540, margin:"0 auto", lineHeight:1.7 }}>Every interaction, payment, and piece of data is protected by multiple layers of security — from report to delivery.</p>

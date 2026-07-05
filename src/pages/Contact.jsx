@@ -58,18 +58,18 @@ export default function Contact() {
   };
 
   const HOW_STEPS = [
-    { n: 1, icon: "📝", title: P.step1_title, desc: P.step1_desc },
-    { n: 2, icon: "🏛️", title: P.step2_title, desc: P.step2_desc },
-    { n: 3, icon: "🔍", title: P.step3_title, desc: P.step3_desc },
-    { n: 4, icon: "❤️", title: P.step4_title, desc: P.step4_desc },
+    { n: 1, icon: "", title: P.step1_title, desc: P.step1_desc },
+    { n: 2, icon: "", title: P.step2_title, desc: P.step2_desc },
+    { n: 3, icon: "", title: P.step3_title, desc: P.step3_desc },
+    { n: 4, icon: "", title: P.step4_title, desc: P.step4_desc },
   ];
 
   const CONTACT_INFO = [
-    { icon: "📧", label: lang==="so"?"Emailka":lang==="ar"?"البريد الإلكتروني":lang==="tr"?"E-posta":lang==="es"?"Correo":lang==="fr"?"E-mail":"Email",   val: "kafaaleqaad@gmail.com"  },
-    { icon: "📞", label: lang==="so"?"Taleefanka":lang==="ar"?"الهاتف":lang==="tr"?"Telefon":lang==="es"?"Teléfono":lang==="fr"?"Téléphone":"Phone",        val: "+252 61 502 4050"       },
-    { icon: "📍", label: lang==="so"?"Cinwaanka":lang==="ar"?"العنوان":lang==="tr"?"Adres":lang==="es"?"Dirección":lang==="fr"?"Adresse":"Address",          val: "Juma Tower, Room 403, Howl-wadaag, Mogadishu" },
-    { icon: "🌐", label: lang==="so"?"Websaydka":lang==="ar"?"الموقع":lang==="tr"?"Web Sitesi":lang==="es"?"Sitio Web":lang==="fr"?"Site Web":"Website",     val: "kafaale.so"             },
-    { icon: "⏰", label: lang==="so"?"Saacadaha":lang==="ar"?"ساعات العمل":lang==="tr"?"Çalışma Saatleri":lang==="es"?"Horarios":lang==="fr"?"Horaires":"Hours", val: lang==="so"?"Isniin–Jimce, 8GH – 6GH EAT":lang==="ar"?"الإثنين–الجمعة، 8ص – 6م EAT":lang==="tr"?"Pzt–Cum, 08:00 – 18:00 EAT":lang==="es"?"Lun–Vie, 8am – 6pm EAT":lang==="fr"?"Lun–Ven, 8h – 18h EAT":"Mon–Fri, 8am – 6pm EAT" },
+    { icon: "", label: lang==="so"?"Emailka":lang==="ar"?"البريد الإلكتروني":lang==="tr"?"E-posta":lang==="es"?"Correo":lang==="fr"?"E-mail":"Email",   val: "kafaaleqaad@gmail.com"  },
+    { icon: "", label: lang==="so"?"Taleefanka":lang==="ar"?"الهاتف":lang==="tr"?"Telefon":lang==="es"?"Teléfono":lang==="fr"?"Téléphone":"Phone",        val: "+252 61 502 4050"       },
+    { icon: "", label: lang==="so"?"Cinwaanka":lang==="ar"?"العنوان":lang==="tr"?"Adres":lang==="es"?"Dirección":lang==="fr"?"Adresse":"Address",          val: "Juma Tower, Room 403, Howl-wadaag, Mogadishu" },
+    { icon: "", label: lang==="so"?"Websaydka":lang==="ar"?"الموقع":lang==="tr"?"Web Sitesi":lang==="es"?"Sitio Web":lang==="fr"?"Site Web":"Website",     val: "kafaale.so"             },
+    { icon: "", label: lang==="so"?"Saacadaha":lang==="ar"?"ساعات العمل":lang==="tr"?"Çalışma Saatleri":lang==="es"?"Horarios":lang==="fr"?"Horaires":"Hours", val: lang==="so"?"Isniin–Jimce, 8GH – 6GH EAT":lang==="ar"?"الإثنين–الجمعة، 8ص – 6م EAT":lang==="tr"?"Pzt–Cum, 08:00 – 18:00 EAT":lang==="es"?"Lun–Vie, 8am – 6pm EAT":lang==="fr"?"Lun–Ven, 8h – 18h EAT":"Mon–Fri, 8am – 6pm EAT" },
   ];
 
   return (
@@ -147,14 +147,14 @@ export default function Contact() {
             {tab === "report" ? (
               submitted ? (
                 <div style={{ textAlign: "center", padding: "20px 0" }}>
-                  <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
+                  <div style={{ fontSize: 64, marginBottom: 16 }}></div>
                   <h3 style={{ fontSize: 22, fontWeight: 900, color: C.secondary, margin: "0 0 10px" }}>{P.success_title}</h3>
                   <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 24 }}>{P.success_sub}</p>
                   <div style={{ background: "#F0FDF4", borderRadius: 12, padding: 16, marginBottom: 24, textAlign: "left", fontSize: 13, lineHeight: 2 }}>
-                    <div>🔖 {P.ref_lbl} <strong>{refNum}</strong></div>
-                    <div>📅 {P.submitted_lbl} <strong>{new Date().toLocaleString()}</strong></div>
-                    <div>📍 {P.location_lbl} <strong>{form.location}</strong></div>
-                    <div>⚡ {P.urgency_lbl} <strong>{form.urgency}</strong></div>
+                    <div>{P.ref_lbl} <strong>{refNum}</strong></div>
+                    <div>{P.submitted_lbl} <strong>{new Date().toLocaleString()}</strong></div>
+                    <div>{P.location_lbl} <strong>{form.location}</strong></div>
+                    <div>{P.urgency_lbl} <strong>{form.urgency}</strong></div>
                   </div>
                   <button onClick={() => { setSubmitted(false); setForm({ name:"", age:"", gender: P.gender_female, location:"", urgency:"Medium", desc:"", phone:"" }); }}
                     style={{ padding: "12px 28px", background: C.primary, color: "#fff", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
@@ -207,23 +207,23 @@ export default function Contact() {
                   </div>
                   {submitError && (
                     <div style={{ background: "#FEF2F2", border: `1px solid ${C.danger}30`, color: C.danger, padding: "10px 14px", borderRadius: 10, fontSize: 13, marginTop: 12 }}>
-                      ⚠️ {submitError}
+                      {submitError}
                     </div>
                   )}
                   {!user && (
                     <div style={{ background: "#FEF3C7", border: "1px solid #FCD34D", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#92400E", marginTop: 12 }}>
-                      ℹ️ You must be <strong>signed in as a reporter</strong> to submit cases.
+                      You must be <strong>signed in as a reporter</strong> to submit cases.
                     </div>
                   )}
                   <button type="submit" disabled={submitting} style={{ width: "100%", marginTop: 20, padding: "14px", background: C.primary, color: "#fff", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 800, cursor: submitting ? "not-allowed" : "pointer", opacity: submitting ? 0.7 : 1 }}>
-                    {submitting ? "⏳ Submitting…" : P.submit_report}
+                    {submitting ? "Submitting…" : P.submit_report}
                   </button>
                 </form>
               )
             ) : (
               cSubmit ? (
                 <div style={{ textAlign: "center", padding: "20px 0" }}>
-                  <div style={{ fontSize: 64, marginBottom: 16 }}>📬</div>
+                  <div style={{ fontSize: 64, marginBottom: 16 }}></div>
                   <h3 style={{ fontSize: 22, fontWeight: 900, color: C.primary, margin: "0 0 10px" }}>{P.msg_sent_title}</h3>
                   <p style={{ fontSize: 14, color: C.muted, marginBottom: 24, lineHeight: 1.7 }}>{P.msg_sent_sub} <strong>{contact.email}</strong> {P.msg_sent_hours}</p>
                   <button onClick={() => { setCSubmit(false); setContact({ name:"", email:"", subject:"", message:"" }); }}

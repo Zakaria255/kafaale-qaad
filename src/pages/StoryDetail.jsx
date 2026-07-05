@@ -6,7 +6,7 @@ import { getStoryImg } from "../utils/storyImages.js";
 // All static stories — combined source of truth
 const STATIC_ALL = [
   {
-    id:"sf1", category:"Medical", location:"Mogadishu", date:"June 2026", icon:"🩺",
+    id:"sf1", category:"Medical", location:"Mogadishu", date:"June 2026", icon:"",
     title:"Eight-Year-Old Receives Life-Saving Heart Surgery",
     lead:"After a field agent documented the case and donors responded within 72 hours, young Fatima underwent successful cardiac surgery. She is now recovering at home.",
     challenge:"Fatima's family had exhausted every option. The $2,100 procedure was impossible on a daily wage of less than $3. Without surgery within weeks, her condition would become inoperable.",
@@ -36,7 +36,7 @@ const STATIC_ALL = [
     tags:["education","orphan","children"],
   },
   {
-    id:"sf4", category:"Water", location:"Kismayo", date:"April 2026", icon:"💧",
+    id:"sf4", category:"Water", location:"Kismayo", date:"April 2026", icon:"",
     title:"Clean Water Reaches 280 Families in Kismayo",
     lead:"A deep borehole drilled in Kismayo's eastern district now serves 280 families with clean, tested water — reducing waterborne disease by an estimated 60%.",
     challenge:"Community members had walked 4 km daily for water from an unprotected surface source. Waterborne illness was common, particularly among children under five. Women and girls spent 3–4 hours a day on water collection.",
@@ -46,7 +46,7 @@ const STATIC_ALL = [
     tags:["water","community","health"],
   },
   {
-    id:"sf5", category:"Food", location:"Beledweyne", date:"May 2026", icon:"🌾",
+    id:"sf5", category:"Food", location:"Beledweyne", date:"May 2026", icon:"",
     title:"Elderly Widow Receives Monthly Food Support",
     lead:"78-year-old Halima now receives a monthly food basket after a community member filed a case on her behalf. Her health has improved significantly over three months.",
     challenge:"Halima has no surviving children and no income. She had gone multiple days without eating before a neighbour submitted her case. She had been selling her last household items for food money.",
@@ -66,7 +66,7 @@ const STATIC_ALL = [
     tags:["orphan","infant","foster"],
   },
   {
-    id:"sf7", category:"Medical", location:"Mogadishu", date:"March 2026", icon:"🦽",
+    id:"sf7", category:"Medical", location:"Mogadishu", date:"March 2026", icon:"",
     title:"Dialysis Lifeline for 68-Year-Old Patient",
     lead:"Sponsorship covers six months of bi-weekly dialysis for Rooda, 68, who had run out of options. Her family says the support 'gave her back to us.'",
     challenge:"Rooda requires dialysis twice a week to survive end-stage kidney disease. Each session costs $60. Her family of four earns less than $200 a month and had already borrowed from everyone they knew.",
@@ -86,7 +86,7 @@ const STATIC_ALL = [
     tags:["shelter","food","emergency"],
   },
   {
-    id:"st2", category:"Medical", date:"2026-04-28", location:"Baidoa", icon:"🩺",
+    id:"st2", category:"Medical", date:"2026-04-28", location:"Baidoa", icon:"",
     title:"8-Year-Old Girl Receives Critical Medication",
     lead:"A young girl in Baidoa had been without essential medication for weeks. Sponsors covered four months of doctor visits and medication costs.",
     challenge:"Critical medication had become unavailable locally and the family could not afford to source it elsewhere. The child's health had deteriorated noticeably over three weeks.",
@@ -106,7 +106,7 @@ const STATIC_ALL = [
     tags:["education","orphan","children"],
   },
   {
-    id:"st4", category:"Food & Nutrition", date:"2026-03-22", location:"Garowe", icon:"🌾",
+    id:"st4", category:"Food & Nutrition", date:"2026-03-22", location:"Garowe", icon:"",
     title:"Weekly Food Deliveries Reach Isolated Elder",
     lead:"A 78-year-old man living alone with no income now receives weekly food deliveries and regular health worker visits.",
     challenge:"No food security, no family contact, deteriorating health. He had been selling household possessions for food and had not had a full meal in four days at the time of intake.",
@@ -116,7 +116,7 @@ const STATIC_ALL = [
     tags:["food","elderly"],
   },
   {
-    id:"st5", category:"Press Release", date:"2026-03-05", location:"Mogadishu", icon:"📢",
+    id:"st5", category:"Press Release", date:"2026-03-05", location:"Mogadishu", icon:"",
     title:"Kafaala Qaad Reaches 500 Verified Cases Milestone",
     lead:"The platform announces verification and aid delivery for its 500th case, representing families in 12 regions. Total funds distributed exceed $380,000.",
     challenge:"When Kafaala Qaad launched, the challenge was simple but enormous: create a system of trust between donors abroad and families in Somalia who had no digital footprint and no formal documentation.",
@@ -126,7 +126,7 @@ const STATIC_ALL = [
     tags:["milestone","platform"],
   },
   {
-    id:"st6", category:"Partnership", date:"2026-02-18", location:"Mogadishu", icon:"🤝",
+    id:"st6", category:"Partnership", date:"2026-02-18", location:"Mogadishu", icon:"",
     title:"New Partnership with Regional Health Ministry",
     lead:"A formal agreement with the Regional Health Ministry now enables Kafaala Qaad field agents to coordinate directly with clinics, cutting verification time from 14 days to under 5.",
     challenge:"Medical case verification had been a bottleneck. Field agents had to independently confirm diagnoses and treatment availability — a process that could take two weeks in remote areas.",
@@ -182,7 +182,7 @@ export default function StoryDetail() {
 
   if (!story) return (
     <div style={{ minHeight:"60vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, fontFamily:"system-ui", textAlign:"center", padding:24 }}>
-      <div style={{ fontSize:64 }}>📭</div>
+      <div style={{ fontSize:64 }}></div>
       <h2 style={{ fontSize:24, fontWeight:900, color:C.navy }}>Story Not Found</h2>
       <p style={{ color:C.muted, fontSize:15 }}>This story may have been removed or the link is incorrect.</p>
       <Link to="/stories" style={{ padding:"12px 28px", background:C.primary, color:"#fff", borderRadius:12, textDecoration:"none", fontWeight:700 }}>← Back to Stories</Link>
@@ -206,7 +206,7 @@ export default function StoryDetail() {
         {/* Photo credit */}
         {story.afterImg && (
           <div style={{ fontSize:11, color:C.muted, margin:"8px 0 0", textAlign:"right" }}>
-            © Kafaala Qaad / Field Documentation
+            Kafaala Qaad / Field Documentation
           </div>
         )}
 
@@ -225,9 +225,9 @@ export default function StoryDetail() {
             {story.category}
           </span>
           {story.location && (
-            <span style={{ fontSize:13, color:C.muted }}>📍 {story.location}</span>
+            <span style={{ fontSize:13, color:C.muted }}>{story.location}</span>
           )}
-          <span style={{ fontSize:13, color:C.muted }}>🕐 Reading time: {mins} minute{mins !== 1 ? "s" : ""}</span>
+          <span style={{ fontSize:13, color:C.muted }}>Reading time: {mins} minute{mins !== 1 ? "s" : ""}</span>
         </div>
 
         {/* Title */}
@@ -333,10 +333,10 @@ export default function StoryDetail() {
             if (navigator.share) navigator.share({ title: story.title, url: window.location.href });
             else { navigator.clipboard?.writeText(window.location.href); }
           }} style={{ padding:"11px 22px", borderRadius:10, border:`1.5px solid ${C.border}`, background:"#fff", cursor:"pointer", fontSize:13, fontWeight:700, color:C.text }}>
-            🔗 Share Story
+            Share Story
           </button>
           <Link to="/donate" style={{ padding:"11px 22px", borderRadius:10, border:"none", background:C.gold, color:"#fff", fontWeight:800, fontSize:13, textDecoration:"none" }}>
-            ❤️ Donate Now
+            Donate Now
           </Link>
           <Link to="/cases" style={{ padding:"11px 22px", borderRadius:10, border:`1.5px solid ${C.primary}`, color:C.primary, fontWeight:700, fontSize:13, textDecoration:"none", background:"#fff" }}>
             View Open Cases
@@ -356,7 +356,7 @@ export default function StoryDetail() {
                   onMouseOut={e  => e.currentTarget.style.boxShadow="none"}
                 >
                   <div style={{ height:100, background:`linear-gradient(135deg,${catColor(s.category)}25,${catColor(s.category)}55)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:40 }}>
-                    {s.icon || "✨"}
+                    {s.icon || ""}
                   </div>
                   <div style={{ padding:"12px 14px" }}>
                     <span style={{ background:catColor(s.category), color:"#fff", borderRadius:5, padding:"2px 8px", fontSize:10, fontWeight:800 }}>{s.category}</span>

@@ -57,22 +57,22 @@ export default function About() {
   }, []);
 
   const VALUES = [
-    { icon:"🔍", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    { icon:"", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
       title:"Transparency", color:"#3B82F6",
       desc:"Every case, transaction, and action is logged and publicly auditable. Donors see exactly where their money goes." },
-    { icon:"🛡️", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    { icon:"", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
       title:"Trust", color:"#10B981",
       desc:"Multi-layer verification, fraud detection and encrypted payments build unshakeable donor confidence." },
-    { icon:"⚡", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+    { icon:"", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
       title:"Efficiency", color:"#F59E0B",
       desc:"8-step automated workflow reduces manual work, speeds aid delivery and eliminates bottlenecks." },
     { icon:"🌍", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
       title:"Impact", color:"#8B5CF6",
       desc:"Real impact measured with GPS-verified proof-of-delivery photos and transparent impact reports." },
-    { icon:"🤝", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+    { icon:"", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
       title:"Collaboration", color:"#EC4899",
       desc:"Connecting reporters, field teams, donors, and administrators in one seamless platform." },
-    { icon:"📱", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
+    { icon:"", svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
       title:"Accessibility", color:"#06B6D4",
       desc:"Web, mobile, and offline-capable. Works in low-connectivity field environments across the region." },
   ];
@@ -83,12 +83,12 @@ export default function About() {
       img:"https://images.unsplash.com/photo-1614107707982-51ac42f4fcdb?w=600&q=75",
       desc:"Fake cases and duplicate applications drain aid budgets. Without verification, resources go to the wrong people.",
       solution:"Multi-layer AI verification flags duplicates before a single dollar leaves the donor." },
-    { icon:"🌫️",
+    { icon:"",
       title:"No Transparency", color:"#D97706", bg:"#FFFBEB",
       img:"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&q=75",
       desc:"Donors have no way to verify their money reached beneficiaries. Trust erodes, donations decline.",
       solution:"GPS-tagged proof of delivery and immutable audit logs give donors real-time visibility." },
-    { icon:"🐢",
+    { icon:"",
       title:"Slow Manual Processes", color:"#7C3AED", bg:"#F5F3FF",
       img:"https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=600&q=75",
       desc:"Paper-based systems slow down aid delivery. Cases sit in queues for weeks unnecessarily.",
@@ -122,7 +122,7 @@ export default function About() {
             <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, rgba(0,38,81,0.3), rgba(75,125,25,0.25))" }} />
             <div style={{ position:"absolute", bottom:24, left:24, right:24 }}>
               <div style={{ background:"rgba(0,0,0,0.55)", backdropFilter:"blur(8px)", borderRadius:12, padding:"12px 18px" }}>
-                <div style={{ color:"rgba(255,255,255,0.9)", fontSize:13, fontWeight:700 }}>📍 Somalia, East Africa</div>
+                <div style={{ color:"rgba(255,255,255,0.9)", fontSize:13, fontWeight:700 }}>Somalia, East Africa</div>
                 <div style={{ color:"rgba(255,255,255,0.6)", fontSize:11, marginTop:2 }}>Field verified · GPS tracked · Delivered</div>
               </div>
             </div>

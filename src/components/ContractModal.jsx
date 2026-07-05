@@ -286,7 +286,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
   if (signed) return (
     <div style={{ position: "fixed", inset: 0, background: "#0007", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: "#fff", borderRadius: 20, padding: 40, maxWidth: 480, width: "100%", textAlign: "center" }}>
-        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "#D1FAE5", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>✅</div>
+        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "#D1FAE5", margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}></div>
         <h2 style={{ margin: "0 0 12px", fontSize: 22, fontWeight: 900, color: C.secondary }}>Contract Signed!</h2>
         <p style={{ color: C.muted, fontSize: 14, lineHeight: 1.7, marginBottom: 16 }}>
           Your agreement has been recorded. Reference number:

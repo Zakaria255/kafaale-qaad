@@ -7,12 +7,12 @@ const UPDATES_KEY = "kf_updates";
 
 const TYPE_META = {
   Disaster:  { color:"#C0392B", bg:"#FEF2F2", icon:"🚨" },
-  Flood:     { color:"#1D4ED8", bg:"#DBEAFE", icon:"🌊" },
-  Drought:   { color:"#D97706", bg:"#FEF3C7", icon:"☀️" },
-  Emergency: { color:"#7C3AED", bg:"#EDE9FE", icon:"🆘" },
-  Conflict:  { color:"#374151", bg:"#F3F4F6", icon:"⚠️" },
+  Flood:     { color:"#1D4ED8", bg:"#DBEAFE", icon:"" },
+  Drought:   { color:"#D97706", bg:"#FEF3C7", icon:"" },
+  Emergency: { color:"#7C3AED", bg:"#EDE9FE", icon:"" },
+  Conflict:  { color:"#374151", bg:"#F3F4F6", icon:"" },
   Disease:   { color:"#065F46", bg:"#D1FAE5", icon:"🏥" },
-  General:   { color:"#0369A1", bg:"#E0F2FE", icon:"📢" },
+  General:   { color:"#0369A1", bg:"#E0F2FE", icon:"" },
 };
 
 const DEFAULT_UPDATES = [
@@ -114,7 +114,7 @@ export default function Updates() {
                 background: filter===t ? (m?.color||C.primary) : "#fff",
                 color: filter===t ? "#fff" : (m?.color||C.muted),
                 borderColor: filter===t ? (m?.color||C.primary) : C.border,
-              }}>{m?.icon||"📋"} {t}</button>
+              }}>{m?.icon||""} {t}</button>
             );
           })}
         </div>
@@ -125,7 +125,7 @@ export default function Updates() {
         <div style={{ maxWidth:1200, margin:"0 auto" }}>
           {visible.length === 0 && (
             <div style={{ textAlign:"center", padding:"80px 0", color:C.muted }}>
-              <div style={{ fontSize:48, marginBottom:16 }}>📭</div>
+              <div style={{ fontSize:48, marginBottom:16 }}></div>
               <div style={{ fontSize:18, fontWeight:700 }}>No updates found for this filter.</div>
             </div>
           )}
@@ -147,10 +147,10 @@ export default function Updates() {
                         <span style={{ background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:700 }}>{SEV_LABELS[u.severity]}</span>
                       )}
                     </div>
-                    <div style={{ position:"absolute", bottom:10, left:14, color:"rgba(255,255,255,0.8)", fontSize:11 }}>📍 {u.location}</div>
+                    <div style={{ position:"absolute", bottom:10, left:14, color:"rgba(255,255,255,0.8)", fontSize:11 }}>{u.location}</div>
                   </div>
                   <div style={{ padding:"18px 20px 20px" }}>
-                    <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>📅 {new Date(u.date).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
+                    <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>{new Date(u.date).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
                     <h3 style={{ margin:"0 0 10px", fontSize:16, fontWeight:800, color:C.text, lineHeight:1.4 }}>{u.title}</h3>
                     <p style={{ margin:"0 0 14px", fontSize:13, color:C.muted, lineHeight:1.65, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>{u.body}</p>
                     {u.needs?.length > 0 && (
@@ -171,7 +171,7 @@ export default function Updates() {
 
           {/* Donate CTA */}
           <div style={{ marginTop:56, background:`linear-gradient(135deg,${C.navy},${C.primary})`, borderRadius:20, padding:"40px 32px", textAlign:"center", color:"#fff" }}>
-            <div style={{ fontSize:36, marginBottom:12 }}>❤️</div>
+            <div style={{ fontSize:36, marginBottom:12 }}></div>
             <h2 style={{ fontSize:26, fontWeight:900, margin:"0 0 10px" }}>Every Emergency Needs an Immediate Response</h2>
             <p style={{ opacity:0.82, maxWidth:480, margin:"0 auto 24px", lineHeight:1.7, fontSize:15 }}>
               Your donation is verified, tracked, and delivered with GPS-confirmed proof. No middlemen.
@@ -203,8 +203,8 @@ export default function Updates() {
               </div>
               <div style={{ padding:"24px 28px 32px" }}>
                 <div style={{ display:"flex", gap:16, fontSize:12, color:C.muted, marginBottom:18 }}>
-                  <span>📅 {new Date(modal.date).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</span>
-                  <span>📍 {modal.location}</span>
+                  <span>{new Date(modal.date).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</span>
+                  <span>{modal.location}</span>
                 </div>
                 <p style={{ fontSize:15, lineHeight:1.8, color:C.text, margin:"0 0 20px" }}>{modal.body}</p>
                 {modal.needs?.length > 0 && (
@@ -216,7 +216,7 @@ export default function Updates() {
                   </div>
                 )}
                 <div style={{ display:"flex", gap:12 }}>
-                  <Link to="/donate" onClick={() => setSelected(null)} style={{ flex:1, padding:"13px", background:C.accent, color:"#fff", borderRadius:12, textDecoration:"none", textAlign:"center", fontWeight:800, fontSize:14 }}>❤️ Donate to This Emergency</Link>
+                  <Link to="/donate" onClick={() => setSelected(null)} style={{ flex:1, padding:"13px", background:C.accent, color:"#fff", borderRadius:12, textDecoration:"none", textAlign:"center", fontWeight:800, fontSize:14 }}>Donate to This Emergency</Link>
                   <button onClick={() => setSelected(null)} style={{ padding:"13px 20px", background:C.bg, border:`1px solid ${C.border}`, borderRadius:12, cursor:"pointer", fontWeight:700, fontSize:13, color:C.text }}>Close</button>
                 </div>
               </div>
