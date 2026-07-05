@@ -600,6 +600,16 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+// Server-side token revocation (logout / password change) — persisted so it
+// works across serverless function instances. Keyed by sha256(token).
+model RevokedToken {
+  tokenHash String   @id
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
 // Admin/Super-Admin notebook: shared notes & assignable tasks.
 model Note {
   id         String    @id @default(cuid())

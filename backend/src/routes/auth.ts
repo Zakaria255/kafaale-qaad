@@ -6,7 +6,7 @@ import nodemailer from 'nodemailer';
 import { z } from 'zod';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../prisma/client';
-import { authenticate, AuthRequest, tokenBlacklist } from '../middleware/auth';
+import { authenticate, AuthRequest, revokeToken } from '../middleware/auth';
 import { sysLog } from '../services/logger';
 
 const router = Router();
@@ -363,7 +363,7 @@ router.patch('/change-password', authenticate, async (req: AuthRequest, res: Res
     const oldToken = req.headers.authorization?.split(' ')[1];
     if (oldToken) {
       const decoded = jwt.decode(oldToken) as any;
-      if (decoded?.exp) tokenBlacklist.set(oldToken, decoded.exp * 1000);
+      if (decoded?.exp) await revokeToken(oldToken, decoded.exp * 1000);
     }
 
     res.json({ message: 'Password changed successfully. Please log in again.' });
@@ -401,7 +401,7 @@ router.post('/refresh', authenticate, async (req: AuthRequest, res: Response) =>
     const oldToken = req.headers.authorization?.split(' ')[1];
     if (oldToken) {
       const decoded = jwt.decode(oldToken) as any;
-      if (decoded?.exp) tokenBlacklist.set(oldToken, decoded.exp * 1000);
+      if (decoded?.exp) await revokeToken(oldToken, decoded.exp * 1000);
     }
 
     const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
@@ -417,7 +417,7 @@ router.post('/logout', authenticate, async (req: AuthRequest, res: Response) => 
     const token = req.headers.authorization?.split(' ')[1];
     if (token) {
       const decoded = jwt.decode(token) as any;
-      if (decoded?.exp) tokenBlacklist.set(token, decoded.exp * 1000);
+      if (decoded?.exp) await revokeToken(token, decoded.exp * 1000);
     }
 
     // Stop push notifications after logout
