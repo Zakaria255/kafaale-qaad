@@ -8,6 +8,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest, revokeToken } from '../middleware/auth';
 import { dbRateLimit } from '../middleware/dbRateLimit';
+import { safeError } from '../middleware/errors';
 import { sysLog } from '../services/logger';
 
 const router = Router();
@@ -97,7 +98,7 @@ router.post('/register', dbRateLimit('register', 8, 60 * 60 * 1000), async (req:
     return res.status(201).json({ user, token });
   } catch (err: any) {
     if (err instanceof z.ZodError) return res.status(400).json({ error: 'Validation failed', details: err.issues });
-    res.status(400).json({ error: err.message });
+    return safeError(res, 400, 'Registration failed', err);
   }
 });
 
@@ -136,7 +137,7 @@ router.post('/login', dbRateLimit('login', 10, 15 * 60 * 1000), async (req: Requ
     });
   } catch (err: any) {
     if (err instanceof z.ZodError) return res.status(400).json({ error: 'Validation failed', details: err.issues });
-    res.status(400).json({ error: err.message });
+    return safeError(res, 400, 'Login failed', err);
   }
 });
 

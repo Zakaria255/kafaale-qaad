@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../prisma/client';
 import { authenticate, requireRole } from '../middleware/auth';
+import { safeError } from '../middleware/errors';
 
 const router = Router();
 
@@ -56,7 +57,7 @@ router.get('/', authenticate, requireRole(['admin', 'super_admin']), async (_req
     const merged = { ...DEFAULT_TEMPLATES, ...stored };
     res.json({ settings: merged });
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    return safeError(res, 500, 'Settings request failed', e);
   }
 });
 
@@ -72,7 +73,7 @@ router.patch('/', authenticate, requireRole(['admin', 'super_admin']), async (re
     );
     res.json({ success: true });
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    return safeError(res, 500, 'Settings request failed', e);
   }
 });
 
@@ -82,7 +83,7 @@ router.delete('/:key', authenticate, requireRole(['super_admin']), async (req, r
     await prisma.setting.deleteMany({ where: { key: req.params.key } });
     res.json({ success: true, defaultValue: DEFAULT_TEMPLATES[req.params.key] ?? null });
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    return safeError(res, 500, 'Settings request failed', e);
   }
 });
 

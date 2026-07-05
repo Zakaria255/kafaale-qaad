@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
+import { safeError } from '../middleware/errors';
 import { prisma } from '../prisma/client';
 import { sysLog } from '../services/logger';
 
@@ -589,7 +590,7 @@ Respond with ONLY valid JSON (no markdown, no extra text):
 
   } catch (err: any) {
     sysLog.error('AI sanitize error', err);
-    res.status(500).json({ error: 'AI sanitization failed', details: err.message });
+    return safeError(res, 500, 'AI sanitization failed', err);
   }
 });
 

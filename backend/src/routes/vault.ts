@@ -1,6 +1,7 @@
 import { Router, Request } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { safeError } from '../middleware/errors';
 import { uploadToStorage } from '../middleware/upload';
 import { prisma } from '../prisma/client';
 
@@ -25,7 +26,7 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
     });
     res.json({ documents: docs });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return safeError(res, 500, 'Vault request failed', err);
   }
 });
 
@@ -51,7 +52,7 @@ router.post('/', authenticate, upload.single('file'), async (req: AuthRequest, r
     });
     res.status(201).json({ document: doc });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return safeError(res, 500, 'Vault request failed', err);
   }
 });
 
@@ -65,7 +66,7 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
     await prisma.vaultDocument.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return safeError(res, 500, 'Vault request failed', err);
   }
 });
 
