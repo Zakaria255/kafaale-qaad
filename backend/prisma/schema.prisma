@@ -600,6 +600,16 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+// Postgres-backed fixed-window rate limiter — counts requests per (bucket:ip:window)
+// so brute-force limits hold across serverless instances (in-memory limits don't).
+model RateCounter {
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
 // Server-side token revocation (logout / password change) — persisted so it
 // works across serverless function instances. Keyed by sha256(token).
 model RevokedToken {

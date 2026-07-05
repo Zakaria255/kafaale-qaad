@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest, revokeToken } from '../middleware/auth';
+import { dbRateLimit } from '../middleware/dbRateLimit';
 import { sysLog } from '../services/logger';
 
 const router = Router();
@@ -68,7 +69,7 @@ const LoginSchema = z.object({
 });
 
 // POST /api/auth/register
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', dbRateLimit('register', 8, 60 * 60 * 1000), async (req: Request, res: Response) => {
   try {
     const data = RegisterSchema.parse(req.body);
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
@@ -101,7 +102,7 @@ router.post('/register', async (req: Request, res: Response) => {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', dbRateLimit('login', 10, 15 * 60 * 1000), async (req: Request, res: Response) => {
   try {
     const data = LoginSchema.parse(req.body);
     const user = await prisma.user.findUnique({ where: { email: data.email } });
@@ -140,7 +141,7 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 // POST /api/auth/google — Sign in / sign up with a Google ID token (from Google Identity Services)
-router.post('/google', async (req: Request, res: Response) => {
+router.post('/google', dbRateLimit('google', 20, 15 * 60 * 1000), async (req: Request, res: Response) => {
   try {
     if (!googleClient || !process.env.GOOGLE_CLIENT_ID) {
       return res.status(503).json({ error: 'Google sign-in is not configured' });
@@ -251,7 +252,7 @@ router.patch('/profile', authenticate, async (req: AuthRequest, res: Response) =
 });
 
 // POST /api/auth/forgot-password
-router.post('/forgot-password', async (req: Request, res: Response) => {
+router.post('/forgot-password', dbRateLimit('pwreset', 5, 60 * 60 * 1000), async (req: Request, res: Response) => {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);
     const user = await prisma.user.findUnique({ where: { email } });
