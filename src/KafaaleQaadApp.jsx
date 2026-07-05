@@ -4961,13 +4961,17 @@ const NotebookPanel = ({ users = [], showToast }) => {
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState("all");
   const [catFilter, setCatFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [assignedFilter, setAssignedFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [scope, setScope] = useState("own");
   const [newCat, setNewCat] = useState("");
   const [showCatMgr, setShowCatMgr] = useState(false);
   const toast = showToast || (() => {});
 
   useEffect(() => {
     setLoading(true);
-    notesApi.list().then(r => setNotes(Array.isArray(r.notes) ? r.notes : [])).catch(() => {}).finally(() => setLoading(false));
+    notesApi.list().then(r => { setNotes(Array.isArray(r.notes) ? r.notes : []); if (r.scope) setScope(r.scope); }).catch(() => {}).finally(() => setLoading(false));
     notesApi.categories().then(r => {
       const cats = Array.isArray(r.categories) ? r.categories : [];
       setCategories(cats);
@@ -5039,8 +5043,16 @@ const NotebookPanel = ({ users = [], showToast }) => {
     } catch (e) { toast(e.message || "Failed", "error"); }
   };
 
-  const shown = notes.filter(n => (filter === "all" || n.status === filter) && (catFilter === "all" || (n.category || "General") === catFilter));
+  const q = search.trim().toLowerCase();
+  const shown = notes.filter(n =>
+    (filter === "all" || n.status === filter) &&
+    (catFilter === "all" || (n.category || "General") === catFilter) &&
+    (priorityFilter === "all" || n.priority === priorityFilter) &&
+    (assignedFilter === "all" || (assignedFilter === "unassigned" ? !n.assigneeId : n.assigneeId === assignedFilter)) &&
+    (!q || n.title.toLowerCase().includes(q) || (n.body || "").toLowerCase().includes(q))
+  );
   const counts = { all: notes.length, todo: notes.filter(n => n.status === "todo").length, doing: notes.filter(n => n.status === "doing").length, done: notes.filter(n => n.status === "done").length };
+  const selStyle = { padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1px solid ${COLORS.border}`, background: "#fff", color: COLORS.text, cursor: "pointer" };
 
   return (
     <div>
@@ -5054,7 +5066,9 @@ const NotebookPanel = ({ users = [], showToast }) => {
             <Logo size="sm" linked={false} dark />
             <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: -0.5 }}>Notebook</span>
           </div>
-          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>Write notes and assign tasks to your team</div>
+          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>
+            {scope === "all" ? "Viewing all team notes" : "Viewing your notes"} · {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          </div>
         </div>
         <button onClick={() => setShowCatMgr(v => !v)}
           style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "#fff", borderRadius: 10, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
@@ -5113,21 +5127,33 @@ const NotebookPanel = ({ users = [], showToast }) => {
         </div>
       </div>
 
+      {/* Search */}
+      <div style={{ marginBottom: 12 }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search notes…"
+          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${COLORS.border}`, fontSize: 14, boxSizing: "border-box" }} />
+      </div>
+
       {/* Filters */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
         {[["all", "All"], ["todo", "To Do"], ["doing", "In Progress"], ["done", "Done"]].map(([k, lbl]) => (
           <button key={k} onClick={() => setFilter(k)} style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer",
             border: `1px solid ${filter === k ? COLORS.primary : COLORS.border}`, background: filter === k ? COLORS.primary : "#fff", color: filter === k ? "#fff" : COLORS.muted }}>
             {lbl} ({counts[k]})
           </button>
         ))}
-        {categories.length > 0 && (
-          <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-            style={{ marginLeft: "auto", padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1px solid ${COLORS.border}`, background: "#fff", color: COLORS.text, cursor: "pointer" }}>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} style={selStyle}>
+            <option value="all">All priorities</option><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option>
+          </select>
+          <select value={catFilter} onChange={e => setCatFilter(e.target.value)} style={selStyle}>
             <option value="all">All categories</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-        )}
+          <select value={assignedFilter} onChange={e => setAssignedFilter(e.target.value)} style={selStyle}>
+            <option value="all">Anyone</option><option value="unassigned">Unassigned</option>
+            {users.map(u => <option key={u.id} value={u.id}>{u.name || u.email}</option>)}
+          </select>
+        </div>
       </div>
 
       {/* Notes list */}

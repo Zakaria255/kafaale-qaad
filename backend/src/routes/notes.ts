@@ -71,15 +71,20 @@ router.get('/mine', async (req: AuthRequest, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to load notes' }); }
 });
 
-// GET /api/notes — admin/super_admin: the shared notebook.
+// GET /api/notes — super_admin sees ALL notes; admin sees only their OWN
+// (notes they created or are assigned to).
 router.get('/', async (req: AuthRequest, res: Response) => {
   if (!isAdmin(req)) return res.status(403).json({ error: 'Only admins can access the notebook' });
   try {
+    const where = req.user!.role === 'super_admin'
+      ? {}
+      : { OR: [{ authorId: req.user!.id }, { assigneeId: req.user!.id }] };
     const notes = await prisma.note.findMany({
+      where,
       orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
       select: noteSelect,
     });
-    res.json({ notes });
+    res.json({ notes, scope: req.user!.role === 'super_admin' ? 'all' : 'own' });
   } catch { res.status(500).json({ error: 'Failed to load notes' }); }
 });
 
