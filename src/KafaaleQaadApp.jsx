@@ -4955,15 +4955,24 @@ const NOTE_PRIORITY = {
 
 const NotebookPanel = ({ users = [], showToast }) => {
   const [notes, setNotes] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ title: "", body: "", assigneeId: "", priority: "normal", status: "todo" });
+  const [form, setForm] = useState({ title: "", body: "", assigneeId: "", priority: "normal", status: "todo", category: "General" });
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [catFilter, setCatFilter] = useState("all");
+  const [newCat, setNewCat] = useState("");
+  const [showCatMgr, setShowCatMgr] = useState(false);
   const toast = showToast || (() => {});
 
   useEffect(() => {
     setLoading(true);
     notesApi.list().then(r => setNotes(Array.isArray(r.notes) ? r.notes : [])).catch(() => {}).finally(() => setLoading(false));
+    notesApi.categories().then(r => {
+      const cats = Array.isArray(r.categories) ? r.categories : [];
+      setCategories(cats);
+      if (cats.length) setForm(f => ({ ...f, category: cats[0] }));
+    }).catch(() => {});
   }, []);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -4974,14 +4983,34 @@ const NotebookPanel = ({ users = [], showToast }) => {
     try {
       const r = await notesApi.create({
         title: form.title.trim(), body: form.body.trim(),
-        priority: form.priority, status: form.status,
+        priority: form.priority, status: form.status, category: form.category,
         assigneeId: form.assigneeId || null,
       });
       setNotes(ns => [r.note, ...ns]);
-      setForm({ title: "", body: "", assigneeId: "", priority: "normal", status: "todo" });
-      toast("Note added ✓", "success");
+      setForm({ title: "", body: "", assigneeId: "", priority: "normal", status: "todo", category: categories[0] || "General" });
+      toast("Note added", "success");
     } catch (e) { toast(e.message || "Failed to add note", "error"); }
     finally { setSaving(false); }
+  };
+
+  const addCategory = async () => {
+    const name = newCat.trim();
+    if (!name) return;
+    try {
+      const r = await notesApi.addCategory(name);
+      setCategories(r.categories || []);
+      setNewCat("");
+      toast(`Category "${name}" added`, "success");
+    } catch (e) { toast(e.message || "Failed to add category", "error"); }
+  };
+
+  const delCategory = async (name) => {
+    if (!window.confirm(`Delete category "${name}"? Existing notes keep their label.`)) return;
+    try {
+      const r = await notesApi.delCategory(name);
+      setCategories(r.categories || []);
+      toast(`Category "${name}" removed`, "success");
+    } catch (e) { toast(e.message || "Failed to remove category", "error"); }
   };
 
   const cycleStatus = async (note) => {
@@ -5010,7 +5039,7 @@ const NotebookPanel = ({ users = [], showToast }) => {
     } catch (e) { toast(e.message || "Failed", "error"); }
   };
 
-  const shown = filter === "all" ? notes : notes.filter(n => n.status === filter);
+  const shown = notes.filter(n => (filter === "all" || n.status === filter) && (catFilter === "all" || (n.category || "General") === catFilter));
   const counts = { all: notes.length, todo: notes.filter(n => n.status === "todo").length, doing: notes.filter(n => n.status === "doing").length, done: notes.filter(n => n.status === "done").length };
 
   return (
@@ -5027,7 +5056,33 @@ const NotebookPanel = ({ users = [], showToast }) => {
           </div>
           <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2 }}>Write notes and assign tasks to your team</div>
         </div>
+        <button onClick={() => setShowCatMgr(v => !v)}
+          style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "#fff", borderRadius: 10, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+          {showCatMgr ? "Close" : "Manage categories"}
+        </button>
       </div>
+
+      {/* Category manager (add / delete) */}
+      {showCatMgr && (
+        <div style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: 16, marginBottom: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: COLORS.text, marginBottom: 10 }}>Note categories</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            {categories.map(c => (
+              <span key={c} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#EFF6FF", color: "#1D4ED8", borderRadius: 20, padding: "5px 6px 5px 12px", fontSize: 12, fontWeight: 700 }}>
+                {c}
+                <button onClick={() => delCategory(c)} title={`Delete ${c}`}
+                  style={{ border: "none", background: "#DBEAFE", color: "#DC2626", cursor: "pointer", fontWeight: 900, fontSize: 12, lineHeight: 1, width: 18, height: 18, borderRadius: "50%" }}>×</button>
+              </span>
+            ))}
+            {categories.length === 0 && <span style={{ color: COLORS.muted, fontSize: 12 }}>No categories yet.</span>}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input value={newCat} onChange={e => setNewCat(e.target.value)} onKeyDown={e => e.key === "Enter" && addCategory()} placeholder="New category name"
+              style={{ flex: 1, padding: "9px 12px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 14, boxSizing: "border-box" }} />
+            <Btn variant="primary" onClick={addCategory}>Add Category</Btn>
+          </div>
+        </div>
+      )}
 
       {/* Create form */}
       <div style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: 16, marginBottom: 18 }}>
@@ -5037,7 +5092,11 @@ const NotebookPanel = ({ users = [], showToast }) => {
           <textarea value={form.body} onChange={e => set("body", e.target.value)} rows={3} placeholder="Write what needs to be done…"
             style={{ width: "100%", padding: "10px 13px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 14, boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
         </div>
-        <div className="kf-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        <div className="kf-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 12 }}>
+          <Select label="Category" value={form.category} onChange={e => set("category", e.target.value)}>
+            {categories.length === 0 && <option value="General">General</option>}
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </Select>
           <Select label="Assign to" value={form.assigneeId} onChange={e => set("assigneeId", e.target.value)}>
             <option value="">— Unassigned —</option>
             {users.map(u => <option key={u.id} value={u.id}>{(u.name || u.email)} ({(u.role || "").replace(/_/g, " ")})</option>)}
@@ -5062,6 +5121,13 @@ const NotebookPanel = ({ users = [], showToast }) => {
             {lbl} ({counts[k]})
           </button>
         ))}
+        {categories.length > 0 && (
+          <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+            style={{ marginLeft: "auto", padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, border: `1px solid ${COLORS.border}`, background: "#fff", color: COLORS.text, cursor: "pointer" }}>
+            <option value="all">All categories</option>
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
       </div>
 
       {/* Notes list */}
@@ -5078,7 +5144,8 @@ const NotebookPanel = ({ users = [], showToast }) => {
                   <span style={{ fontSize: 10, fontWeight: 800, color: pr.color, flexShrink: 0 }}>{pr.label.toUpperCase()}</span>
                 </div>
                 {n.body && <div style={{ fontSize: 13, color: COLORS.muted, whiteSpace: "pre-wrap" }}>{n.body}</div>}
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: COLORS.muted }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: COLORS.muted, flexWrap: "wrap" }}>
+                  <span style={{ background: "#F1F5F9", color: "#475569", borderRadius: 6, padding: "1px 7px", fontWeight: 700 }}>{n.category || "General"}</span>
                   <span>{n.assignee?.name || "Unassigned"}</span><span>·</span>
                   <span>{n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}</span>
                 </div>

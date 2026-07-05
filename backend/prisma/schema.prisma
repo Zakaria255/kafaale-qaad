@@ -627,6 +627,7 @@ model Note {
   body       String    @default("")
   status     String    @default("todo")    // todo | doing | done
   priority   String    @default("normal")  // low | normal | high
+  category   String    @default("General") // admin-managed note category
   authorId   String
   author     User      @relation("NoteAuthor",   fields: [authorId],   references: [id])
   assigneeId String?

@@ -135,6 +135,10 @@ export const notes = {
   create: (data)      => req('/notes', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data)  => req(`/notes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   remove: (id)        => req(`/notes/${id}`, { method: 'DELETE' }),
+  // Admin-managed note categories.
+  categories:  ()      => req('/notes/categories'),
+  addCategory: (name)  => req('/notes/categories', { method: 'POST', body: JSON.stringify({ name }) }),
+  delCategory: (name)  => req(`/notes/categories/${encodeURIComponent(name)}`, { method: 'DELETE' }),
 };
 
 // ── Impact endpoints ──────────────────────────────────────────────

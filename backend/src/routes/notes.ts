@@ -11,11 +11,53 @@ const ADMIN_ROLES = ['admin', 'super_admin'];
 const isAdmin = (req: AuthRequest) => ADMIN_ROLES.includes(req.user!.role);
 
 const noteSelect = {
-  id: true, title: true, body: true, status: true, priority: true, dueDate: true,
+  id: true, title: true, body: true, status: true, priority: true, category: true, dueDate: true,
   createdAt: true, updatedAt: true, authorId: true, assigneeId: true,
   author:   { select: { id: true, name: true, role: true } },
   assignee: { select: { id: true, name: true, role: true } },
 };
+
+// ── Note categories (admin-managed, stored in the Setting table) ─────────────
+const DEFAULT_NOTE_CATEGORIES = ['General', 'Task', 'Reminder', 'Idea', 'Follow-up', 'Urgent'];
+async function getNoteCategories(): Promise<string[]> {
+  const row = await prisma.setting.findUnique({ where: { key: 'notes.categories' } });
+  if (!row) return DEFAULT_NOTE_CATEGORIES;
+  try { const a = JSON.parse(row.value); return Array.isArray(a) && a.length ? a : DEFAULT_NOTE_CATEGORIES; }
+  catch { return DEFAULT_NOTE_CATEGORIES; }
+}
+async function saveNoteCategories(cats: string[]) {
+  await prisma.setting.upsert({
+    where: { key: 'notes.categories' },
+    update: { value: JSON.stringify(cats) },
+    create: { key: 'notes.categories', value: JSON.stringify(cats) },
+  });
+}
+
+// GET /api/notes/categories — list categories (admin).
+router.get('/categories', async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Only admins' });
+  res.json({ categories: await getNoteCategories() });
+});
+
+// POST /api/notes/categories { name } — add a category (admin).
+router.post('/categories', async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Only admins' });
+  const name = String(req.body?.name || '').trim();
+  if (!name || name.length > 40) return res.status(400).json({ error: 'Category name must be 1–40 characters' });
+  const cats = await getNoteCategories();
+  if (!cats.some(c => c.toLowerCase() === name.toLowerCase())) cats.push(name);
+  await saveNoteCategories(cats);
+  res.json({ categories: cats });
+});
+
+// DELETE /api/notes/categories/:name — delete a category (admin).
+router.delete('/categories/:name', async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Only admins' });
+  const name = decodeURIComponent(req.params.name);
+  const cats = (await getNoteCategories()).filter(c => c.toLowerCase() !== name.toLowerCase());
+  await saveNoteCategories(cats.length ? cats : DEFAULT_NOTE_CATEGORIES);
+  res.json({ categories: cats.length ? cats : DEFAULT_NOTE_CATEGORIES });
+});
 
 // GET /api/notes/mine — any authenticated user: notes assigned to them.
 router.get('/mine', async (req: AuthRequest, res: Response) => {
@@ -50,6 +92,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       body:       z.string().max(5000).optional(),
       status:     z.enum(['todo', 'doing', 'done']).optional(),
       priority:   z.enum(['low', 'normal', 'high']).optional(),
+      category:   z.string().max(40).optional(),
       assigneeId: z.string().optional().nullable(),
       dueDate:    z.string().datetime().optional().nullable(),
     }).parse(req.body);
@@ -65,6 +108,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
         body: data.body || '',
         status: data.status || 'todo',
         priority: data.priority || 'normal',
+        category: data.category || 'General',
         authorId: req.user!.id,
         assigneeId: data.assigneeId || null,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
@@ -106,6 +150,7 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
       body:       z.string().max(5000).optional(),
       status:     z.enum(['todo', 'doing', 'done']).optional(),
       priority:   z.enum(['low', 'normal', 'high']).optional(),
+      category:   z.string().max(40).optional(),
       assigneeId: z.string().optional().nullable(),
       dueDate:    z.string().datetime().optional().nullable(),
     }).parse(req.body);
