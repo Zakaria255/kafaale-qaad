@@ -1,20 +1,48 @@
 import { StrictMode, Component, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
+// True for "stale chunk after a new deploy" errors — the referenced JS file no
+// longer exists, so a reload (fetching the fresh index.html + new hashes) fixes it.
+const isChunkError = (msg = '') =>
+  /dynamically imported module|module script failed|ChunkLoadError|Failed to fetch|error loading dynamically/i.test(msg);
+
+// Reload at most once per session so a persistent failure can't loop forever.
+function reloadOnce() {
+  try {
+    if (!sessionStorage.getItem('kf-chunk-reloaded')) {
+      sessionStorage.setItem('kf-chunk-reloaded', '1');
+      window.location.reload();
+      return true;
+    }
+  } catch { /* ignore */ }
+  return false;
+}
+
 class ErrorBoundary extends Component {
   state = { error: null, info: null };
   static getDerivedStateFromError(e) { return { error: e }; }
-  componentDidCatch(error, info) { this.setState({ info }); }
+  componentDidCatch(error, info) {
+    if (isChunkError(error?.message) && reloadOnce()) return; // silently self-heal
+    this.setState({ info });
+  }
   render() {
-    if (this.state.error) return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F4F7FC', fontFamily: 'system-ui', gap: 12, padding: 24 }}>
-        <div style={{ fontSize: 48 }}>⚠️</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#C0392B' }}>Something went wrong</div>
-        <pre style={{ fontSize: 11, color: '#C0392B', background: '#FEE2E2', padding: 12, borderRadius: 8, maxWidth: 600, overflowX: 'auto', whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre>
-        <pre style={{ fontSize: 10, color: '#5A6E8A', background: '#fff', padding: 12, borderRadius: 8, maxWidth: 600, overflowX: 'auto', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto' }}>{this.state.info?.componentStack}</pre>
-        <button onClick={() => { localStorage.clear(); window.location.href = '/login'; }} style={{ padding: '10px 24px', background: '#004B96', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Clear & Back to Login</button>
-      </div>
-    );
+    if (this.state.error) {
+      if (isChunkError(this.state.error.message)) return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F4F7FC', fontFamily: 'system-ui', gap: 14, padding: 24 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: '#004B96' }}>Updating to the latest version…</div>
+          <button onClick={() => { try { sessionStorage.removeItem('kf-chunk-reloaded'); } catch {} window.location.reload(); }} style={{ padding: '10px 24px', background: '#004B96', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Reload now</button>
+        </div>
+      );
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F4F7FC', fontFamily: 'system-ui', gap: 12, padding: 24 }}>
+          <div style={{ fontSize: 48 }}>⚠️</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: '#C0392B' }}>Something went wrong</div>
+          <pre style={{ fontSize: 11, color: '#C0392B', background: '#FEE2E2', padding: 12, borderRadius: 8, maxWidth: 600, overflowX: 'auto', whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre>
+          <pre style={{ fontSize: 10, color: '#5A6E8A', background: '#fff', padding: 12, borderRadius: 8, maxWidth: 600, overflowX: 'auto', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto' }}>{this.state.info?.componentStack}</pre>
+          <button onClick={() => { localStorage.clear(); window.location.href = '/login'; }} style={{ padding: '10px 24px', background: '#004B96', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Clear & Back to Login</button>
+        </div>
+      );
+    }
     return this.props.children;
   }
 }
@@ -31,6 +59,20 @@ function ScrollToTop() {
   return null;
 }
 import { lazy, Suspense } from 'react';
+
+// lazy() that auto-recovers from stale chunks after a deploy: on a failed
+// dynamic import it reloads once (fresh index.html + new hashes); on success it
+// clears the reload guard so a later deploy can self-heal again.
+function lazyWithReload(factory) {
+  return lazy(() =>
+    factory()
+      .then(m => { try { sessionStorage.removeItem('kf-chunk-reloaded'); } catch { /* ignore */ } return m; })
+      .catch(err => {
+        if (isChunkError(err?.message) && reloadOnce()) return new Promise(() => {});
+        throw err;
+      })
+  );
+}
 import Navbar       from './components/Navbar.jsx';
 import Footer       from './components/Footer.jsx';
 import AiAssistant  from './components/AiAssistant.jsx';
@@ -41,22 +83,22 @@ import { LanguageProvider } from './context/LanguageContext.jsx';
 import Home  from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 // Lazy — code-split to reduce initial bundle
-const About         = lazy(() => import('./pages/About.jsx'));
-const HowItWorks    = lazy(() => import('./pages/HowItWorks.jsx'));
-const Cases         = lazy(() => import('./pages/Cases.jsx'));
-const CaseDetail    = lazy(() => import('./pages/CaseDetail.jsx'));
-const Donate        = lazy(() => import('./pages/Donate.jsx'));
-const Contact       = lazy(() => import('./pages/Contact.jsx'));
-const ImpactPartners= lazy(() => import('./pages/ImpactPartners.jsx'));
-const Programs      = lazy(() => import('./pages/Programs.jsx'));
-const Stories       = lazy(() => import('./pages/Stories.jsx'));
-const StoryDetail   = lazy(() => import('./pages/StoryDetail.jsx'));
-const Volunteer     = lazy(() => import('./pages/Volunteer.jsx'));
-const FAQ           = lazy(() => import('./pages/FAQ.jsx'));
-const Projects      = lazy(() => import('./pages/Projects.jsx'));
-const Updates       = lazy(() => import('./pages/Updates.jsx'));
-const MediaFeed     = lazy(() => import('./pages/MediaFeed.jsx'));
-const Dashboard     = lazy(() => import('./KafaaleQaadApp.jsx'));
+const About         = lazyWithReload(() => import('./pages/About.jsx'));
+const HowItWorks    = lazyWithReload(() => import('./pages/HowItWorks.jsx'));
+const Cases         = lazyWithReload(() => import('./pages/Cases.jsx'));
+const CaseDetail    = lazyWithReload(() => import('./pages/CaseDetail.jsx'));
+const Donate        = lazyWithReload(() => import('./pages/Donate.jsx'));
+const Contact       = lazyWithReload(() => import('./pages/Contact.jsx'));
+const ImpactPartners= lazyWithReload(() => import('./pages/ImpactPartners.jsx'));
+const Programs      = lazyWithReload(() => import('./pages/Programs.jsx'));
+const Stories       = lazyWithReload(() => import('./pages/Stories.jsx'));
+const StoryDetail   = lazyWithReload(() => import('./pages/StoryDetail.jsx'));
+const Volunteer     = lazyWithReload(() => import('./pages/Volunteer.jsx'));
+const FAQ           = lazyWithReload(() => import('./pages/FAQ.jsx'));
+const Projects      = lazyWithReload(() => import('./pages/Projects.jsx'));
+const Updates       = lazyWithReload(() => import('./pages/Updates.jsx'));
+const MediaFeed     = lazyWithReload(() => import('./pages/MediaFeed.jsx'));
+const Dashboard     = lazyWithReload(() => import('./KafaaleQaadApp.jsx'));
 
 function PageLoader() {
   return (
