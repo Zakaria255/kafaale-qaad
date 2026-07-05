@@ -141,6 +141,17 @@ export const notes = {
   delCategory: (name)  => req(`/notes/categories/${encodeURIComponent(name)}`, { method: 'DELETE' }),
 };
 
+// ── Communication Center (staff channels + DMs) ──────────────────
+export const chat = {
+  channels:      ()          => req('/chat/channels'),
+  staff:         ()          => req('/chat/staff'),
+  messages:      (id)        => req(`/chat/channels/${id}/messages`),
+  send:          (id, text)  => req(`/chat/channels/${id}/messages`, { method: 'POST', body: JSON.stringify({ text }) }),
+  read:          (id)        => req(`/chat/channels/${id}/read`, { method: 'POST' }),
+  dm:            (userId)    => req('/chat/dm', { method: 'POST', body: JSON.stringify({ userId }) }),
+  createChannel: (data)      => req('/chat/channels', { method: 'POST', body: JSON.stringify(data) }),
+};
+
 // ── Impact endpoints ──────────────────────────────────────────────
 export const impact = {
   stats: () => req('/impact'),

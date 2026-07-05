@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import { CAT_GROUPS, getCat } from "./utils/categories.js";
@@ -4941,6 +4941,127 @@ const UsersTab = ({ users, isSuperAdmin, onDeleteUser, onChangeRole }) => {
   );
 };
 
+// ─── COMMUNICATION CENTER (staff channels + DMs, polling-based) ──────────────
+const CommCenterPanel = ({ currentUser, showToast }) => {
+  const [channels, setChannels] = useState([]);
+  const [activeId, setActiveId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const [staff, setStaff] = useState([]);
+  const [showNew, setShowNew] = useState(false);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const toast = showToast || (() => {});
+  const scrollRef = useRef(null);
+  const meId = currentUser?.id;
+
+  const loadChannels = () => chatApi.channels().then(r => setChannels(r.channels || [])).catch(() => {});
+  useEffect(() => {
+    setLoading(true);
+    loadChannels().finally(() => setLoading(false));
+    chatApi.staff().then(r => setStaff(r.staff || [])).catch(() => {});
+    const iv = setInterval(loadChannels, 8000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const loadMessages = (id) => chatApi.messages(id).then(r => setMessages(r.messages || [])).catch(() => {});
+  useEffect(() => {
+    if (!activeId) return;
+    loadMessages(activeId);
+    chatApi.read(activeId).then(loadChannels).catch(() => {});
+    const iv = setInterval(() => loadMessages(activeId), 4000);
+    return () => clearInterval(iv);
+  }, [activeId]);
+
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
+
+  const active = channels.find(c => c.id === activeId);
+
+  const send = async () => {
+    const t = text.trim();
+    if (!t || !activeId) return;
+    setText("");
+    try { const r = await chatApi.send(activeId, t); setMessages(ms => [...ms, r.message]); loadChannels(); }
+    catch (e) { toast(e.message || "Failed to send", "error"); setText(t); }
+  };
+  const openDm = async (u) => {
+    try { const r = await chatApi.dm(u.id); await loadChannels(); setActiveId(r.channel.id); setShowNew(false); }
+    catch (e) { toast(e.message || "Failed", "error"); }
+  };
+  const shownChannels = channels.filter(c => !search || (c.name || "").toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="kf-comm" style={{ display: "grid", gridTemplateColumns: "300px 1fr", height: "72vh", border: `1px solid ${COLORS.border}`, borderRadius: 16, overflow: "hidden", background: "#fff" }}>
+      {/* Left: conversations */}
+      <div style={{ borderRight: `1px solid ${COLORS.border}`, display: "flex", flexDirection: "column", background: "#F8FAFC", minWidth: 0 }}>
+        <div style={{ padding: 12, borderBottom: `1px solid ${COLORS.border}` }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search conversations…" style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: `1px solid ${COLORS.border}`, fontSize: 13, minWidth: 0 }} />
+            <button onClick={() => setShowNew(v => !v)} title="New direct message" style={{ background: COLORS.primary, color: "#fff", border: "none", borderRadius: 8, padding: "0 12px", fontWeight: 800, cursor: "pointer" }}>+</button>
+          </div>
+          {showNew && (
+            <div style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 8, maxHeight: 220, overflowY: "auto", marginTop: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: COLORS.muted, marginBottom: 6 }}>Message a staff member</div>
+              {staff.length === 0 && <div style={{ fontSize: 12, color: COLORS.muted }}>No other staff yet.</div>}
+              {staff.map(u => (
+                <div key={u.id} onClick={() => openDm(u)} style={{ padding: "7px 8px", borderRadius: 6, cursor: "pointer", fontSize: 13, display: "flex", justifyContent: "space-between", gap: 8 }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#F1F5F9"} onMouseLeave={e => e.currentTarget.style.background = ""}>
+                  <span>{u.name}</span><span style={{ fontSize: 10, color: COLORS.muted }}>{(u.role || "").replace(/_/g, " ")}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          {loading ? <div style={{ padding: 16, color: COLORS.muted, fontSize: 13 }}>Loading…</div> :
+            shownChannels.map(c => (
+              <div key={c.id} onClick={() => setActiveId(c.id)} style={{ padding: "10px 12px", cursor: "pointer", borderBottom: `1px solid ${COLORS.border}`, background: c.id === activeId ? "#E8F0FE" : "transparent" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.type === "dm" ? "@ " + c.name : c.name}</span>
+                  {c.unread > 0 && <span style={{ background: "#EF4444", color: "#fff", borderRadius: 20, fontSize: 10, fontWeight: 800, padding: "1px 7px", flexShrink: 0 }}>{c.unread}</span>}
+                </div>
+                <div style={{ fontSize: 11, color: COLORS.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.lastMessage || c.description || ""}</div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      {/* Right: chat window */}
+      <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {!active ? <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.muted, fontSize: 14 }}>Select a conversation to start</div> :
+          <>
+            <div style={{ padding: "12px 16px", borderBottom: `1px solid ${COLORS.border}`, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 15, fontWeight: 800, color: COLORS.text }}>{active.type === "dm" ? "@ " + active.name : active.name}</span>
+              {active.memberCount > 0 && <span style={{ fontSize: 11, color: COLORS.muted }}>· {active.memberCount} members</span>}
+              {active.postPolicy === "admins" && <span style={{ fontSize: 10, color: "#B45309", background: "#FEF3C7", borderRadius: 6, padding: "1px 6px", fontWeight: 700 }}>admins post</span>}
+            </div>
+            <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10, background: "#F8FAFC" }}>
+              {messages.length === 0 ? <div style={{ color: COLORS.muted, fontSize: 13, textAlign: "center", marginTop: 20 }}>No messages yet — say hello.</div> :
+                messages.map(m => {
+                  const mine = m.sender?.id === meId;
+                  return (
+                    <div key={m.id} style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "72%" }}>
+                      {!mine && <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, marginBottom: 2 }}>{m.sender?.name}</div>}
+                      <div style={{ background: mine ? COLORS.primary : "#fff", color: mine ? "#fff" : COLORS.text, border: mine ? "none" : `1px solid ${COLORS.border}`, borderRadius: 12, padding: "8px 12px", fontSize: 14, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.text}</div>
+                      <div style={{ fontSize: 10, color: COLORS.muted, marginTop: 2, textAlign: mine ? "right" : "left" }}>{m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</div>
+                    </div>
+                  );
+                })
+              }
+            </div>
+            <div style={{ padding: 12, borderTop: `1px solid ${COLORS.border}`, display: "flex", gap: 8 }}>
+              <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Type a message…"
+                style={{ flex: 1, padding: "10px 14px", borderRadius: 20, border: `1px solid ${COLORS.border}`, fontSize: 14, minWidth: 0 }} />
+              <button onClick={send} style={{ background: COLORS.primary, color: "#fff", border: "none", borderRadius: 20, padding: "0 20px", fontWeight: 800, cursor: "pointer" }}>Send</button>
+            </div>
+          </>
+        }
+      </div>
+    </div>
+  );
+};
+
 // ─── NOTEBOOK (admin & super-admin: notes + assignable tasks) ────────────────
 const NOTE_STATUS = {
   todo:  { label: "To Do",       bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B" },
@@ -6875,6 +6996,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"updates",    icon:"🚨", label:"Updates",         sub:"Alerts & news",                  color:"#D97706", g:"linear-gradient(135deg,#D97706,#F59E0B)", badge: 0 },
     { id:"completed",  icon:"", label:"Completed Ops",   sub:`${completedCases.length} operations`, color:"#065F46", g:"linear-gradient(135deg,#065F46,#10B981)", badge: 0 },
     { id:"history",    icon:"📚", label:"History",         sub:"Records & archive",              color:"#0F766E", g:"linear-gradient(135deg,#0F766E,#14B8A6)", badge: 0 },
+    { id:"chat",       icon:"", label:"Communication",   sub:"Team channels & messages",       color:"#0284C7", g:"linear-gradient(135deg,#0284C7,#0EA5E9)", badge: 0 },
     { id:"notebook",   icon:"", label:"Notebook",        sub:"Notes & tasks",                  color:"#B8861A", g:"linear-gradient(135deg,#B8861A,#E0AB21)", badge: 0 },
     { id:"settings",   icon:"", label:"Settings",        sub:"Site configuration",             color:"#374151", g:"linear-gradient(135deg,#374151,#6B7280)", badge: 0 },
   ];
@@ -7335,6 +7457,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
             );
           })()}
           {activeModule === "history"        && <HistoryPanel showToast={showToast} />}
+          {activeModule === "chat"           && <CommCenterPanel currentUser={currentUser} showToast={showToast||(() => {})} />}
           {activeModule === "notebook"       && <NotebookPanel users={users} showToast={showToast||(() => {})} />}
           {activeModule === "updates"        && <div style={{ padding:"8px 0" }}><SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} defaultTab="updates_mgr" /></div>}
           {activeModule === "settings"       && isSuperAdmin && <SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} />}

@@ -44,6 +44,8 @@ model User {
   vaultDocuments       VaultDocument[]
   authoredNotes        Note[]                @relation("NoteAuthor")
   assignedNotes        Note[]                @relation("NoteAssignee")
+  channelMemberships   ChannelMember[]       @relation("ChannelMembers")
+  chatMessages         ChatMessage[]         @relation("ChatSender")
 
   @@index([role])
   @@index([email])
@@ -618,6 +620,57 @@ model RevokedToken {
   createdAt DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+// ── Communication Center ─────────────────────────────────────────────────────
+// A conversation: open department/announcement channel, private group, or DM.
+model Channel {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String?  @unique   // stable key for seeded department channels
+  type        String   @default("group") // group | department | dm | announcement | case | project | program | emergency
+  description String   @default("")
+  isOpen      Boolean  @default(false)   // open = visible to all staff (no explicit membership needed)
+  postPolicy  String   @default("members") // members | admins (announcements = admins)
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  lastMessage String   @default("")
+  lastAt      DateTime @default(now())
+
+  members  ChannelMember[]
+  messages ChatMessage[]
+
+  @@index([type])
+  @@index([lastAt])
+}
+
+model ChannelMember {
+  id         String   @id @default(cuid())
+  channelId  String
+  channel    Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation("ChannelMembers", fields: [userId], references: [id])
+  role       String   @default("member") // member | owner
+  lastReadAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@unique([channelId, userId])
+  @@index([userId])
+  @@index([channelId])
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  channelId   String
+  channel     Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User     @relation("ChatSender", fields: [senderId], references: [id])
+  text        String   @default("")
+  attachments String   @default("[]") // JSON array of { url, name, type }
+  replyToId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([channelId, createdAt])
 }
 
 // Admin/Super-Admin notebook: shared notes & assignable tasks.
