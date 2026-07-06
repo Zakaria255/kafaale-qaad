@@ -143,11 +143,14 @@ export const notes = {
 
 // ── Communication Center (staff channels + DMs) ──────────────────
 export const chat = {
-  channels:      ()          => req('/chat/channels'),
-  staff:         ()          => req('/chat/staff'),
-  messages:      (id)        => req(`/chat/channels/${id}/messages`),
-  send:          (id, text)  => req(`/chat/channels/${id}/messages`, { method: 'POST', body: JSON.stringify({ text }) }),
-  read:          (id)        => req(`/chat/channels/${id}/read`, { method: 'POST' }),
+  channels:      ()                    => req('/chat/channels'),
+  staff:         ()                    => req('/chat/staff'),
+  messages:      (id)                  => req(`/chat/channels/${id}/messages`),
+  send:          (id, text, replyToId) => req(`/chat/channels/${id}/messages`, { method: 'POST', body: JSON.stringify({ text, replyToId: replyToId || null }) }),
+  editMsg:       (id, text)            => req(`/chat/messages/${id}`, { method: 'PATCH', body: JSON.stringify({ text }) }),
+  delMsg:        (id)                  => req(`/chat/messages/${id}`, { method: 'DELETE' }),
+  pinMsg:        (id, pinned)          => req(`/chat/messages/${id}/pin`, { method: 'POST', body: JSON.stringify({ pinned }) }),
+  read:          (id)                  => req(`/chat/channels/${id}/read`, { method: 'POST' }),
   dm:            (userId)    => req('/chat/dm', { method: 'POST', body: JSON.stringify({ userId }) }),
   createChannel: (data)      => req('/chat/channels', { method: 'POST', body: JSON.stringify(data) }),
 };

@@ -40,6 +40,10 @@ async function ensureDefaults() {
 }
 
 const memberSel = { user: { select: { id: true, name: true, role: true } } };
+const msgInclude = {
+  sender:  { select: { id: true, name: true, role: true } },
+  replyTo: { select: { id: true, text: true, sender: { select: { name: true } } } },
+};
 
 // GET /api/chat/channels — channels the current staff user can see (+ unread).
 router.get('/channels', async (req: AuthRequest, res: Response) => {
@@ -99,7 +103,7 @@ router.get('/channels/:id/messages', async (req: AuthRequest, res: Response) => 
     const messages = await prisma.chatMessage.findMany({
       where: { channelId: channel.id },
       orderBy: { createdAt: 'desc' }, take: limit,
-      include: { sender: { select: { id: true, name: true, role: true } } },
+      include: msgInclude,
     });
     res.json({ messages: messages.reverse(), channel: { id: channel.id, name: channel.name, type: channel.type, memberCount: channel.members.length } });
   } catch (e: any) { return safeError(res, 500, 'Failed to load messages', e); }
@@ -124,7 +128,7 @@ router.post('/channels/:id/messages', async (req: AuthRequest, res: Response) =>
         text: data.text?.trim() || '', attachments: JSON.stringify(data.attachments || []),
         replyToId: data.replyToId || null,
       },
-      include: { sender: { select: { id: true, name: true, role: true } } },
+      include: msgInclude,
     });
     const preview = (data.text?.trim() || '📎 attachment').slice(0, 120);
     await prisma.channel.update({ where: { id: channel.id }, data: { lastMessage: preview, lastAt: new Date() } });
@@ -177,6 +181,52 @@ router.post('/dm', async (req: AuthRequest, res: Response) => {
     });
     res.status(201).json({ channel });
   } catch (e: any) { return safeError(res, 500, 'Failed to open DM', e); }
+});
+
+// Load a message + whether the current user may access its channel.
+async function loadMsg(req: AuthRequest, msgId: string) {
+  const msg = await prisma.chatMessage.findUnique({ where: { id: msgId }, include: { channel: { include: { members: true } } } });
+  if (!msg) return { msg: null as any, access: false };
+  const uid = req.user!.id, role = req.user!.role;
+  const isMember = msg.channel.members.some(m => m.userId === uid);
+  const access = isStaff(role) && (msg.channel.isOpen || isMember);
+  return { msg, access };
+}
+
+// PATCH /api/chat/messages/:id — edit your own message.
+router.patch('/messages/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const { msg, access } = await loadMsg(req, req.params.id);
+    if (!msg || !access) return res.status(404).json({ error: 'Message not found' });
+    if (msg.senderId !== req.user!.id) return res.status(403).json({ error: 'You can only edit your own messages' });
+    const text = String(req.body?.text || '').trim();
+    if (!text) return res.status(400).json({ error: 'Message cannot be empty' });
+    const updated = await prisma.chatMessage.update({ where: { id: msg.id }, data: { text, editedAt: new Date() }, include: msgInclude });
+    res.json({ message: updated });
+  } catch (e: any) { return safeError(res, 500, 'Failed to edit message', e); }
+});
+
+// DELETE /api/chat/messages/:id — delete your own message (admins can delete any).
+router.delete('/messages/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const { msg, access } = await loadMsg(req, req.params.id);
+    if (!msg || !access) return res.status(404).json({ error: 'Message not found' });
+    if (msg.senderId !== req.user!.id && !isAdmin(req.user!.role)) return res.status(403).json({ error: 'Not allowed to delete this message' });
+    await prisma.chatMessage.updateMany({ where: { replyToId: msg.id }, data: { replyToId: null } });
+    await prisma.chatMessage.delete({ where: { id: msg.id } });
+    res.json({ ok: true });
+  } catch (e: any) { return safeError(res, 500, 'Failed to delete message', e); }
+});
+
+// POST /api/chat/messages/:id/pin { pinned } — pin/unpin a message (any channel member).
+router.post('/messages/:id/pin', async (req: AuthRequest, res: Response) => {
+  try {
+    const { msg, access } = await loadMsg(req, req.params.id);
+    if (!msg || !access) return res.status(404).json({ error: 'Message not found' });
+    const pinned = req.body?.pinned !== false;
+    const updated = await prisma.chatMessage.update({ where: { id: msg.id }, data: { pinned }, include: msgInclude });
+    res.json({ message: updated });
+  } catch (e: any) { return safeError(res, 500, 'Failed to pin message', e); }
 });
 
 // POST /api/chat/channels — admin creates a group channel with members.
