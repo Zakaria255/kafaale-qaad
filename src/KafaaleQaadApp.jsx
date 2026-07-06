@@ -4954,6 +4954,10 @@ const CommCenterPanel = ({ currentUser, showToast }) => {
   const toast = showToast || (() => {});
   const scrollRef = useRef(null);
   const meId = currentUser?.id;
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [hoverId, setHoverId] = useState(null);
+  const canModerate = ["admin", "super_admin"].includes(currentUser?.role);
+  const actLink = { background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 10, color: COLORS.muted, fontWeight: 700 };
 
   const loadChannels = () => chatApi.channels().then(r => setChannels(r.channels || [])).catch(() => {});
   useEffect(() => {
@@ -4981,8 +4985,25 @@ const CommCenterPanel = ({ currentUser, showToast }) => {
     const t = text.trim();
     if (!t || !activeId) return;
     setText("");
-    try { const r = await chatApi.send(activeId, t); setMessages(ms => [...ms, r.message]); loadChannels(); }
+    const replyId = replyingTo?.id || null;
+    setReplyingTo(null);
+    try { const r = await chatApi.send(activeId, t, replyId); setMessages(ms => [...ms, r.message]); loadChannels(); }
     catch (e) { toast(e.message || "Failed to send", "error"); setText(t); }
+  };
+  const editMessage = async (m) => {
+    const nt = window.prompt("Edit message:", m.text);
+    if (nt == null || !nt.trim() || nt === m.text) return;
+    try { const r = await chatApi.editMsg(m.id, nt.trim()); setMessages(ms => ms.map(x => x.id === m.id ? r.message : x)); }
+    catch (e) { toast(e.message || "Failed to edit", "error"); }
+  };
+  const deleteMessage = async (m) => {
+    if (!window.confirm("Delete this message?")) return;
+    try { await chatApi.delMsg(m.id); setMessages(ms => ms.filter(x => x.id !== m.id)); }
+    catch (e) { toast(e.message || "Failed to delete", "error"); }
+  };
+  const togglePin = async (m) => {
+    try { const r = await chatApi.pinMsg(m.id, !m.pinned); setMessages(ms => ms.map(x => x.id === m.id ? r.message : x)); }
+    catch (e) { toast(e.message || "Failed to pin", "error"); }
   };
   const openDm = async (u) => {
     try { const r = await chatApi.dm(u.id); await loadChannels(); setActiveId(r.channel.id); setShowNew(false); }
@@ -5040,11 +5061,30 @@ const CommCenterPanel = ({ currentUser, showToast }) => {
               {messages.length === 0 ? <div style={{ color: COLORS.muted, fontSize: 13, textAlign: "center", marginTop: 20 }}>No messages yet — say hello.</div> :
                 messages.map(m => {
                   const mine = m.sender?.id === meId;
+                  const hovered = hoverId === m.id;
                   return (
-                    <div key={m.id} style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "72%" }}>
+                    <div key={m.id} onMouseEnter={() => setHoverId(m.id)} onMouseLeave={() => setHoverId(null)}
+                      style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "80%", display: "flex", flexDirection: "column", alignItems: mine ? "flex-end" : "flex-start" }}>
                       {!mine && <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.primary, marginBottom: 2 }}>{m.sender?.name}</div>}
-                      <div style={{ background: mine ? COLORS.primary : "#fff", color: mine ? "#fff" : COLORS.text, border: mine ? "none" : `1px solid ${COLORS.border}`, borderRadius: 12, padding: "8px 12px", fontSize: 14, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.text}</div>
-                      <div style={{ fontSize: 10, color: COLORS.muted, marginTop: 2, textAlign: mine ? "right" : "left" }}>{m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</div>
+                      {m.replyTo && (
+                        <div style={{ fontSize: 11, color: COLORS.muted, borderLeft: `3px solid ${COLORS.border}`, paddingLeft: 6, marginBottom: 3, maxWidth: 280, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          ↩ {m.replyTo.sender?.name}: {m.replyTo.text}
+                        </div>
+                      )}
+                      <div style={{ position: "relative" }}>
+                        {m.pinned && <span style={{ position: "absolute", top: -8, [mine ? "left" : "right"]: -4, fontSize: 9, fontWeight: 800, color: "#B45309", background: "#FEF3C7", borderRadius: 6, padding: "0 5px" }}>PINNED</span>}
+                        <div style={{ background: mine ? COLORS.primary : "#fff", color: mine ? "#fff" : COLORS.text, border: mine ? "none" : `1px solid ${COLORS.border}`, borderRadius: 12, padding: "8px 12px", fontSize: 14, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.text}</div>
+                      </div>
+                      <div style={{ display: "flex", gap: 8, marginTop: 2, fontSize: 10, color: COLORS.muted, alignItems: "center", minHeight: 14 }}>
+                        <span>{m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</span>
+                        {m.editedAt && <span>· edited</span>}
+                        {hovered && <>
+                          <button onClick={() => setReplyingTo(m)} style={actLink}>Reply</button>
+                          <button onClick={() => togglePin(m)} style={actLink}>{m.pinned ? "Unpin" : "Pin"}</button>
+                          {mine && <button onClick={() => editMessage(m)} style={actLink}>Edit</button>}
+                          {(mine || canModerate) && <button onClick={() => deleteMessage(m)} style={{ ...actLink, color: "#DC2626" }}>Delete</button>}
+                        </>}
+                      </div>
                     </div>
                   );
                 })
@@ -9344,6 +9384,7 @@ export default function KafaaleQaadApp() {
             <div style={{ position: "relative" }}>
               <button onClick={() => setShowNotifs(v => !v)}
                 style={{ background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 10, width: 36, height: 36, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                                 {unreadCount > 0 && (
                   <span style={{ position: "absolute", top: -4, right: -4, background: "#EF4444", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid " + COLORS.primary }}>
                     {unreadCount > 9 ? "9+" : unreadCount}

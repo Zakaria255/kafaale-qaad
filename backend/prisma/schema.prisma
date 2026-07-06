@@ -660,17 +660,22 @@ model ChannelMember {
 }
 
 model ChatMessage {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   channelId   String
-  channel     Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channel     Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
   senderId    String
-  sender      User     @relation("ChatSender", fields: [senderId], references: [id])
-  text        String   @default("")
-  attachments String   @default("[]") // JSON array of { url, name, type }
+  sender      User      @relation("ChatSender", fields: [senderId], references: [id])
+  text        String    @default("")
+  attachments String    @default("[]") // JSON array of { url, name, type }
   replyToId   String?
-  createdAt   DateTime @default(now())
+  replyTo     ChatMessage?  @relation("ChatReply", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies     ChatMessage[] @relation("ChatReply")
+  pinned      Boolean   @default(false)
+  editedAt    DateTime?
+  createdAt   DateTime  @default(now())
 
   @@index([channelId, createdAt])
+  @@index([channelId, pinned])
 }
 
 // Admin/Super-Admin notebook: shared notes & assignable tasks.

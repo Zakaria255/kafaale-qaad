@@ -1,0 +1,18 @@
+# Supabase project link for Kafaale Qaad
+# Remote project: "kafaale-qaad"  (ref: cassihxdqqpkrzpsaesl, region: eu-west-1)
+# Link the CLI with:  supabase link --project-ref cassihxdqqpkrzpsaesl
+#
+# NOTE: This app manages its schema with **Prisma** (backend/prisma/), not
+# Supabase migrations. The DB is provisioned from prisma/schema.prisma.
+# This file exists so the repo records which Supabase project it belongs to.
+
+project_id = "kafaale-qaad"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+major_version = 17

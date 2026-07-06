@@ -19,60 +19,68 @@ Web App (React + Vite)  ──►  Railway API (Node + Express)  ──►  Supa
 
 ---
 
-## STEP 1 — Supabase Database Setup
+## STEP 1 — Supabase Database (ALREADY PROVISIONED ✅)
 
-1. **Create account**: https://supabase.com (free — 500 MB, plenty for 100k+ cases)
-2. Click **New Project**
-   - Name: `kafaale-prod`
-   - Password: generate a strong one and save it
-   - Region: **EU West** (best for Somalia/Middle East)
-3. Wait ~2 minutes for provisioning
-4. Go to **Settings → Database**
-5. Scroll to **Connection string → URI** and copy it
+The Supabase project is already created and the full schema (all 29 tables) is
+deployed and verified. You normally **do not need to redo this** — it's here for
+reference / disaster recovery.
 
-   Looks like:
-   ```
-   postgresql://postgres:YOUR_PASSWORD@db.abcdefgh.supabase.co:5432/postgres
-   ```
-6. Also go to **Settings → API** and copy:
-   - `Project URL` → your `SUPABASE_URL`
-   - `service_role` key → your `SUPABASE_SERVICE_KEY`
+- **Project**: `kafaale-qaad` · ref `cassihxdqqpkrzpsaesl` · region `eu-west-1` · Postgres 17
+- **Project URL** (`SUPABASE_URL`): `https://cassihxdqqpkrzpsaesl.supabase.co`
+- **Schema**: managed by **Prisma** (`backend/prisma/schema.prisma`), deployed as
+  the single baseline migration `backend/prisma/migrations/0_init/`. Already recorded
+  as applied on the remote DB, so `prisma migrate deploy` is a safe no-op.
+- **Row-Level Security**: enabled on all 29 tables (locks the public anon endpoint).
+- **App database role**: the app connects as a dedicated least-privilege role
+  **`kafaale_app`** (NOT the master `postgres` role), which has table privileges +
+  `app_all` RLS policies on every table. A live Prisma round-trip is verified working.
+
+### Connection strings (the app role)
+
+Prisma needs BOTH on Supabase — pooled for the app, direct/session for migrations:
+
+```
+DATABASE_URL="postgresql://kafaale_app.cassihxdqqpkrzpsaesl:<PASSWORD>@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://kafaale_app.cassihxdqqpkrzpsaesl:<PASSWORD>@aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
+```
+
+The `<PASSWORD>` for `kafaale_app` lives in `backend/.env` (gitignored). Copy those
+same two lines into your host's environment variables for production.
+
+> To rotate it later: `ALTER ROLE kafaale_app WITH PASSWORD '<new>';` (run from the
+> Supabase SQL editor), then update `backend/.env` + your host env vars.
 
 ---
 
-## STEP 2 — Create Supabase Storage Bucket
+## STEP 2 — Create Supabase Storage Bucket (only if using file uploads)
 
-1. In Supabase sidebar → **Storage**
-2. Click **New Bucket**
+File uploads are optional — the backend falls back to local disk when Supabase
+Storage isn't configured. To enable it:
+
+1. In Supabase sidebar → **Storage** → **New Bucket**
    - Name: `kafaale-media`
    - Make it **Private** (field agents upload, not public random access)
-3. Add a policy: allow `service_role` full access (default)
+2. Get the **`service_role`** key from **Project Settings → API**
+3. Set in your env: `SUPABASE_SERVICE_KEY=<service_role key>` and
+   `SUPABASE_STORAGE_BUCKET=kafaale-media`
 
 ---
 
-## STEP 3 — Prepare Backend for PostgreSQL
+## STEP 3 — Backend is already on PostgreSQL ✅
 
-On your local machine, in the `backend/` folder:
+`backend/prisma/schema.prisma` is already `provider = "postgresql"` with `directUrl`
+wired. Nothing to change. To (re)seed the database with default users:
 
 ```bash
-# 1. Edit prisma/schema.prisma — change ONE line:
-#    provider = "sqlite"   →   provider = "postgresql"
+cd backend
+npx prisma db seed     # creates super_admin, test users, etc.
+```
 
-# 2. Delete old SQLite migrations (incompatible with Postgres)
-rm -rf prisma/migrations
+To sanity-check the connection at any time:
 
-# 3. Set your Supabase URL temporarily for migration
-export DATABASE_URL="postgresql://postgres:PASSWORD@db.REF.supabase.co:5432/postgres"
-
-# 4. Create fresh PostgreSQL migrations
-npx prisma migrate dev --name init
-
-# 5. Seed the database (creates super_admin, test users, etc.)
-npx prisma db seed
-
-# 6. Revert schema.prisma back to sqlite for local dev
-#    provider = "postgresql"  →  provider = "sqlite"
-#    And restore your .env DATABASE_URL to "file:./dev.db"
+```bash
+cd backend
+npx prisma migrate status     # should say "Database schema is up to date!"
 ```
 
 ---
@@ -99,7 +107,8 @@ Copy the output — use it as `JWT_SECRET` in Railway.
 
    | Variable | Value |
    |----------|-------|
-   | `DATABASE_URL` | your Supabase PostgreSQL URI |
+   | `DATABASE_URL` | `kafaale_app` transaction-pooler URL (port 6543, `?pgbouncer=true`) — see Step 1 |
+   | `DIRECT_URL` | `kafaale_app` session-pooler URL (port 5432) — see Step 1 |
    | `JWT_SECRET` | the 128-char hex string from Step 4 |
    | `NODE_ENV` | `production` |
    | `PORT` | `5000` |
@@ -189,18 +198,20 @@ The JWT auth system already works for any client (web or mobile). All existing e
 
 ---
 
-## Local Development (Keep Using SQLite)
+## Local Development
+
+Local dev now uses the **same Supabase database** (schema is `provider = "postgresql"`,
+so SQLite is no longer used). `backend/.env` already holds the `kafaale_app`
+connection strings.
 
 ```bash
-# backend/.env stays as:
-DATABASE_URL="file:./dev.db"
-# schema.prisma stays as:
-provider = "sqlite"
-
-# Just run:
+# Backend + frontend:
 cd backend && npm run dev
 cd .. && npm run dev
 ```
+
+> Heads up: local dev writes to the shared Supabase DB. For an isolated local DB,
+> create a separate Supabase project (or a local Postgres) and point `backend/.env` at it.
 
 ---
 
