@@ -17,6 +17,11 @@ backend/prisma/dev.db-journal
 backend/.env
 backend/.env.local
 
+# Supabase CLI local state (keep config.toml, ignore secrets/temp)
+supabase/.branches
+supabase/.temp
+supabase/.env
+
 # Logs
 backend/logs/
 *.log

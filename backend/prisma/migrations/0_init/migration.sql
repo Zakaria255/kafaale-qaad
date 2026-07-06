@@ -1,8 +1,5 @@
--- CreateEnum
-CREATE TYPE "AdminAction" AS ENUM ('approved', 'rejected', 'assigned_team', 'triggered_ai', 'edited_public_version', 'published', 'confirmed_payment', 'confirmed_delivery', 'completed_case', 'suspended_user', 'reinstated_user', 'delivery_assigned', 'donation_confirmed', 'completed', 'role_changed', 'user_deleted');
-
--- CreateEnum
-CREATE TYPE "NotificationType" AS ENUM ('case_submitted', 'case_assigned', 'investigation_completed', 'ai_ready_for_review', 'case_published', 'case_sponsored', 'delivery_started', 'delivery_completed', 'case_rejected', 'fraud_alert', 'payment_confirmed', 'delivery_assigned', 'donation_confirmed', 'case_completed', 'delivery_proof_submitted', 'aid_delivered', 'beneficiary_enrolled', 'beneficiary_verified', 'sponsorship_created', 'monthly_update_published', 'project_funded', 'project_completed');
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -17,6 +14,8 @@ CREATE TABLE "User" (
     "city" TEXT,
     "organization" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "isApproved" BOOLEAN NOT NULL DEFAULT true,
+    "expoPushToken" TEXT,
     "lastLoginAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -27,20 +26,23 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Case" (
     "id" TEXT NOT NULL,
+    "caseRef" TEXT,
     "reporterId" TEXT,
     "assignedAgentId" TEXT,
     "privateVictimName" TEXT,
     "privateVictimPhone" TEXT,
     "privateAddress" TEXT,
+    "privateDistrict" TEXT,
     "privateGpsLat" DOUBLE PRECISION,
     "privateGpsLng" DOUBLE PRECISION,
     "privateFamilySize" INTEGER,
     "privateVictimAge" INTEGER,
     "privateVictimGender" TEXT,
+    "privateGuardianName" TEXT,
     "privateDescription" TEXT,
     "privateNotes" TEXT,
-    "caseRef" TEXT,
     "category" TEXT NOT NULL DEFAULT 'other',
+    "caseType" TEXT NOT NULL DEFAULT 'emergency',
     "emergencyLevel" TEXT NOT NULL DEFAULT 'medium',
     "supportType" TEXT,
     "status" TEXT NOT NULL DEFAULT 'pending_review',
@@ -53,7 +55,7 @@ CREATE TABLE "Case" (
     "publicStory" TEXT,
     "publicCity" TEXT,
     "publicCountry" TEXT,
-    "publicMediaUrls" TEXT[],
+    "publicMediaUrls" TEXT,
     "aiSanitizedAt" TIMESTAMP(3),
     "adminPublishedAt" TIMESTAMP(3),
     "teamAssignedAt" TIMESTAMP(3),
@@ -119,10 +121,10 @@ CREATE TABLE "AiPublicData" (
     "generatedCategory" TEXT NOT NULL,
     "generatedCity" TEXT,
     "generatedUrgency" TEXT NOT NULL,
-    "safeMediaUrls" TEXT[],
+    "safeMediaUrls" TEXT,
     "piiDetected" BOOLEAN NOT NULL DEFAULT false,
-    "piiRemoved" TEXT[],
-    "mediaFlagged" TEXT[],
+    "piiRemoved" TEXT,
+    "mediaFlagged" TEXT,
     "confidenceScore" INTEGER NOT NULL DEFAULT 0,
     "adminEdited" BOOLEAN NOT NULL DEFAULT false,
     "adminEditedTitle" TEXT,
@@ -164,7 +166,7 @@ CREATE TABLE "DeliveryProof" (
     "amountDelivered" DOUBLE PRECISION NOT NULL,
     "recipientName" TEXT,
     "deliveryNotes" TEXT,
-    "photoUrls" TEXT[],
+    "photoUrls" TEXT,
     "adminConfirmed" BOOLEAN NOT NULL DEFAULT false,
     "adminConfirmedAt" TIMESTAMP(3),
     "adminNotes" TEXT,
@@ -179,9 +181,9 @@ CREATE TABLE "AdminAuditLog" (
     "id" TEXT NOT NULL,
     "adminId" TEXT NOT NULL,
     "caseId" TEXT,
-    "action" "AdminAction" NOT NULL,
+    "action" TEXT NOT NULL,
     "notes" TEXT,
-    "metadata" JSONB,
+    "metadata" TEXT,
     "ipAddress" TEXT,
     "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -193,7 +195,7 @@ CREATE TABLE "Notification" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "caseId" TEXT,
-    "type" "NotificationType" NOT NULL,
+    "type" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "message" TEXT NOT NULL,
     "isRead" BOOLEAN NOT NULL DEFAULT false,
@@ -312,8 +314,8 @@ CREATE TABLE "MonthlyUpdate" (
     "healthStatus" TEXT,
     "progressNotes" TEXT NOT NULL,
     "needsAssessment" TEXT,
-    "deliveriesMade" TEXT[],
-    "photoUrls" TEXT[],
+    "deliveriesMade" TEXT,
+    "photoUrls" TEXT,
     "isPublished" BOOLEAN NOT NULL DEFAULT false,
     "publishedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -338,8 +340,8 @@ CREATE TABLE "CommunityProject" (
     "fundingGoal" DOUBLE PRECISION NOT NULL,
     "totalRaised" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "status" TEXT NOT NULL DEFAULT 'seeking_funding',
-    "phases" JSONB,
-    "photoUrls" TEXT[],
+    "phases" TEXT,
+    "photoUrls" TEXT,
     "completionReport" TEXT,
     "createdById" TEXT,
     "verifiedAt" TIMESTAMP(3),
@@ -383,7 +385,7 @@ CREATE TABLE "Partner" (
     "region" TEXT,
     "description" TEXT,
     "website" TEXT,
-    "focus" TEXT[],
+    "focus" TEXT,
     "color" TEXT NOT NULL DEFAULT '#004B96',
     "casesSupported" INTEGER NOT NULL DEFAULT 0,
     "totalDonated" DOUBLE PRECISION NOT NULL DEFAULT 0,
@@ -401,6 +403,147 @@ CREATE TABLE "Partner" (
     CONSTRAINT "Partner_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "OtpRecord" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "used" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "OtpRecord_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MessageThread" (
+    "id" TEXT NOT NULL,
+    "participantA" TEXT NOT NULL,
+    "participantB" TEXT NOT NULL,
+    "caseId" TEXT,
+    "lastMessage" TEXT NOT NULL DEFAULT '',
+    "lastAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MessageThread_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Message" (
+    "id" TEXT NOT NULL,
+    "threadId" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VaultDocument" (
+    "id" TEXT NOT NULL,
+    "ownerId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "filename" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'other',
+    "mimeType" TEXT,
+    "sizeBytes" INTEGER,
+    "caseRef" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "VaultDocument_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Setting" (
+    "key" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Setting_pkey" PRIMARY KEY ("key")
+);
+
+-- CreateTable
+CREATE TABLE "RateCounter" (
+    "key" TEXT NOT NULL,
+    "count" INTEGER NOT NULL DEFAULT 0,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "RateCounter_pkey" PRIMARY KEY ("key")
+);
+
+-- CreateTable
+CREATE TABLE "RevokedToken" (
+    "tokenHash" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RevokedToken_pkey" PRIMARY KEY ("tokenHash")
+);
+
+-- CreateTable
+CREATE TABLE "Channel" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT,
+    "type" TEXT NOT NULL DEFAULT 'group',
+    "description" TEXT NOT NULL DEFAULT '',
+    "isOpen" BOOLEAN NOT NULL DEFAULT false,
+    "postPolicy" TEXT NOT NULL DEFAULT 'members',
+    "createdBy" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastMessage" TEXT NOT NULL DEFAULT '',
+    "lastAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Channel_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChannelMember" (
+    "id" TEXT NOT NULL,
+    "channelId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'member',
+    "lastReadAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ChannelMember_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ChatMessage" (
+    "id" TEXT NOT NULL,
+    "channelId" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "text" TEXT NOT NULL DEFAULT '',
+    "attachments" TEXT NOT NULL DEFAULT '[]',
+    "replyToId" TEXT,
+    "pinned" BOOLEAN NOT NULL DEFAULT false,
+    "editedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ChatMessage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Note" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "body" TEXT NOT NULL DEFAULT '',
+    "status" TEXT NOT NULL DEFAULT 'todo',
+    "priority" TEXT NOT NULL DEFAULT 'normal',
+    "category" TEXT NOT NULL DEFAULT 'General',
+    "authorId" TEXT NOT NULL,
+    "assigneeId" TEXT,
+    "dueDate" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Note_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -412,6 +555,9 @@ CREATE INDEX "User_email_idx" ON "User"("email");
 
 -- CreateIndex
 CREATE INDEX "User_isActive_idx" ON "User"("isActive");
+
+-- CreateIndex
+CREATE INDEX "User_isApproved_idx" ON "User"("isApproved");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Case_caseRef_key" ON "Case"("caseRef");
@@ -478,6 +624,9 @@ CREATE INDEX "AdminAuditLog_adminId_idx" ON "AdminAuditLog"("adminId");
 
 -- CreateIndex
 CREATE INDEX "AdminAuditLog_caseId_idx" ON "AdminAuditLog"("caseId");
+
+-- CreateIndex
+CREATE INDEX "AdminAuditLog_action_idx" ON "AdminAuditLog"("action");
 
 -- CreateIndex
 CREATE INDEX "AdminAuditLog_timestamp_idx" ON "AdminAuditLog"("timestamp");
@@ -560,6 +709,69 @@ CREATE INDEX "Partner_type_idx" ON "Partner"("type");
 -- CreateIndex
 CREATE INDEX "Partner_featuredOrder_idx" ON "Partner"("featuredOrder");
 
+-- CreateIndex
+CREATE INDEX "OtpRecord_email_idx" ON "OtpRecord"("email");
+
+-- CreateIndex
+CREATE INDEX "MessageThread_participantA_idx" ON "MessageThread"("participantA");
+
+-- CreateIndex
+CREATE INDEX "MessageThread_participantB_idx" ON "MessageThread"("participantB");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MessageThread_participantA_participantB_key" ON "MessageThread"("participantA", "participantB");
+
+-- CreateIndex
+CREATE INDEX "Message_threadId_idx" ON "Message"("threadId");
+
+-- CreateIndex
+CREATE INDEX "Message_senderId_idx" ON "Message"("senderId");
+
+-- CreateIndex
+CREATE INDEX "VaultDocument_ownerId_idx" ON "VaultDocument"("ownerId");
+
+-- CreateIndex
+CREATE INDEX "VaultDocument_ownerId_type_idx" ON "VaultDocument"("ownerId", "type");
+
+-- CreateIndex
+CREATE INDEX "RateCounter_expiresAt_idx" ON "RateCounter"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "RevokedToken_expiresAt_idx" ON "RevokedToken"("expiresAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Channel_slug_key" ON "Channel"("slug");
+
+-- CreateIndex
+CREATE INDEX "Channel_type_idx" ON "Channel"("type");
+
+-- CreateIndex
+CREATE INDEX "Channel_lastAt_idx" ON "Channel"("lastAt");
+
+-- CreateIndex
+CREATE INDEX "ChannelMember_userId_idx" ON "ChannelMember"("userId");
+
+-- CreateIndex
+CREATE INDEX "ChannelMember_channelId_idx" ON "ChannelMember"("channelId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ChannelMember_channelId_userId_key" ON "ChannelMember"("channelId", "userId");
+
+-- CreateIndex
+CREATE INDEX "ChatMessage_channelId_createdAt_idx" ON "ChatMessage"("channelId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "ChatMessage_channelId_pinned_idx" ON "ChatMessage"("channelId", "pinned");
+
+-- CreateIndex
+CREATE INDEX "Note_authorId_idx" ON "Note"("authorId");
+
+-- CreateIndex
+CREATE INDEX "Note_assigneeId_idx" ON "Note"("assigneeId");
+
+-- CreateIndex
+CREATE INDEX "Note_status_idx" ON "Note"("status");
+
 -- AddForeignKey
 ALTER TABLE "Case" ADD CONSTRAINT "Case_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -622,3 +834,40 @@ ALTER TABLE "ProjectContribution" ADD CONSTRAINT "ProjectContribution_projectId_
 
 -- AddForeignKey
 ALTER TABLE "ProjectContribution" ADD CONSTRAINT "ProjectContribution_donorId_fkey" FOREIGN KEY ("donorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MessageThread" ADD CONSTRAINT "MessageThread_participantA_fkey" FOREIGN KEY ("participantA") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MessageThread" ADD CONSTRAINT "MessageThread_participantB_fkey" FOREIGN KEY ("participantB") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_threadId_fkey" FOREIGN KEY ("threadId") REFERENCES "MessageThread"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VaultDocument" ADD CONSTRAINT "VaultDocument_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChannelMember" ADD CONSTRAINT "ChannelMember_channelId_fkey" FOREIGN KEY ("channelId") REFERENCES "Channel"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChannelMember" ADD CONSTRAINT "ChannelMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_channelId_fkey" FOREIGN KEY ("channelId") REFERENCES "Channel"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_replyToId_fkey" FOREIGN KEY ("replyToId") REFERENCES "ChatMessage"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "Note" ADD CONSTRAINT "Note_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Note" ADD CONSTRAINT "Note_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
