@@ -112,6 +112,11 @@ const PORT = process.env.PORT || 4000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 const server = http.createServer(app);
 
+// Behind Vercel's proxy the client IP arrives in X-Forwarded-For. Trust exactly one
+// hop so express-rate-limit reads the real IP instead of rejecting the header.
+// (Not `true` — that would let clients spoof their IP and evade the rate limiters.)
+if (IS_PROD) app.set('trust proxy', 1);
+
 // ── Allowed CORS origins ─────────────────────────────────────────────────────
 // Whitelist: local dev + your production domains (add more as needed)
 const ALLOWED_ORIGINS = new Set([
@@ -228,14 +233,18 @@ app.use('/api/notes',        notesRoutes);
 app.use('/api/chat',         chatRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => {
+// Served under /api too: on Vercel only /api/* is routed to the function, so a
+// bare /health falls through to the SPA's index.html and never reaches Express.
+const healthHandler: express.RequestHandler = (_req, res) => {
   res.json({
     status: '✅ Kafaale Qaad API Online',
     timestamp: new Date().toISOString(),
     version: '2.0.0',
     env: IS_PROD ? 'production' : 'development',
   });
-});
+};
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
 
 // ── 404 handler ──────────────────────────────────────────────────────────────
 app.use((_req, res) => {
