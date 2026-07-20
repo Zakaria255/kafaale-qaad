@@ -169,11 +169,17 @@ export default function Login() {
       nav('/dashboard');
     } catch (err) {
       const msg = err.message || '';
+      // A failed fetch()/TypeError means the backend was unreachable — show a
+      // friendly, actionable state instead of the raw "Failed to fetch" string.
+      const isNetwork = err instanceof TypeError
+        || /failed to fetch|networkerror|network request failed|load failed/i.test(msg);
       if (msg.toLowerCase().includes('too many') || msg.includes('429')) {
         setRateLocked(true);
         setCountdown(15 * 60); // 15 minutes
         setTimeout(() => setRateLocked(false), 15 * 60 * 1000);
         setError('rate_limited');
+      } else if (isNetwork) {
+        setError('offline');
       } else {
         setError(msg);
       }
@@ -186,7 +192,10 @@ export default function Login() {
       await loginWithGoogle(credential);
       nav('/dashboard');
     } catch (err) {
-      setError(err.message || 'Google sign-in failed');
+      const msg = err.message || '';
+      const isNetwork = err instanceof TypeError
+        || /failed to fetch|networkerror|network request failed|load failed/i.test(msg);
+      setError(isNetwork ? 'offline' : (msg || 'Google sign-in failed'));
     }
   };
 
@@ -287,9 +296,24 @@ export default function Login() {
             ))}
           </div>
 
-          {error && error !== 'rate_limited' && (
+          {error && error !== 'rate_limited' && error !== 'offline' && (
             <div style={{ background:'#FEF2F2', border:`1px solid ${C.error}30`, color:C.error, padding:'11px 15px', borderRadius:10, marginBottom:16, fontSize:13, fontWeight:600 }}>
               {error}
+            </div>
+          )}
+          {error === 'offline' && (
+            <div style={{ background:'#FFF7ED', border:'1px solid #FCD34D', borderRadius:12, padding:'14px 16px', marginBottom:16 }}>
+              <div style={{ fontWeight:800, fontSize:14, color:'#92400E', marginBottom:4 }}>
+                {lang==='so' ? "Server-ka lama gaari karo" : "Can't reach the server"}
+              </div>
+              <div style={{ fontSize:13, color:'#92400E', lineHeight:1.5 }}>
+                {lang==='so'
+                  ? "Fadlan hubi internetkaaga oo mar kale isku day."
+                  : "Please check your connection and try again."}
+                {tab === 'login' && (lang==='so'
+                  ? " Waxaad kaloo isticmaali kartaa Gelitaanka Tijaabada ee hoose si aad barnaamijka u fiiriso."
+                  : " You can also use the Quick Demo Access below to explore the platform offline.")}
+              </div>
             </div>
           )}
           {error === 'rate_limited' && (
