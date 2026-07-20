@@ -7,11 +7,12 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 import { uploadCases, processUploads, getMediaType } from '../middleware/upload';
 import { sysLog } from '../services/logger';
 
-// Rate-limit only file-upload submissions (not public reads)
+// Rate-limit only file-upload submissions (not public reads); disabled in dev
 const caseSubmitLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 20,
   message: { error: 'Too many case submissions. Please try again later.' },
+  skip: () => process.env.NODE_ENV !== 'production',
 });
 
 const router = Router();

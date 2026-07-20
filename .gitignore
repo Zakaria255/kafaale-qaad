@@ -37,3 +37,4 @@ Thumbs.db
 # Local tooling / scratch (not for sharing)
 .claude/
 backend/prisma/.studio.local.prisma
+dev-dist

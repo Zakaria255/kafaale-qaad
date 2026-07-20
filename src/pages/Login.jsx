@@ -190,10 +190,10 @@ export default function Login() {
     }
   };
 
-  const inp = (key, placeholder, type = 'text') => (
+  const inp = (key, placeholder, type = 'text', required = true) => (
     <input
       value={form[key]} onChange={e => set(key, e.target.value)}
-      placeholder={placeholder} type={type} required
+      placeholder={placeholder} type={type} required={required}
       className="kf-input"
       style={{
         width:'100%', padding:'12px 16px', border:`1.5px solid ${C.border}`,
@@ -323,7 +323,7 @@ export default function Login() {
                   {inp('country', t('country'))}
                   {inp('city',    t('city'))}
                 </div>
-                {inp('phone', t('phone'))}
+                {inp('phone', t('phone'), 'text', false)}
               </>
             )}
 

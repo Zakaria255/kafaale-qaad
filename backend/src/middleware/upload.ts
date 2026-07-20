@@ -6,10 +6,16 @@ import { createClient } from '@supabase/supabase-js';
 import { Request, Response, NextFunction } from 'express';
 
 // ── Supabase Storage (production) ───────────────────────
+// Real service keys are either legacy JWTs ("eyJ…") or new-style "sb_secret_…" keys.
+// Anything else (empty, "REPLACE_WITH_…" placeholder) means storage isn't configured —
+// fall back to local disk instead of failing every upload with an invalid-JWT error.
+function isRealServiceKey(k?: string): boolean {
+  return !!k && (k.startsWith('eyJ') || k.startsWith('sb_secret_'));
+}
 let _supabase: ReturnType<typeof createClient> | null = null;
 function getSupabase() {
-  if (!_supabase && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
-    _supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  if (!_supabase && process.env.SUPABASE_URL && isRealServiceKey(process.env.SUPABASE_SERVICE_KEY)) {
+    _supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY!);
   }
   return _supabase;
 }

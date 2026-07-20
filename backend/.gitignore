@@ -1,0 +1,4 @@
+.vercel
+
+# Database dumps — contain real data, never commit
+backups/

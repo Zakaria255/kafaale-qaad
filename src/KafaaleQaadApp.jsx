@@ -3940,7 +3940,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                             ✓ Confirm
                           </button>
                         )}
-                        {d.status === "confirmed" && ["sponsored","waiting_for_sponsor","Sponsored","Waiting Sponsor"].includes(d.case?.status) && onStartDelivery && (
+                        {d.status === "confirmed" && ["sponsored","Sponsored"].includes(d.case?.status) && onStartDelivery && (
                           <button onClick={() => onStartDelivery({
                             id: d.caseId, victim_name: d.case?.publicTitle || `Case #${(d.caseId||"").slice(-6)}`,
                             location: d.case?.publicCity || "", donation_amount: d.amount,
@@ -3949,6 +3949,12 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                             style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#0891B2", color: "#fff", border: "none", cursor: "pointer" }}>
                             Start Delivery
                           </button>
+                        )}
+                        {d.status === "confirmed" && ["waiting_for_sponsor","Waiting Sponsor"].includes(d.case?.status) && (
+                          // Delivery unlocks only when the case is fully funded (backend enforces this)
+                          <span style={{ fontSize: 11, color: "#D97706", fontWeight: 700 }}>
+                            Awaiting full funding — ${(d.case?.totalRaised||0).toLocaleString()} / ${(d.case?.targetGoal||0).toLocaleString()}
+                          </span>
                         )}
                         {d.status === "confirmed" && d.case?.status === "delivering" && (
                           <span style={{ fontSize: 11, color: "#0891B2", fontWeight: 700 }}>En Route</span>
