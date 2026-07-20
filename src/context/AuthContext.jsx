@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { auth as authApi, setAuth, clearAuth, getUser, getToken } from '../api/client';
 
 const AuthContext = createContext(null);
@@ -19,6 +19,22 @@ const DEMO_TOKEN = 'demo-token-kafaale-qaad';
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getUser());
   const [loading, setLoading] = useState(false);
+
+  // A demo session is only ever valid while the backend is down. If it's up
+  // again, retire the session on boot — otherwise whoever was caught by a
+  // transient outage stays pinned to fake empty data with no way out.
+  useEffect(() => {
+    if (getToken() !== DEMO_TOKEN) return;
+    let cancelled = false;
+    fetch('/api/health')
+      .then((res) => {
+        if (cancelled || !res.ok) return;
+        clearAuth();
+        setUser(null);
+      })
+      .catch(() => { /* still offline — keep the demo session */ });
+    return () => { cancelled = true; };
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);

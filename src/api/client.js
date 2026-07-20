@@ -25,15 +25,25 @@ const emit = (name) => { try { window.dispatchEvent(new CustomEvent(name)); } ca
 // ── Core fetch wrapper ────────────────────────────────────────────
 async function req(path, opts = {}) {
   const token = getToken();
-  // Demo mode — skip real API calls, return empty success shapes
-  if (token === DEMO_TOKEN) {
+  const inDemo = token === DEMO_TOKEN;
+  // Auth calls ALWAYS hit the network, even while holding a demo token. Without
+  // this, demoFallback answers /auth/login with a token-less {success:true}, so
+  // setAuth never runs and the login button is a silent no-op forever — the demo
+  // session becomes an inescapable trap once a transient outage arms it.
+  const isAuthCall = path.startsWith('/auth/');
+  if (inDemo && !isAuthCall) {
     return demoFallback(path, opts);
   }
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(opts.headers || {}) };
+  // Never send the fake token upstream — the server would just 401 on it.
+  const authHeader = token && !inDemo ? { Authorization: `Bearer ${token}` } : {};
+  const headers = { 'Content-Type': 'application/json', ...authHeader, ...(opts.headers || {}) };
   let res;
   try {
     res = await fetch(`${API}${path}`, { ...opts, headers });
     emit('kf-api-online'); // got a response → server reachable
+    // Backend is answering again, so the offline demo session is stale. Drop it
+    // now; a real login below will write real credentials over the top.
+    if (inDemo) clearAuth();
   } catch (e) {
     emit('kf-api-offline'); // network/fetch failure → server unreachable
     throw e;
