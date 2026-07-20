@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import FixedSelect from "../components/FixedSelect.jsx";
 import { Link } from "react-router-dom";
+import { cases as casesApi } from "../api/client";
 import { useLang } from "../context/LanguageContext.jsx";
 import { useResponsive } from "../hooks/useResponsive.js";
 import { C } from "../theme.js";
-import { STORY_IMGS, getStoryImg } from "../utils/storyImages.js";
+import { getStoryImg } from "../utils/storyImages.js";
 import { getCat } from "../utils/categories.js";
 
-const STORIES_KEY = "kf_impact_stories";
+// Community-story submissions are stored locally — no backend endpoint exists yet
+// for public story submissions (flagged in the wiring audit). Left as-is.
 const SUBMISSIONS_KEY = "kf_story_submissions";
 
 const CATS = getCat("stories");
@@ -170,165 +172,150 @@ function StorySubmitSection({ isMobile }) {
   );
 }
 
-const STATIC_STORIES = [
-  {
-    id:"st1", category:"Success Story", date:"2026-05-12", location:"Mogadishu",
-    title:"Family of Seven Finds Safety After Flood Displacement",
-    excerpt:"After losing their home to seasonal flooding, a family of seven was living in a collapsed structure. Within 14 days of verification, Kafaala Qaad delivered emergency shelter, three months of food supplies, and clothing for all children.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"Family of 7 living in collapsed structure with no clean water or food.",
-    afterDesc:"Temporary shelter erected, food supply secured for 3 months, children back in school.",
-    daysToDeliver:"14", amountDistributed:"$820",
-    tags:["shelter","food","emergency"],
-    featured: true,
-  },
-  {
-    id:"st2", category:"Medical", date:"2026-04-28", location:"Baidoa",
-    title:"8-Year-Old Girl Receives Critical Medication",
-    excerpt:"A young girl in Baidoa had been without essential medication for weeks, causing rapid health deterioration. After case verification, sponsors covered four months of doctor visits and medication costs.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"Critical medication unavailable, health deteriorating rapidly.",
-    afterDesc:"Full medication course delivered, 4 months of specialist visits funded.",
-    daysToDeliver:"9", amountDistributed:"$540",
-    tags:["medical","child"],
-    featured: false,
-  },
-  {
-    id:"st3", category:"Education", date:"2026-04-10", location:"Kismayo",
-    title:"Three Orphaned Brothers Return to School",
-    excerpt:"Three brothers aged 9, 11, and 13 had dropped out after losing both parents. An education program sponsor covered school fees, uniforms, and stationery for a full academic year.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"Three brothers out of school, surviving on charity from neighbours.",
-    afterDesc:"All three enrolled, school fees paid, uniforms and supplies provided.",
-    daysToDeliver:"21", amountDistributed:"$960",
-    tags:["education","orphan","children"],
-    featured: true,
-  },
-  {
-    id:"st4", category:"Food & Nutrition", date:"2026-03-22", location:"Garowe",
-    title:"Weekly Food Deliveries Reach Isolated Elder",
-    excerpt:"A 78-year-old man living alone with no income had no reliable access to food. A monthly food program now ensures weekly deliveries and a community health worker visits regularly.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"No food security, no family contact, deteriorating health.",
-    afterDesc:"Weekly food delivery, monthly health check, reconnected with distant family.",
-    daysToDeliver:"11", amountDistributed:"$460",
-    tags:["food","elderly"],
-    featured: false,
-  },
-  {
-    id:"st5", category:"Press Release", date:"2026-03-05", location:"Mogadishu",
-    title:"Kafaala Qaad Reaches 500 Verified Cases Milestone",
-    excerpt:"The platform announces the verification and aid delivery for its 500th case, representing families in 12 regions across Somalia. Total funds distributed exceed $380,000.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"", afterDesc:"",
-    daysToDeliver:null, amountDistributed:"$380,000+",
-    tags:["milestone","platform"],
-    featured: true,
-  },
-  {
-    id:"st6", category:"Partnership", date:"2026-02-18", location:"",
-    title:"New Partnership with Regional Health Ministry",
-    excerpt:"A formal agreement enables Kafaala Qaad field agents to coordinate directly with regional health clinics for medical cases, reducing verification time from 14 days to under 5 days.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"", afterDesc:"",
-    daysToDeliver:null, amountDistributed:null,
-    tags:["partnership","health"],
-    featured: false,
-  },
-];
-
-const CAT_COLORS = {
-  "Success Story":    { bg:"#D1FAE5", text:"#065F46" },
-  "Medical":          { bg:"#DBEAFE", text:"#1E40AF" },
-  "Education":        { bg:"#FEF3C7", text:"#92400E" },
-  "Food & Nutrition": { bg:"#FDE8D8", text:"#9A3412" },
-  "Press Release":    { bg:"#EDE9FE", text:"#5B21B6" },
-  "Partnership":      { bg:"#FCE7F3", text:"#831843" },
-  "Emergency":        { bg:"#FEE2E2", text:"#991B1B" },
-  "Program Update":   { bg:"#ECFDF5", text:"#065F46" },
+// ── Case category → display label / colour tone / stock image key ─────────────
+// Keys are the real lowercase `Case.category` enum values (verified in
+// backend/src/routes/cases.ts CreateCaseSchema). Tones use brand tokens only.
+const CASE_CATEGORY = {
+  food:              { label:{ en:"Food & Nutrition", so:"Cunto & Nafaqo" }, tone:C.gold,      img:"Food" },
+  medical:           { label:{ en:"Medical",          so:"Caafimaad" },      tone:C.primary,   img:"Medical" },
+  shelter:           { label:{ en:"Shelter",          so:"Hoy" },            tone:C.secondary, img:"Shelter" },
+  orphan:            { label:{ en:"Orphan Care",      so:"Daryeel Agoon" },  tone:C.secondary, img:"Orphan" },
+  disaster:          { label:{ en:"Disaster Relief",  so:"Gargaar Musiibo" },tone:C.navy,      img:"Emergency" },
+  education:         { label:{ en:"Education",        so:"Waxbarasho" },     tone:C.gold,      img:"Education" },
+  child_support:     { label:{ en:"Child Support",    so:"Taageero Caruur" },tone:C.secondary, img:"Orphan" },
+  family_support:    { label:{ en:"Family Support",   so:"Taageero Qoys" },  tone:C.primary,   img:"Success Story" },
+  emergency:         { label:{ en:"Emergency",        so:"Degdeg" },         tone:C.navy,      img:"Emergency" },
+  water_project:     { label:{ en:"Water",            so:"Biyo" },           tone:C.primary,   img:"Water" },
+  school_project:    { label:{ en:"School Project",   so:"Mashruuc Dugsi" }, tone:C.gold,      img:"Education" },
+  community_project: { label:{ en:"Community",        so:"Bulsho" },         tone:C.secondary, img:"Success Story" },
+  other:             { label:{ en:"Other",            so:"Kale" },           tone:C.muted,     img:"default" },
 };
-const catStyle = (cat) => CAT_COLORS[cat] || { bg:"#F3F4F6", text:"#374151" };
+const catMeta  = (cat) => CASE_CATEGORY[cat] || CASE_CATEGORY.other;
+const catLabel = (cat, lang) => { const m = catMeta(cat); return m.label[lang] || m.label.en; };
 
-const fmt = (d) => {
+const money = (n) => "$" + Number(n || 0).toLocaleString();
+const fmtDate = (d) => {
+  if (!d) return "";
   try { return new Date(d).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" }); }
-  catch { return d; }
+  catch { return ""; }
 };
 
-const PUB_KEY = "kf_published_stories";
-
-const parseAdminStories = () => {
-  try {
-    return JSON.parse(localStorage.getItem(STORIES_KEY) || "[]").map(s => ({
-      ...s,
-      source:   "admin",
-      date:     s.createdAt?.split("T")[0] || new Date().toISOString().split("T")[0],
-      excerpt:  [s.beforeDesc, s.afterDesc].filter(Boolean).join(" → ").slice(0, 160) + "…",
-      tags:     [s.category?.toLowerCase().replace(/\s+/g,"-")].filter(Boolean),
-      featured: Boolean(s.featured), // respect admin-set flag
-    }));
-  } catch { return []; }
-};
-
-const parsePubStories = () => {
-  try {
-    return JSON.parse(localStorage.getItem(PUB_KEY) || "[]").map(s => ({
-      ...s,
-      source:   "community",
-      date:     s.publishedAt?.split("T")[0] || s.submittedAt?.split("T")[0] || new Date().toISOString().split("T")[0],
-      excerpt:  (s.afterDesc || s.beforeDesc || s.what || "").slice(0, 160) + "…",
-      tags:     [s.category?.toLowerCase().replace(/\s+/g,"-")].filter(Boolean),
-      featured: Boolean(s.featured), // respect admin-set flag
-    }));
-  } catch { return []; }
-};
+// Map a public Case (from GET /api/cases) to the card view-model this page renders.
+// Only public* fields are read — the server select never exposes private* PII.
+const caseToStory = (c) => ({
+  id:        c.id,
+  title:     c.publicTitle || "Verified Case",
+  excerpt:   c.publicStory || "",
+  category:  c.category,
+  location:  [c.publicCity, c.publicCountry].filter(Boolean).join(", "),
+  date:      c.adminPublishedAt,
+  raised:    c.totalRaised,
+  donations: c._count?.donations ?? 0,
+});
 
 export default function Stories() {
   const { lang } = useLang();
   const { isMobile, isTablet } = useResponsive();
 
-  const [adminStories, setAdminStories] = useState(parseAdminStories);
-  const [pubStories,   setPubStories]   = useState(parsePubStories);
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState("");
 
-  useEffect(() => {
-    const sync = () => {
-      setAdminStories(parseAdminStories());
-      setPubStories(parsePubStories());
-    };
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
-  }, []);
-
-  const allStories = [...adminStories, ...pubStories, ...STATIC_STORIES];
-  const CATEGORIES = ["All", ...Array.from(new Set(allStories.map(s => s.category)))];
   const [activeCat, setActiveCat] = useState("All");
   const [search, setSearch] = useState("");
 
-  const displayed = allStories.filter(s => {
+  const load = useCallback(() => {
+    setLoading(true);
+    setError("");
+    // Public impact stories = completed cases (aid delivered). The /cases feed
+    // returns only public statuses; we keep the completed ones for this page.
+    casesApi.list({ limit: 60 })
+      .then(d => {
+        const completed = (d.cases || []).filter(c => c.status === "completed");
+        setStories(completed.map(caseToStory));
+      })
+      .catch(() => setError(lang==="so" ? "Xikaayadaha lama soo dejin karin." : "We couldn't load stories right now."))
+      .finally(() => setLoading(false));
+  }, [lang]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Category tabs derived from the real categories present in the data.
+  const presentCats = Array.from(new Set(stories.map(s => s.category)));
+  const CATEGORIES = ["All", ...presentCats];
+
+  const displayed = stories.filter(s => {
     const matchCat = activeCat === "All" || s.category === activeCat;
-    const q = search.toLowerCase();
-    const matchSearch = !q || s.title.toLowerCase().includes(q) || s.excerpt?.toLowerCase().includes(q) || s.location?.toLowerCase().includes(q);
+    const q = search.trim().toLowerCase();
+    const matchSearch = !q
+      || s.title.toLowerCase().includes(q)
+      || s.excerpt.toLowerCase().includes(q)
+      || s.location.toLowerCase().includes(q)
+      || catLabel(s.category, lang).toLowerCase().includes(q);
     return matchCat && matchSearch;
   });
 
-  const featured = displayed.filter(s => s.featured);
-  const rest     = displayed.filter(s => !s.featured);
+  // Editorial highlight: the two most recent stories (feed is ordered newest-first).
+  const featured = displayed.slice(0, 2);
+  const rest     = displayed.slice(2);
 
-  const wrap  = { maxWidth:1200, margin:"0 auto", padding: isMobile?"0 16px":"0 32px" };
-  const sec   = (bg) => ({ background:bg, padding: isMobile?"48px 0":"72px 0" });
+  const wrap = { maxWidth:1200, margin:"0 auto", padding: isMobile?"0 16px":"0 32px" };
+  const sec  = (bg) => ({ background:bg, padding: isMobile?"48px 0":"72px 0" });
+
+  const catCount = (cat) => cat==="All" ? stories.length : stories.filter(s=>s.category===cat).length;
+
+  // ── Card renderer (shared between featured + grid) ──────────────────────────
+  const StoryCard = (story, big) => {
+    const m = catMeta(story.category);
+    return (
+      <Link key={story.id} to={`/cases/${story.id}`}
+        style={{ background:"#fff", borderRadius: big?18:16, overflow:"hidden",
+          boxShadow: big?"0 4px 24px rgba(0,38,81,0.10)":"0 2px 12px rgba(0,38,81,0.07)",
+          border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
+        onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(0,38,81,0.14)";}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow=big?"0 4px 24px rgba(0,38,81,0.10)":"0 2px 12px rgba(0,38,81,0.07)";}}>
+        <div style={{ position:"relative" }}>
+          <img src={getStoryImg({ category:m.img })} alt={story.title} loading="lazy"
+            style={{ width:"100%", height: big?220:160, objectFit:"cover", display:"block" }} />
+          <span style={{ position:"absolute", top:12, right:12, background:C.secondary+"E6", color:"#fff", borderRadius:99, padding:"3px 11px", fontSize:11, fontWeight:800 }}>
+            ✓ {lang==="so"?"La xaqiijiyay":"Verified"}
+          </span>
+        </div>
+        <div style={{ padding: big?"20px 24px":"16px 18px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, flexWrap:"wrap" }}>
+            <span style={{ background:m.tone+"18", color:m.tone, borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700 }}>{catLabel(story.category, lang)}</span>
+            {story.date && <span style={{ fontSize:11, color:C.muted }}>{fmtDate(story.date)}</span>}
+            {story.location && <span style={{ fontSize:11, color:C.muted }}>{story.location}</span>}
+          </div>
+          <h3 style={{ fontSize: big?20:15, fontWeight:800, color:C.text, margin:"0 0 8px", lineHeight:1.35 }}>{story.title}</h3>
+          {story.excerpt && (
+            <p style={{ fontSize: big?14:13, color:C.muted, lineHeight:1.65, margin:"0 0 14px", display:"-webkit-box", WebkitLineClamp:3, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
+              {story.excerpt}
+            </p>
+          )}
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={{ fontSize: big?13:12, fontWeight:700, color:C.primary }}>{lang==="so"?"Akhri →":"Read now →"}</span>
+            {story.raised > 0 && (
+              <span style={{ fontSize:11, color:C.muted }}>
+                {money(story.raised)} {lang==="so"?"la ururiyay":"raised"}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    );
+  };
 
   return (
     <>
       {/* Hero — tree image as full-bleed background */}
       <section style={{ position:"relative", overflow:"hidden", minHeight: isMobile?360:480, display:"flex", alignItems:"center" }}>
-        {/* Tree image — full cover */}
         <img src="/stories-hero.jpg" alt=""
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center center", display:"block" }} />
-        {/* Dark gradient overlay — heavier on text side so copy is readable */}
         <div style={{ position:"absolute", inset:0, background: isMobile
           ? "linear-gradient(to bottom, rgba(0,14,40,0.72) 0%, rgba(0,25,60,0.85) 100%)"
           : "linear-gradient(to right, rgba(0,14,40,0.18) 0%, rgba(0,25,60,0.55) 40%, rgba(0,14,40,0.88) 65%, rgba(0,10,30,0.95) 100%)"
         }} />
-        {/* Content — pushed to right on desktop, centered on mobile */}
         <div style={{ position:"relative", zIndex:1, width:"100%", maxWidth:1200, margin:"0 auto", padding: isMobile?"48px 24px":"72px 48px", display:"flex", justifyContent: isMobile?"center":"flex-end" }}>
           <div style={{ maxWidth:480, color:"#fff", textAlign: isMobile?"center":"left" }}>
             <span style={{ display:"inline-block", background:"rgba(255,255,255,0.14)", border:"1.5px solid rgba(255,255,255,0.32)", borderRadius:24, padding:"5px 18px", fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase", marginBottom:22, backdropFilter:"blur(8px)" }}>
@@ -352,115 +339,126 @@ export default function Stories() {
         </div>
       </section>
 
-      {/* Category filter */}
-      <div style={{ background:"#fff", borderBottom:`1px solid ${C.border}`, position:"sticky", top:0, zIndex:10 }}>
-        <div style={{ ...wrap, paddingTop:0, paddingBottom:0 }}>
-          <div style={{ display:"flex", gap:0, overflowX:"auto", scrollbarWidth:"none" }}>
-            {CATEGORIES.map(cat => (
-              <button key={cat} onClick={() => setActiveCat(cat)}
-                style={{
-                  padding:"14px 20px", background:"none", border:"none", cursor:"pointer", whiteSpace:"nowrap",
-                  fontSize:13, fontWeight:700,
-                  color:      activeCat===cat ? C.primary : C.muted,
-                  borderBottom: activeCat===cat ? `3px solid ${C.primary}` : "3px solid transparent",
-                  transition:"all .15s",
-                }}>
-                {cat}
-                <span style={{ marginLeft:6, fontSize:11, opacity:0.6 }}>
-                  ({cat==="All" ? allStories.length : allStories.filter(s=>s.category===cat).length})
-                </span>
-              </button>
-            ))}
+      {/* Category filter — only meaningful once real stories exist */}
+      {!loading && !error && stories.length > 0 && (
+        <div style={{ background:"#fff", borderBottom:`1px solid ${C.border}`, position:"sticky", top:0, zIndex:10 }}>
+          <div style={{ ...wrap, paddingTop:0, paddingBottom:0 }}>
+            <div style={{ display:"flex", gap:0, overflowX:"auto", scrollbarWidth:"none" }}>
+              {CATEGORIES.map(cat => (
+                <button key={cat} onClick={() => setActiveCat(cat)}
+                  style={{
+                    padding:"14px 20px", background:"none", border:"none", cursor:"pointer", whiteSpace:"nowrap",
+                    fontSize:13, fontWeight:700,
+                    color:      activeCat===cat ? C.primary : C.muted,
+                    borderBottom: activeCat===cat ? `3px solid ${C.primary}` : "3px solid transparent",
+                    transition:"all .15s",
+                  }}>
+                  {cat==="All" ? (lang==="so"?"Dhammaan":"All") : catLabel(cat, lang)}
+                  <span style={{ marginLeft:6, fontSize:11, opacity:0.6 }}>({catCount(cat)})</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Featured stories */}
-      {featured.length > 0 && (
-        <section style={sec("#fff")}>
+      {/* ── Loading state ── */}
+      {loading && (
+        <section style={sec(C.bg)}>
           <div style={wrap}>
-            <h2 style={{ fontSize:20, fontWeight:800, color:C.text, marginBottom:24 }}>
-              {lang==="so"?"Xikaayada Muhiimka ah":lang==="ar"?"القصص المميزة":lang==="tr"?"Öne Çıkan Hikayeler":lang==="es"?"Historias Destacadas":lang==="fr"?"Histoires à la Une":"Featured Stories"}
-            </h2>
-            <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": featured.length===1?"1fr":"1fr 1fr", gap:24 }}>
-              {featured.slice(0,2).map(story => {
-                const cs = catStyle(story.category);
-                const ICON = story.category==="Education"?"":story.category==="Medical"?"":story.category==="Press Release"?"":story.category==="Partnership"?"":"";
-                return (
-                  <Link key={story.id} to={`/stories/${story.id}`}
-                    style={{ background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 4px 24px rgba(0,38,81,0.10)", border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
-                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(0,38,81,0.14)";}}
-                    onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 4px 24px rgba(0,38,81,0.10)";}}>
-                    <img src={getStoryImg(story)} alt={story.title} style={{ width:"100%", height:220, objectFit:"cover", display:"block" }} />
-                    <div style={{ padding:"20px 24px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                        <span style={{ background:cs.bg, color:cs.text, borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700 }}>{story.category}</span>
-                        <span style={{ fontSize:11, color:C.muted }}>{fmt(story.date)}</span>
-                        {story.location && <span style={{ fontSize:11, color:C.muted }}>{story.location}</span>}
-                      </div>
-                      <h3 style={{ fontSize:20, fontWeight:800, color:C.text, margin:"0 0 10px", lineHeight:1.3 }}>{story.title}</h3>
-                      <p style={{ fontSize:14, color:C.muted, lineHeight:1.7, margin:"0 0 16px" }}>{story.excerpt}</p>
-                      <span style={{ fontSize:13, fontWeight:700, color:C.primary }}>Read now →</span>
-                    </div>
-                  </Link>
-                );
-              })}
+            <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": isTablet?"1fr 1fr":"repeat(3,1fr)", gap: isMobile?16:24 }}>
+              {[0,1,2,3,4,5].map(i => (
+                <div key={i} style={{ background:"#fff", borderRadius:16, overflow:"hidden", border:`1px solid ${C.border}` }}>
+                  <div style={{ height:160, background:C.border, opacity:0.5 }} />
+                  <div style={{ padding:"16px 18px" }}>
+                    <div style={{ height:12, width:"40%", background:C.border, borderRadius:6, marginBottom:12 }} />
+                    <div style={{ height:16, width:"85%", background:C.border, borderRadius:6, marginBottom:10 }} />
+                    <div style={{ height:12, width:"100%", background:C.border, borderRadius:6, marginBottom:6, opacity:0.6 }} />
+                    <div style={{ height:12, width:"70%", background:C.border, borderRadius:6, opacity:0.6 }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* All stories grid */}
-      <section style={sec(C.bg)}>
-        <div style={wrap}>
-          {rest.length > 0 && (
-            <h2 style={{ fontSize:20, fontWeight:800, color:C.text, marginBottom:24 }}>
-              {lang==="so"?"Dhammaan Xikaayada":lang==="ar"?"جميع القصص":lang==="tr"?"Tüm Hikayeler":lang==="es"?"Todas las Historias":lang==="fr"?"Toutes les Histoires":"All Stories"}
-              <span style={{ fontSize:14, color:C.muted, fontWeight:400, marginLeft:10 }}>({rest.length})</span>
-            </h2>
-          )}
-          {displayed.length === 0 && (
-            <div style={{ textAlign:"center", padding:"60px 0", color:C.muted }}>
-              <div style={{ fontSize:48, marginBottom:16 }}></div>
-              <div style={{ fontSize:18, fontWeight:700 }}>No stories found</div>
-              <div style={{ fontSize:14, marginTop:8 }}>Try a different search or category</div>
+      {/* ── Error state ── */}
+      {!loading && error && (
+        <section style={sec(C.bg)}>
+          <div style={{ ...wrap, textAlign:"center", padding: isMobile?"64px 16px":"96px 32px" }}>
+            <div style={{ fontSize:44, marginBottom:14 }}>⚠️</div>
+            <div style={{ fontSize:18, fontWeight:800, color:C.text, marginBottom:8 }}>{error}</div>
+            <div style={{ fontSize:14, color:C.muted, marginBottom:24 }}>
+              {lang==="so"?"Fadlan mar kale isku day.":"Please check your connection and try again."}
             </div>
-          )}
-          <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": isTablet?"1fr 1fr":"repeat(3,1fr)", gap: isMobile?16:24 }}>
-            {rest.map(story => {
-              const cs = catStyle(story.category);
-              const ICON = story.category==="Education"?"":story.category==="Medical"?"":story.category==="Press Release"?"":story.category==="Partnership"?"":story.category==="Emergency"?"🚨":"";
-              return (
-                <Link key={story.id} to={`/stories/${story.id}`}
-                  style={{ background:"#fff", borderRadius:16, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,38,81,0.07)", border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
-                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 6px 24px rgba(0,38,81,0.12)";}}
-                  onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,38,81,0.07)";}}>
-                  <img src={getStoryImg(story)} alt={story.title} style={{ width:"100%", height:160, objectFit:"cover", display:"block" }} />
-                  <div style={{ padding:"16px 18px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                      <span style={{ background:cs.bg, color:cs.text, borderRadius:20, padding:"2px 10px", fontSize:11, fontWeight:700 }}>{story.category}</span>
-                      <span style={{ fontSize:11, color:C.muted }}>{fmt(story.date)}</span>
-                    </div>
-                    {story.location && <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>{story.location}</div>}
-                    <h3 style={{ fontSize:15, fontWeight:800, color:C.text, margin:"0 0 8px", lineHeight:1.35 }}>{story.title}</h3>
-                    <p style={{ fontSize:13, color:C.muted, lineHeight:1.65, margin:"0 0 14px", display:"-webkit-box", WebkitLineClamp:3, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
-                      {story.excerpt}
-                    </p>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                      <span style={{ fontSize:12, fontWeight:700, color:C.primary }}>Read now →</span>
-                      {(story.daysToDeliver || story.amountDistributed) && (
-                        <span style={{ fontSize:11, color:C.muted }}>
-                          {story.daysToDeliver ? `${story.daysToDeliver}d · ` : ""}{story.amountDistributed || ""}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            <button onClick={load} style={{ padding:"11px 26px", borderRadius:10, border:"none", background:C.primary, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer" }}>
+              {lang==="so"?"Mar kale isku day":"Retry"}
+            </button>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* ── Featured stories ── */}
+      {!loading && !error && featured.length > 0 && (
+        <section style={sec("#fff")}>
+          <div style={wrap}>
+            <h2 style={{ fontSize:20, fontWeight:800, color:C.text, marginBottom:24 }}>
+              {lang==="so"?"Xikaayada Muhiimka ah":"Featured Stories"}
+            </h2>
+            <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": featured.length===1?"1fr":"1fr 1fr", gap:24 }}>
+              {featured.map(story => StoryCard(story, true))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── All stories grid + empty state ── */}
+      {!loading && !error && (
+        <section style={sec(C.bg)}>
+          <div style={wrap}>
+            {rest.length > 0 && (
+              <h2 style={{ fontSize:20, fontWeight:800, color:C.text, marginBottom:24 }}>
+                {lang==="so"?"Dhammaan Xikaayada":"All Stories"}
+                <span style={{ fontSize:14, color:C.muted, fontWeight:400, marginLeft:10 }}>({rest.length})</span>
+              </h2>
+            )}
+
+            {/* No stories at all (feed empty) vs. no match for current filter */}
+            {displayed.length === 0 && (
+              <div style={{ textAlign:"center", padding:"72px 0", color:C.muted }}>
+                <div style={{ fontSize:48, marginBottom:16 }}>📖</div>
+                {stories.length === 0 ? (
+                  <>
+                    <div style={{ fontSize:18, fontWeight:700, color:C.text }}>
+                      {lang==="so"?"Weli xikaayo lama daabicin":"No published stories yet"}
+                    </div>
+                    <div style={{ fontSize:14, marginTop:8, maxWidth:440, marginLeft:"auto", marginRight:"auto", lineHeight:1.7 }}>
+                      {lang==="so"
+                        ? "Marka xaaladaha la xaqiijiyay la dhammeeyo, xikaayadooda saameynta ayaa halkan ka soo muuqan doonta."
+                        : "As verified cases are completed, their impact stories will appear here. Explore open cases you can support in the meantime."}
+                    </div>
+                    <Link to="/cases" style={{ display:"inline-block", marginTop:24, padding:"12px 28px", background:C.primary, color:"#fff", borderRadius:12, fontWeight:700, fontSize:14, textDecoration:"none" }}>
+                      {lang==="so"?"Fiiri xaaladaha":"Browse open cases"}
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize:18, fontWeight:700, color:C.text }}>{lang==="so"?"Wax xikaayo ah lama helin":"No stories found"}</div>
+                    <div style={{ fontSize:14, marginTop:8 }}>{lang==="so"?"Isku day raadin ama qaybta kale":"Try a different search or category"}</div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {rest.length > 0 && (
+              <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr": isTablet?"1fr 1fr":"repeat(3,1fr)", gap: isMobile?16:24 }}>
+                {rest.map(story => StoryCard(story, false))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ══ SHARE YOUR STORY FORM ══ */}
       <StorySubmitSection isMobile={isMobile} />
@@ -476,7 +474,7 @@ export default function Stories() {
           </p>
           <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
             <Link to="/cases" style={{ padding:"14px 32px", background:C.gold, color:"#fff", borderRadius:12, fontWeight:800, fontSize:15, textDecoration:"none" }}>
-              Sponsor a Case
+              {lang==="so"?"Taageer Xaalad":"Sponsor a Case"}
             </Link>
           </div>
         </div>
