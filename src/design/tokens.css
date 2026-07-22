@@ -1,0 +1,141 @@
+/* ============================================================================
+   Amanah design tokens — Kafaala Qaad Hope Society
+   Single source of truth for the redesigned surfaces. Every value below is
+   authoritative: if a component needs a colour, radius, shadow or step that is
+   not here, add it here first rather than inlining a literal.
+   ========================================================================== */
+
+:root {
+  /* ── Brand: navy ───────────────────────────────────────────────────────── */
+  --kf-navy-950: #001A40;
+  --kf-navy-900: #002651;
+  --kf-navy-800: #00325F;
+  --kf-navy-50:  #EEF4FA;
+
+  /* ── Brand: blue (primary action / informational) ──────────────────────── */
+  --kf-blue-600: #004B96;
+  --kf-blue-500: #1A6CB5;
+  --kf-blue-100: #DBEAF7;
+  --kf-blue-50:  #F0F6FC;
+
+  /* ── Brand: green (verification / success) ─────────────────────────────── */
+  --kf-green-600: #4B7D19;
+  --kf-green-100: #E4F0D3;
+  --kf-green-50:  #F2F8E9;
+
+  /* ── Brand: gold — the ONLY accent. Reserved for CTAs. ─────────────────── */
+  --kf-gold-500: #E0AB21;
+  --kf-gold-600: #D19C1D;
+  --kf-gold-100: #FBF0D2;
+
+  /* ── Ink: text and borders ─────────────────────────────────────────────── */
+  --kf-ink-900: #0D1F3C; /* body text            */
+  --kf-ink-600: #3E5573; /* secondary text       */
+  --kf-ink-500: #5A6E8A; /* muted — lightest text permitted on white */
+  --kf-ink-300: #C3D6E8; /* card hover border (interpolated between 200 and 500) */
+  --kf-ink-200: #D8E4F0; /* default border       */
+  --kf-ink-100: #E9F0F7; /* track / hairline     */
+
+  /* ── Surfaces ──────────────────────────────────────────────────────────── */
+  --kf-surface: #FFFFFF;
+  --kf-canvas:  #F6F8FB;
+
+  /* ── On-dark alphas (navy surfaces only) ───────────────────────────────── */
+  --kf-on-dark-90:  rgba(255, 255, 255, .90);
+  --kf-on-dark-75:  rgba(255, 255, 255, .75); /* dimmest text allowed on navy */
+  --kf-on-dark-60:  rgba(255, 255, 255, .60);
+  --kf-on-dark-25:  rgba(255, 255, 255, .25);
+  --kf-on-dark-14:  rgba(255, 255, 255, .14);
+  --kf-on-dark-12:  rgba(255, 255, 255, .12);
+
+  /* ── Urgency (foreground / background / border) ────────────────────────── */
+  --kf-urg-critical-fg: #8A1E12;
+  --kf-urg-critical-bg: #FBEAE7;
+  --kf-urg-critical-bd: #F0C6BF;
+  --kf-urg-high-fg:     #BE3524;
+  --kf-urg-high-bg:     #FDF1EF;
+  --kf-urg-high-bd:     #F3D3CD;
+  --kf-urg-medium-fg:   #8A5A00;
+  --kf-urg-medium-bg:   #FBF0D2;
+  --kf-urg-medium-bd:   #EDD9A3;
+  --kf-urg-low-fg:      #3F680F;
+  --kf-urg-low-bg:      #F2F8E9;
+  --kf-urg-low-bd:      #D3E5B8;
+
+  /* ── Spacing — 4px scale, nothing between steps ────────────────────────── */
+  --kf-s1:  4px;   --kf-s2:  8px;   --kf-s3:  12px;  --kf-s4:  16px;
+  --kf-s5:  20px;  --kf-s6:  24px;  --kf-s7:  32px;  --kf-s8:  40px;
+  --kf-s9:  48px;  --kf-s10: 64px;  --kf-s11: 80px;  --kf-s12: 96px;
+
+  /* ── Radius — exactly four ─────────────────────────────────────────────── */
+  --kf-r-sm:   8px;   /* inputs, badges  */
+  --kf-r-md:   12px;  /* buttons         */
+  --kf-r-lg:   16px;  /* cards           */
+  --kf-r-pill: 999px; /* pills           */
+
+  /* ── Elevation — exactly three ─────────────────────────────────────────── */
+  --kf-e-1: 0 1px 2px rgba(13, 31, 60, .06);
+  --kf-e-2: 0 4px 16px rgba(13, 31, 60, .08);
+  --kf-e-3: 0 16px 40px rgba(13, 31, 60, .14);
+
+  /* ── Motion — two easings only, four durations ─────────────────────────── */
+  --kf-dur-hover:   120ms;
+  --kf-dur-base:    200ms;
+  --kf-dur-section: 320ms;
+  --kf-dur-long:    600ms;
+  --kf-ease-out:    cubic-bezier(.16, 1, .3, 1); /* entrances  */
+  --kf-ease-std:    cubic-bezier(.2, 0, 0, 1);   /* interactions */
+  /* Retained alias so earlier components keep compiling. */
+  --kf-ease-base:   var(--kf-ease-std);
+
+  /* ── Type ──────────────────────────────────────────────────────────────── */
+  --kf-font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+  --kf-font-body:    "Inter", system-ui, sans-serif;
+  --kf-font-arabic:  "IBM Plex Sans Arabic", "Inter", system-ui, sans-serif;
+
+  --kf-fs-display:  60px; --kf-lh-display: 1.03; --kf-ls-display: -.025em;
+  --kf-fs-h2:       32px; --kf-lh-h2:      1.15;
+  --kf-fs-h3:       22px; --kf-lh-h3:      1.3;
+  --kf-fs-h4:       18px;
+  --kf-fs-body-lg:  18px; --kf-lh-body-lg: 1.65;
+  --kf-fs-body:     16px;
+  --kf-fs-body-sm:  14px;
+  --kf-fs-caption:  12.5px;
+  --kf-fs-overline: 12px;  --kf-ls-overline: .12em;
+  --kf-fs-stat:     40px; --kf-lh-stat:    1.05;
+  --kf-fs-ticker:   13px;
+
+  /* ── Layout ────────────────────────────────────────────────────────────── */
+  --kf-container:    1200px;
+  --kf-gutter:       24px;
+  --kf-section-pad:  96px;
+
+  /* The Sunrise Rule gradient — the ONLY gradient on the page. Declared here
+     (rather than with logical keywords, which gradients don't support widely)
+     so it can be mirrored for RTL below. */
+  --kf-sunrise: linear-gradient(90deg, var(--kf-gold-500), var(--kf-green-600));
+}
+
+[dir="rtl"] {
+  --kf-sunrise: linear-gradient(270deg, var(--kf-gold-500), var(--kf-green-600));
+}
+
+/* Mobile type + layout overrides. Kept as token reassignments so components
+   never branch on viewport for pure styling concerns. */
+@media (max-width: 639px) {
+  :root {
+    --kf-fs-display: 38px;
+    --kf-fs-h2:      26px;
+    --kf-fs-stat:    32px;
+    --kf-gutter:     20px;
+    --kf-section-pad: 64px;
+  }
+}
+
+/* Arabic runs on IBM Plex Sans Arabic for both display and body. LanguageContext
+   already sets document.documentElement.dir, so we key off it here. */
+:root:lang(ar),
+[dir="rtl"] {
+  --kf-font-display: var(--kf-font-arabic);
+  --kf-font-body:    var(--kf-font-arabic);
+}

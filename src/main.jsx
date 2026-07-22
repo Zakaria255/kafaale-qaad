@@ -1,6 +1,10 @@
 import { StrictMode, Component, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
+// Amanah design system — tokens must load before the global layer that uses them.
+import './design/tokens.css';
+import './design/global.css';
+
 // True for "stale chunk after a new deploy" errors — the referenced JS file no
 // longer exists, so a reload (fetching the fresh index.html + new hashes) fixes it.
 const isChunkError = (msg = '') =>
@@ -28,18 +32,18 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.error) {
       if (isChunkError(this.state.error.message)) return (
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F4F7FC', fontFamily: 'system-ui', gap: 14, padding: 24 }}>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#004B96' }}>Updating to the latest version…</div>
-          <button onClick={() => { try { sessionStorage.removeItem('kf-chunk-reloaded'); } catch {} window.location.reload(); }} style={{ padding: '10px 24px', background: '#004B96', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Reload now</button>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: C.bg, fontFamily: 'system-ui', gap: 14, padding: 24 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.primary }}>Updating to the latest version…</div>
+          <button onClick={() => { try { sessionStorage.removeItem('kf-chunk-reloaded'); } catch {} window.location.reload(); }} style={{ padding: '10px 24px', background: C.primary, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Reload now</button>
         </div>
       );
       return (
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F4F7FC', fontFamily: 'system-ui', gap: 12, padding: 24 }}>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: C.bg, fontFamily: 'system-ui', gap: 12, padding: 24 }}>
           <div style={{ fontSize: 48 }}>⚠️</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#C0392B' }}>Something went wrong</div>
-          <pre style={{ fontSize: 11, color: '#C0392B', background: '#FEE2E2', padding: 12, borderRadius: 8, maxWidth: 600, overflowX: 'auto', whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre>
-          <pre style={{ fontSize: 10, color: '#5A6E8A', background: '#fff', padding: 12, borderRadius: 8, maxWidth: 600, overflowX: 'auto', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto' }}>{this.state.info?.componentStack}</pre>
-          <button onClick={() => { localStorage.clear(); window.location.href = '/login'; }} style={{ padding: '10px 24px', background: '#004B96', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Clear & Back to Login</button>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.danger }}>Something went wrong</div>
+          <pre style={{ fontSize: 11, color: C.danger, background: '#FEE2E2', padding: 12, borderRadius: 8, maxWidth: 600, overflowX: 'auto', whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre>
+          <pre style={{ fontSize: 10, color: C.muted, background: '#fff', padding: 12, borderRadius: 8, maxWidth: 600, overflowX: 'auto', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto' }}>{this.state.info?.componentStack}</pre>
+          <button onClick={() => { localStorage.clear(); window.location.href = '/login'; }} style={{ padding: '10px 24px', background: C.primary, color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700 }}>Clear & Back to Login</button>
         </div>
       );
     }
@@ -82,6 +86,7 @@ import { LanguageProvider } from './context/LanguageContext.jsx';
 // Eager — always needed on first load
 import Home  from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
+import { C } from "./theme.js";
 // Lazy — code-split to reduce initial bundle
 const About         = lazyWithReload(() => import('./pages/About.jsx'));
 const HowItWorks    = lazyWithReload(() => import('./pages/HowItWorks.jsx'));
@@ -103,20 +108,20 @@ const Dashboard     = lazyWithReload(() => import('./KafaaleQaadApp.jsx'));
 function PageLoader() {
   return (
     <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ textAlign: "center", color: "#5A6E8A", fontSize: 14 }}>Loading…</div>
+      <div style={{ textAlign: "center", color: C.muted, fontSize: 14 }}>Loading…</div>
     </div>
   );
 }
 
 function NotFound() {
   return (
-    <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "system-ui", color: "#0D1F3C", textAlign: "center", padding: 24 }}>
+    <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "system-ui", color: C.text, textAlign: "center", padding: 24 }}>
       <div style={{ fontSize: 72 }}>🔍</div>
       <h1 style={{ fontSize: 36, fontWeight: 900, margin: 0 }}>404 — Page Not Found</h1>
-      <p style={{ fontSize: 16, color: "#5A6E8A", maxWidth: 420, lineHeight: 1.7 }}>
+      <p style={{ fontSize: 16, color: C.muted, maxWidth: 420, lineHeight: 1.7 }}>
         The page you're looking for doesn't exist or has been moved.
       </p>
-      <a href="/" style={{ padding: "12px 28px", background: "#004B96", color: "#fff", borderRadius: 12, textDecoration: "none", fontWeight: 700, fontSize: 15 }}>
+      <a href="/" style={{ padding: "12px 28px", background: C.primary, color: "#fff", borderRadius: 12, textDecoration: "none", fontWeight: 700, fontSize: 15 }}>
         ← Back to Home
       </a>
     </div>
@@ -127,7 +132,7 @@ function ShareStoryBanner() {
   const { pathname } = useLocation();
   if (pathname.startsWith('/dashboard') || pathname === '/login') return null;
   return (
-    <div style={{ background: "#F4F7FC", paddingTop: 64 }}>
+    <div style={{ background: C.bg, paddingTop: 64 }}>
     <div style={{
       position: "relative", overflow: "hidden",
       minHeight: 260,
@@ -136,7 +141,7 @@ function ShareStoryBanner() {
       padding: "64px clamp(24px, 7vw, 96px)",
     }}>
       {/* Solid brand navy base */}
-      <div style={{ position: "absolute", inset: 0, background: "#0D1F3C" }} />
+      <div style={{ position: "absolute", inset: 0, background: C.text }} />
       {/* Photo — full-bleed cover, fills the entire banner edge to edge */}
       <div style={{
         position: "absolute", inset: 0,
@@ -170,7 +175,7 @@ function ShareStoryBanner() {
       <a href="/stories#share" style={{
         position: "relative", zIndex: 1, flexShrink: 0,
         padding: "17px 42px", borderRadius: 50, fontWeight: 800, fontSize: 15,
-        background: "#E0AB21", color: "#fff", textDecoration: "none", whiteSpace: "nowrap",
+        background: C.accent, color: "#fff", textDecoration: "none", whiteSpace: "nowrap",
         boxShadow: "0 8px 32px rgba(224,171,33,0.45)",
         fontFamily: "inherit", letterSpacing: 0.3,
       }}>
@@ -201,13 +206,13 @@ function PageGate({ pageKey, children }) {
   });
   if (vis[pageKey] === false) {
     return (
-      <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "system-ui", color: "#0D1F3C", textAlign: "center", padding: 24 }}>
+      <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "system-ui", color: C.text, textAlign: "center", padding: 24 }}>
         <div style={{ fontSize: 64 }}>🔒</div>
         <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Page Temporarily Unavailable</h1>
-        <p style={{ fontSize: 15, color: "#5A6E8A", maxWidth: 400, lineHeight: 1.7 }}>
+        <p style={{ fontSize: 15, color: C.muted, maxWidth: 400, lineHeight: 1.7 }}>
           This section is currently offline. Please check back soon or contact us for more information.
         </p>
-        <a href="/" style={{ padding: "12px 28px", background: "#004B96", color: "#fff", borderRadius: 12, textDecoration: "none", fontWeight: 700, fontSize: 15 }}>← Back to Home</a>
+        <a href="/" style={{ padding: "12px 28px", background: C.primary, color: "#fff", borderRadius: 12, textDecoration: "none", fontWeight: 700, fontSize: 15 }}>← Back to Home</a>
       </div>
     );
   }
