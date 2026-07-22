@@ -5,8 +5,7 @@ import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { cases as casesApi } from "../api/client.js";
-
-const C = { navy: "#002651", primary: "#004B96", secondary: "#4B7D19", accent: "#E0AB21", danger: "#C0392B", muted: "#5A6E8A", bg: "#F4F7FC", border: "#D8E4F0", text: "#0D1F3C", gold: "#E0AB21", green: "#4B7D19", blue: "#004B96" };
+import { C } from "../theme.js";
 
 export default function Contact() {
   const { lang } = useLang();
@@ -73,7 +72,7 @@ export default function Contact() {
   ];
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", color: "#0D1F3C" }}>
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", color: C.text }}>
 
       {/* Hero */}
       <section style={{ backgroundImage: "url('/contact-hero.jpg')", backgroundSize: "cover", backgroundPosition: "center", position: "relative", color: "#fff", padding: "120px 24px 100px", textAlign: "center" }}>

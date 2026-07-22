@@ -4,13 +4,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LanguageContext.jsx';
 import Logo from '../components/Logo.jsx';
-
-const C = {
-  navy: "#002651", primary: "#004B96", green: "#4B7D19",
-  accent: "#E0AB21", gold: "#E0AB21", blue: "#004B96",
-  bg: "#F4F7FC", border: "#D8E4F0", muted: "#5A6E8A",
-  text: "#0D1F3C", error: "#C0392B", danger: "#C0392B",
-};
+import { C } from "../theme.js";
 
 // Custom portal dropdown — works inside any overflow/fixed context
 function PortalSelect({ value, onChange, groups }) {

@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-const C = { navy:"#002651", primary:"#004B96", secondary:"#4B7D19", accent:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC", border:"#D8E4F0", text:"#0D1F3C", danger:"#C0392B" };
+import { C } from "../theme.js";
 
 const UPDATES_KEY = "kf_updates";
 
 const TYPE_META = {
-  Disaster:  { color:"#C0392B", bg:"#FEF2F2", icon:"🚨" },
+  Disaster:  { color:C.danger, bg:"#FEF2F2", icon:"🚨" },
   Flood:     { color:"#1D4ED8", bg:"#DBEAFE", icon:"" },
   Drought:   { color:"#D97706", bg:"#FEF3C7", icon:"" },
   Emergency: { color:"#7C3AED", bg:"#EDE9FE", icon:"" },

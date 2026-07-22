@@ -145,10 +145,10 @@ function readingTime(story) {
 const CAT_COLORS = {
   Medical:"#3B82F6", Shelter:"#10B981", Education:"#F59E0B", Water:"#06B6D4",
   Food:"#EC4899", "Food & Nutrition":"#EC4899", Orphan:"#8B5CF6",
-  Emergency:"#C0392B", "Success Story":"#10B981", "Press Release":"#8B5CF6",
-  Partnership:"#DB2777", Other:"#5A6E8A",
+  Emergency:C.danger, "Success Story":"#10B981", "Press Release":"#8B5CF6",
+  Partnership:"#DB2777", Other:C.muted,
 };
-const catColor = (cat) => CAT_COLORS[cat] || "#5A6E8A";
+const catColor = (cat) => CAT_COLORS[cat] || C.muted;
 
 const fmt = (d) => {
   try { return new Date(d).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" }); }

@@ -2,23 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { cases as casesApi } from "../api/client";
 import { useResponsive } from "../hooks/useResponsive.js";
+import { C } from "../theme.js";
 
-const C = {
-  navy:      "#002651",
-  primary:   "#004B96",
-  secondary: "#4B7D19",
-  accent:    "#E0AB21",
-  gold:      "#E0AB21",
-  green:     "#4B7D19",
-  blue:      "#004B96",
-  danger:    "#C0392B",
-  muted:     "#5A6E8A",
-  bg:        "#F4F7FC",
-  border:    "#D8E4F0",
-  text:      "#0D1F3C",
-};
-
-const URGENCY_COLOR = { low: "#10B981", medium: "#F59E0B", high: "#C0392B", critical: "#7C3AED" };
+const URGENCY_COLOR = { low: "#10B981", medium: "#F59E0B", high: C.danger, critical: "#7C3AED" };
 const URGENCY_BG    = { low: "#D1FAE5", medium: "#FEF3C7", high: "#FEE2E2", critical: "#EDE9FE" };
 const URGENCY_LABEL = { low: "🟢 Low", medium: "🟡 Medium", high: "🔴 High", critical: "🟣 Critical" };
 const CAT_ICON      = { food: "🍚", medical: "🏥", shelter: "🏠", orphan: "👶", disaster: "🌪️", education: "📚", other: "🌍" };

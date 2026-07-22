@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { C } from "../theme.js";
 
 /**
  * <Logo /> — Kafaala Qaad Hope Society brand logo
@@ -15,8 +16,8 @@ export default function Logo({ size = "md", variant = "full", linked = true, dar
     lg: { img: 96,  title: 25, sub: 12, gap: 16 },
   }[size] || { img: 72, title: 19, sub: 10, gap: 13 };
 
-  const titleColor = dark ? "#ffffff" : "#002651";
-  const subColor   = dark ? "#E0AB21" : "#4B7D19";
+  const titleColor = dark ? C.white : C.navy;
+  const subColor   = dark ? C.accent : C.secondary;
 
   const inner = (
     <div style={{
@@ -30,7 +31,7 @@ export default function Logo({ size = "md", variant = "full", linked = true, dar
       {/* Icon wrapper — always white background so icon is visible on any surface */}
       <div style={{
         width: s.img, height: s.img, flexShrink: 0,
-        background: "#ffffff",
+        background: C.white,
         borderRadius: Math.round(s.img * 0.2),
         padding: Math.round(s.img * 0.07),
         boxSizing: "border-box",

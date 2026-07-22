@@ -1,11 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ai } from '../api/client';
 import { useResponsive } from '../hooks/useResponsive.js';
-
-const C = {
-  primary: '#004B96', accent: '#E0AB21', green: '#4B7D19',
-  bg: '#F4F7FC', white: '#FFFFFF', text: '#0D1F3C', muted: '#5A6E8A', border: '#D8E4F0',
-};
+import { C } from "../theme.js";
 
 export default function AiAssistant({ caseId = null, context = 'general' }) {
   const [open, setOpen] = useState(false);

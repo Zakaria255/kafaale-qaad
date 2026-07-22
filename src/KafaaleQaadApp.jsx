@@ -23,25 +23,9 @@ const useIsMobile = (bp = 600) => {
 const useIsTablet = () => useIsMobile(900);
 
 // ─── Color Palette & Globals ───────────────────────────────────────────────
-const COLORS = {
-  navy:      "#002651",
-  primary:   "#004B96",
-  blue:      "#004B96",
-  secondary: "#4B7D19",
-  green:     "#4B7D19",
-  accent:    "#E0AB21",
-  gold:      "#E0AB21",
-  danger:    "#C0392B",
-  purple:    "#6B21A8",
-  teal:      "#0E7490",
-  bg:        "#F4F7FC",
-  card:      "#FFFFFF",
-  text:      "#0D1F3C",
-  muted:     "#5A6E8A",
-  border:    "#D8E4F0",
-  darkBg:    "#001A40",
-  darkCard:  "#00244F",
-};
+// Palette comes from the single source of truth in theme.js. Aliased to COLORS so
+// the existing `const C = COLORS` sites throughout this file keep working.
+import { C as COLORS } from "./theme.js";
 
 const STATUS_MAP = {
   "Pending Verification": { color: "#F59E0B", bg: "#FEF3C7", icon: "" },
@@ -54,7 +38,7 @@ const STATUS_MAP = {
   "Aid Delivered":        { color: "#06B6D4", bg: "#CFFAFE", icon: "" },
   "Delivering":           { color: "#0891B2", bg: "#CFFAFE", icon: "" },
   "Proof Submitted":      { color: "#10B981", bg: "#D1FAE5", icon: "" },
-  "Completed":            { color: "#5A6E8A", bg: "#F3F4F6", icon: "" },
+  "Completed":            { color: COLORS.muted, bg: "#F3F4F6", icon: "" },
   "Archived":             { color: "#374151", bg: "#E5E7EB", icon: "" },
 };
 
@@ -69,12 +53,12 @@ const WORKFLOW_STEPS = [
   { num: 5, label: "Donor Queue",        status: "Waiting Sponsor",      color: "#EC4899", icon: "" },
   { num: 6, label: "Sponsorship",        status: "Sponsored",            color: "#EF4444", icon: "" },
   { num: 7, label: "Aid Delivery",       status: "Aid Delivered",        color: "#06B6D4", icon: "" },
-  { num: 8, label: "Completed",          status: "Completed",            color: "#5A6E8A", icon: "" },
+  { num: 8, label: "Completed",          status: "Completed",            color: COLORS.muted, icon: "" },
 ];
 
 // ─── HELPER COMPONENTS ─────────────────────────────────────────────────────
 const Badge = ({ status }) => {
-  const s = STATUS_MAP[status] || { color: "#5A6E8A", bg: "#F3F4F6", icon: "○" };
+  const s = STATUS_MAP[status] || { color: COLORS.muted, bg: "#F3F4F6", icon: "○" };
   return (
     <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.color}40`, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>
       {s.icon} {status}
@@ -1955,7 +1939,7 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
       </div>
 
       {ai.generatedTitle && (
-        <div style={{ background: "#EDE9FE", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#6B21A8" }}>
+        <div style={{ background: "#EDE9FE", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: COLORS.purple }}>
           AI-generated content loaded. Review and edit before publishing.
         </div>
       )}
@@ -2669,7 +2653,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
         </Section>
 
         {/* ── 3. Reporter ── */}
-        <Section title="3. REPORTED BY" color="#0E7490">
+        <Section title="3. REPORTED BY" color={COLORS.teal}>
           <Row label="Name"              val={data.reporter?.name  || "—"} />
           <Row label="Email"             val={data.reporter?.email || "—"} />
           <Row label="Phone"             val={data.reporter?.phone || "—"} />
@@ -2712,7 +2696,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
 
         {/* ── 5. AI Sanitization ── */}
         {ai && (
-          <Section title="5. AI SANITIZATION DATA" color="#6B21A8">
+          <Section title="5. AI SANITIZATION DATA" color={COLORS.purple}>
             <Row label="Generated Title"   val={ai.generatedTitle || "—"} />
             <Row label="Confidence Score"  val={ai.confidenceScore != null ? `${ai.confidenceScore}%` : "—"} />
             {ai.publicStory && <>
@@ -3840,7 +3824,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
           {/* Lane 2 — Field Investigation */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <div style={{ background: "#EDE9FE", borderRadius: 10, padding: "8px 14px", fontWeight: 800, fontSize: 13, color: "#6B21A8" }}>
+              <div style={{ background: "#EDE9FE", borderRadius: 10, padding: "8px 14px", fontWeight: 800, fontSize: 13, color: COLORS.purple }}>
                 Field Investigation ({inField.length})
               </div>
             </div>
@@ -3866,7 +3850,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
           {/* Lane 4 — Delivery Proof Review */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <div style={{ background: "#CFFAFE", borderRadius: 10, padding: "8px 14px", fontWeight: 800, fontSize: 13, color: "#0E7490", position: "relative" }}>
+              <div style={{ background: "#CFFAFE", borderRadius: 10, padding: "8px 14px", fontWeight: 800, fontSize: 13, color: COLORS.teal, position: "relative" }}>
                 Proof Uploaded ({proofReady.length})
                 {proofReady.length > 0 && <span style={{ position: "absolute", top: -6, right: -6, background: COLORS.danger, color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{proofReady.length}</span>}
               </div>
@@ -4108,7 +4092,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
 
   const MissionCard = ({ c }) => {
     const statusColors = {
-      "Under Review": { bg: "#EDE9FE", color: "#6B21A8", label: "Just Assigned" },
+      "Under Review": { bg: "#EDE9FE", color: COLORS.purple, label: "Just Assigned" },
       "Investigating": { bg: "#DBEAFE", color: "#1E40AF", label: "Investigating" },
       "Awaiting Approval": { bg: "#D1FAE5", color: "#065F46", label: "Report Submitted" },
       "Delivering":    { bg: "#CFFAFE", color: "#0891B2", label: "Active Delivery" },
@@ -4168,7 +4152,7 @@ const FieldTeamDashboard = ({ cases, currentUser, onViewCase, onInvestigate, onD
         <StatCard label="Active Missions"   value={active.length}     icon="" color={COLORS.primary} />
         <StatCard label="Report Submitted"  value={submitted.length}  icon="" color={COLORS.secondary} />
         <StatCard label="Delivering Aid"    value={delivering.length} icon="" color="#EC4899" />
-        <StatCard label="Completed"         value={completed.length}  icon="" color="#5A6E8A" />
+        <StatCard label="Completed"         value={completed.length}  icon="" color={COLORS.muted} />
       </div>
 
       {active.length > 0 && (
@@ -4671,7 +4655,7 @@ const MySponshorshipsTab = () => {
 };
 
 // ─── USER AVATAR — coloured circle with initials ─────────────────────────────
-const AVATAR_COLORS = ["#004B96","#4B7D19","#7C3AED","#D97706","#DC2626","#0891B2","#059669","#9D174D"];
+const AVATAR_COLORS = [COLORS.primary,COLORS.secondary,"#7C3AED","#D97706","#DC2626","#0891B2","#059669","#9D174D"];
 const UserAvatar = ({ name, size = 36 }) => {
   const initials = (name || "?").split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase();
   const color = AVATAR_COLORS[(name || "").charCodeAt(0) % AVATAR_COLORS.length];
@@ -5870,7 +5854,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                     <span style={{ position:"absolute", top:2, left: m.show!==false ? 20:2, width:18, height:18, borderRadius:"50%", background:"#fff", transition:"left .2s", boxShadow:"0 1px 3px rgba(0,0,0,0.2)" }} />
                   </button>
                   <button onClick={() => openEditMember(m)} style={{ padding:"6px 14px", background:C.bg, border:`1px solid ${C.border}`, borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:C.text }}>Edit</button>
-                  <button onClick={() => deleteMember(m.id)} style={{ padding:"6px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:"#C0392B" }}>✕</button>
+                  <button onClick={() => deleteMember(m.id)} style={{ padding:"6px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:COLORS.danger }}>✕</button>
                 </div>
               </div>
             ))}
@@ -5960,7 +5944,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
 
           <div style={{ display:"grid", gap:10, marginBottom:24 }}>
             {updatesData.map((u) => {
-              const typeColors = { Disaster:"#C0392B", Flood:"#1D4ED8", Drought:"#D97706", Emergency:"#7C3AED", Conflict:"#374151", Disease:"#065F46", General:"#0369A1" };
+              const typeColors = { Disaster:COLORS.danger, Flood:"#1D4ED8", Drought:"#D97706", Emergency:"#7C3AED", Conflict:"#374151", Disease:"#065F46", General:"#0369A1" };
               const tc = typeColors[u.type] || typeColors.General;
               return (
                 <div key={u.id} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"14px 16px", display:"flex", alignItems:"flex-start", gap:14 }}>
@@ -5979,7 +5963,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                       background: u.published ? "#D1FAE5" : C.bg, color: u.published ? "#065F46" : C.muted,
                     }}>{u.published ? "✓ Live" : "Draft"}</button>
                     <button onClick={() => openEditUpdate(u)} style={{ padding:"6px 14px", background:C.bg, border:`1px solid ${C.border}`, borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }}>Edit</button>
-                    <button onClick={() => deleteUpdate(u.id)} style={{ padding:"6px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:"#C0392B" }}>✕</button>
+                    <button onClick={() => deleteUpdate(u.id)} style={{ padding:"6px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:COLORS.danger }}>✕</button>
                   </div>
                 </div>
               );
@@ -6223,7 +6207,7 @@ const CommunityStoriesPanel = ({ showToast }) => {
                   <button onClick={() => publish(sub)} style={{ padding:"7px 16px", borderRadius:8, border:"none", background:C.secondary, cursor:"pointer", fontSize:12, fontWeight:800, color:"#fff" }}>
                     Publish
                   </button>
-                  <button onClick={() => reject(sub)} style={{ padding:"7px 14px", borderRadius:8, border:"none", background:"#FEE2E2", cursor:"pointer", fontSize:12, fontWeight:700, color:"#C0392B" }}>
+                  <button onClick={() => reject(sub)} style={{ padding:"7px 14px", borderRadius:8, border:"none", background:"#FEE2E2", cursor:"pointer", fontSize:12, fontWeight:700, color:COLORS.danger }}>
                     ✕ Reject
                   </button>
                 </>
@@ -6233,7 +6217,7 @@ const CommunityStoriesPanel = ({ showToast }) => {
                   <button onClick={() => toggleFeaturePub(sub)} style={{ padding:"7px 14px", borderRadius:8, border: sub.featured ? "1.5px solid #FCD34D" : `1px solid ${C.border}`, background: sub.featured ? "#FEF9C3" : "#fff", cursor:"pointer", fontSize:12, fontWeight:700, color: sub.featured ? "#92400E" : C.muted }}>
                     {sub.featured ? "Featured" : "☆ Feature"}
                   </button>
-                  <button onClick={() => unpublish(sub)} style={{ padding:"7px 14px", borderRadius:8, border:"none", background:"#FEE2E2", cursor:"pointer", fontSize:12, fontWeight:700, color:"#C0392B" }}>
+                  <button onClick={() => unpublish(sub)} style={{ padding:"7px 14px", borderRadius:8, border:"none", background:"#FEE2E2", cursor:"pointer", fontSize:12, fontWeight:700, color:COLORS.danger }}>
                     Unpublish
                   </button>
                 </>
@@ -6268,7 +6252,7 @@ const CommunityStoriesPanel = ({ showToast }) => {
                 <button onClick={() => publish(preview)} style={{ flex:1, padding:"12px", borderRadius:10, border:"none", background:C.secondary, cursor:"pointer", fontWeight:800, fontSize:14, color:"#fff" }}>
                   Publish This Story
                 </button>
-                <button onClick={() => reject(preview)} style={{ padding:"12px 20px", borderRadius:10, border:"none", background:"#FEE2E2", cursor:"pointer", fontWeight:700, fontSize:14, color:"#C0392B" }}>
+                <button onClick={() => reject(preview)} style={{ padding:"12px 20px", borderRadius:10, border:"none", background:"#FEE2E2", cursor:"pointer", fontWeight:700, fontSize:14, color:COLORS.danger }}>
                   Reject
                 </button>
               </div>
@@ -6457,7 +6441,7 @@ const ImpactStoriesPanel = ({ showToast }) => {
                   <div style={{ position:"absolute", top:8, left:8, background: side==="before"?"rgba(0,0,0,0.6)":"rgba(5,150,105,0.9)", color:"#fff", borderRadius:6, padding:"2px 9px", fontSize:11, fontWeight:800 }}>{lbl}</div>
                 </div>
               ))}
-              <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:30, height:30, borderRadius:"50%", background:"#E0AB21", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:900, zIndex:2, boxShadow:"0 2px 8px #E0AB2180" }}>→</div>
+              <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:30, height:30, borderRadius:"50%", background:COLORS.accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:900, zIndex:2, boxShadow:"0 2px 8px #E0AB2180" }}>→</div>
             </div>
 
             {/* Descriptions */}
@@ -6960,7 +6944,7 @@ const HistoryPanel = ({ showToast }) => {
           <div key={e.id} style={{ background:"#fff", borderRadius:16, overflow:"hidden", boxShadow:"0 4px 16px #0002", border:`1px solid ${COLORS.border}` }}>
             {/* Photo(s) */}
             {(e.photos||[]).filter(p=>p).length > 0 && (
-              <div style={{ position:"relative", height:160, background:"#F4F7FC", cursor:"pointer" }} onClick={() => { setViewIdx(idx); setSlideIdx(0); }}>
+              <div style={{ position:"relative", height:160, background:COLORS.bg, cursor:"pointer" }} onClick={() => { setViewIdx(idx); setSlideIdx(0); }}>
                 <img src={(e.photos||[])[0]} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                 {(e.photos||[]).filter(p=>p).length > 1 && (
                   <div style={{ position:"absolute", bottom:8, right:8, background:"rgba(0,0,0,0.65)", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:12, fontWeight:700 }}>+{(e.photos||[]).filter(p=>p).length-1} more</div>
@@ -7030,10 +7014,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
 
   const SUPER_MODULES = [
     { id:"workflow",   icon:"", label:"Workflow",        sub:`${workflowAlerts} need action`, color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: workflowAlerts },
-    { id:"overview",   icon:"", label:"Overview",        sub:`${cases.length} cases`,         color:"#004B96", g:"linear-gradient(135deg,#004B96,#0072CE)", badge: pendingCases.length },
+    { id:"overview",   icon:"", label:"Overview",        sub:`${cases.length} cases`,         color:COLORS.primary, g:"linear-gradient(135deg,#004B96,#0072CE)", badge: pendingCases.length },
     { id:"users",      icon:"", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
     { id:"cases",      icon:"", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
-    { id:"donations",  icon:"", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:"#4B7D19", g:"linear-gradient(135deg,#4B7D19,#65A30D)", badge: donations.filter(d=>d.status==="pending").length },
+    { id:"donations",  icon:"", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:COLORS.secondary, g:"linear-gradient(135deg,#4B7D19,#65A30D)", badge: donations.filter(d=>d.status==="pending").length },
     { id:"analytics",  icon:"", label:"Analytics",       sub:"Charts & reports",               color:"#EA580C", g:"linear-gradient(135deg,#EA580C,#F97316)", badge: 0 },
     { id:"programs",   icon:"", label:"Programs",        sub:"Children enrolled",              color:"#059669", g:"linear-gradient(135deg,#059669,#10B981)", badge: 0 },
     { id:"partners",   icon:"", label:"Partners",        sub:`${partnerApps.filter(a=>a.status==="pending").length} pending`, color:"#2563EB", g:"linear-gradient(135deg,#2563EB,#3B82F6)", badge: partnerApps.filter(a=>a.status==="pending").length },
@@ -7055,7 +7039,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   const backBtn = (
     <button onClick={() => setActiveModule(null)} style={{
       display:"inline-flex", alignItems:"center", gap:6, padding:"8px 18px", borderRadius:10,
-      background:"#F4F7FC", border:`1px solid ${COLORS.border}`, cursor:"pointer",
+      background:COLORS.bg, border:`1px solid ${COLORS.border}`, cursor:"pointer",
       fontSize:13, fontWeight:700, color:COLORS.text, marginBottom:20,
     }}>← Back to Dashboard</button>
   );
@@ -7295,7 +7279,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
             <StatCard label={t("totalCases")}   value={cases.length}    icon="" color={COLORS.primary} />
             <StatCard label={t("totalUsers")}   value={users.length}    icon="" color="#8B5CF6" />
             <StatCard label={t("totalDonated")} value={`$${totalDonated.toLocaleString()}`} icon="" color={COLORS.secondary} />
-            <StatCard label={t("completed")}    value={cases.filter(c => c.status === "Completed").length} icon="" color="#5A6E8A" />
+            <StatCard label={t("completed")}    value={cases.filter(c => c.status === "Completed").length} icon="" color={COLORS.muted} />
           </div>
 
           {/* Proof pending alert */}
@@ -7657,7 +7641,7 @@ const EnrollBeneficiaryModal = ({ programs: progList, onClose, onDone, showToast
 
 // ── Create Program Modal ──────────────────────────────────────────────────────
 const CreateProgramModal = ({ onClose, onDone, showToast }) => {
-  const [form, setForm] = useState({ name: "", type: "child_sponsorship", description: "", icon: "", color: "#004B96", monthlyBudget: "" });
+  const [form, setForm] = useState({ name: "", type: "child_sponsorship", description: "", icon: "", color: COLORS.primary, monthlyBudget: "" });
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -8495,7 +8479,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
               {projects.map(p => {
                 const cat = PROJECT_CAT_LABELS[p.category] || { icon: "🌍", label: p.category };
                 const pct = p.fundingGoal > 0 ? Math.min(100, Math.round((p.totalRaised / p.fundingGoal) * 100)) : 0;
-                const statusColors = { seeking_funding: "#F59E0B", funded: "#10B981", in_progress: "#3B82F6", completed: "#5A6E8A" };
+                const statusColors = { seeking_funding: "#F59E0B", funded: "#10B981", in_progress: "#3B82F6", completed: COLORS.muted };
                 return (
                   <div key={p.id} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px #0001", border: `1px solid ${COLORS.border}` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>

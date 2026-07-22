@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-
-const C = { primary: "#004B96", border: "#D8E4F0", text: "#0D1F3C", muted: "#5A6E8A", bg: "#F4F7FC" };
+import { C } from "../theme.js";
 
 /**
  * Drop-in replacement for native <select> that renders its dropdown via a

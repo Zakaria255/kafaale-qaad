@@ -10,10 +10,17 @@ export const C = {
   green:   "#4B7D19",
   blue:    "#004B96",
   danger:  "#C0392B",
+  error:   "#C0392B", // alias of danger; kept so Login.jsx reads naturally
+  teal:    "#0E7490",
+  purple:  "#6B21A8",
   muted:   "#5A6E8A",
   bg:      "#F4F7FC",
+  white:   "#FFFFFF",
+  card:    "#FFFFFF", // alias of white; surface colour for cards
   border:  "#D8E4F0",
   text:    "#0D1F3C",
+  darkBg:  "#001A40",
+  darkCard:"#00244F",
 };
 
 // Keys are always lowercase to match API values

@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
-
-const C = { navy:"#002651", primary:"#004B96", secondary:"#4B7D19", accent:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC", border:"#D8E4F0", text:"#0D1F3C", gold:"#E0AB21", green:"#4B7D19", blue:"#004B96" };
+import { C } from "../theme.js";
 
 const TEAM_KEY    = "kf_team_data";
 const TEAM_VIS_KEY = "kf_team_visible";
@@ -79,7 +78,7 @@ export default function About() {
 
   const PROBLEMS = [
     { icon:"🚨",
-      title:"Fraud & Duplicates", color:"#C0392B", bg:"#FEF2F2",
+      title:"Fraud & Duplicates", color:C.danger, bg:"#FEF2F2",
       img:"https://images.unsplash.com/photo-1614107707982-51ac42f4fcdb?w=600&q=75",
       desc:"Fake cases and duplicate applications drain aid budgets. Without verification, resources go to the wrong people.",
       solution:"Multi-layer AI verification flags duplicates before a single dollar leaves the donor." },
@@ -298,7 +297,7 @@ export default function About() {
         }
         .kf-about-slide { position:absolute; inset:0; background-size:cover; background-position:center; animation-duration:24s; animation-timing-function:ease-in-out; animation-iteration-count:infinite; }
       `}</style>
-      <section style={{ position:"relative", overflow:"hidden", padding:"64px 24px", textAlign:"center", color:"#fff", minHeight:360, display:"flex", alignItems:"center", background:"#001A40", margin:"28px 16px 0", borderRadius:24, boxShadow:"0 12px 40px rgba(0,38,81,0.18)" }}>
+      <section style={{ position:"relative", overflow:"hidden", padding:"64px 24px", textAlign:"center", color:"#fff", minHeight:360, display:"flex", alignItems:"center", background:C.darkBg, margin:"28px 16px 0", borderRadius:24, boxShadow:"0 12px 40px rgba(0,38,81,0.18)" }}>
         {/* Background photo */}
         <div className="kf-about-slide" style={{ backgroundImage:"url('/cta-bg.jpg')", backgroundPosition:"center 35%", animationName:"none", opacity:1 }} />
 

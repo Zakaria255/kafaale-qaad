@@ -4,6 +4,7 @@ import Logo from "./Logo.jsx";
 import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
 import { useResponsive } from "../hooks/useResponsive.js";
+import { C } from "../theme.js";
 
 function loadPageVis() {
   try { return JSON.parse(localStorage.getItem("kf_page_settings") || "{}"); }
@@ -11,11 +12,11 @@ function loadPageVis() {
 }
 
 const B = {
-  navy:   "#002651",
-  blue:   "#004B96",
-  green:  "#4B7D19",
-  gold:   "#E0AB21",
-  border: "#D8E4F0",
+  navy:   C.navy,
+  blue:   C.primary,
+  green:  C.secondary,
+  gold:   C.accent,
+  border: C.border,
 };
 
 export default function Footer() {

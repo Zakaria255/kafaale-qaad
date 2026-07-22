@@ -4,8 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import ContractModal from "../components/ContractModal.jsx";
 import { getCat } from "../utils/categories.js";
-
-const C = { navy:"#002651", primary:"#004B96", secondary:"#4B7D19", accent:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC", border:"#D8E4F0", text:"#0D1F3C", danger:"#C0392B" };
+import { C } from "../theme.js";
 
 const PARTNER_REG_KEY = "kf_partner_applications";
 const ADMIN_PARTNERS_KEY = "kf_admin_partners";
@@ -40,7 +39,7 @@ const EXISTING_PARTNERS = [
   { id:3, name:"Horn of Africa NGO",      type:"Local NGO",                country:"Kenya",            color:"#F59E0B", focus:["Education","Child Protection"],          cases:145, img:"🌍", verified:true },
   { id:4, name:"Gulf Charity Alliance",   type:"Foundation",               country:"Qatar",            color:"#8B5CF6", focus:["Emergency Relief","Water & Sanitation"], cases:421, img:"", verified:true },
   { id:5, name:"UK Aid Direct",           type:"Government Agency",        country:"United Kingdom",   color:"#06B6D4", focus:["Livelihoods","Food Security"],           cases:89,  img:"🇬🇧", verified:true },
-  { id:6, name:"Turkish Red Crescent",    type:"International NGO",        country:"Turkey",           color:"#C0392B", focus:["Emergency Relief","Healthcare"],         cases:267, img:"", verified:true },
+  { id:6, name:"Turkish Red Crescent",    type:"International NGO",        country:"Turkey",           color:C.danger, focus:["Emergency Relief","Healthcare"],         cases:267, img:"", verified:true },
 ];
 
 const BLANK = {
@@ -51,7 +50,7 @@ const BLANK = {
 };
 
 const BLANK_PARTNER = {
-  name:"", type:"", country:"", website:"", focusAreas:[], description:"", cases:0, logoUrl:"", color:"#004B96", published:false,
+  name:"", type:"", country:"", website:"", focusAreas:[], description:"", cases:0, logoUrl:"", color:C.primary, published:false,
 };
 
 const STEPS = ["Organisation","Contact Person","Operations","Review & Submit"];
@@ -195,7 +194,7 @@ export default function ImpactPartners() {
       description: form.description,
       cases: 0,
       logoUrl: form.logoUrl || "",
-      color: "#004B96",
+      color: C.primary,
       published: false,
       status: "pending",
       contactName: form.contactName,
@@ -267,7 +266,7 @@ export default function ImpactPartners() {
         @keyframes kfPtnSlide3{ 0%,66%{opacity:0;transform:scale(1)translateY(-1%)} 71%{opacity:1} 100%{opacity:1;transform:scale(1.09)translateY(1%)} }
         .kf-ptn-slide{ position:absolute;inset:0;background-size:cover;background-position:center;animation-duration:24s;animation-timing-function:ease-in-out;animation-iteration-count:infinite; }
       `}</style>
-      <section style={{ position:"relative", overflow:"hidden", minHeight:360, display:"flex", alignItems:"center", background:"#001A40" }}>
+      <section style={{ position:"relative", overflow:"hidden", minHeight:360, display:"flex", alignItems:"center", background:C.darkBg }}>
         <div style={{ position:"absolute", inset:0, backgroundImage:"url('/partners-bg.jpg')", backgroundSize:"cover", backgroundPosition:"center center" }} />
         <div style={{ position:"absolute", inset:0, zIndex:5, background:"linear-gradient(135deg, rgba(0,38,81,0.82) 0%, rgba(0,75,150,0.72) 55%, rgba(75,125,25,0.65) 100%)" }} />
         <div style={{ position:"relative", zIndex:10, padding:"80px 24px", width:"100%", textAlign:"center", color:"#fff" }}>
@@ -278,7 +277,7 @@ export default function ImpactPartners() {
             <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
               <button onClick={() => setTab("partners")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="partners" ? C.accent : "rgba(255,255,255,0.15)", color:"#fff" }}>View Partners</button>
               <button onClick={() => setTab("register")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="register" ? C.accent : "rgba(255,255,255,0.15)", color:"#fff" }}>Register as Partner</button>
-              {isAdmin && <button onClick={() => setTab("admin")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="admin" ? "#C0392B" : "rgba(255,255,255,0.15)", color:"#fff" }}>Admin Panel</button>}
+              {isAdmin && <button onClick={() => setTab("admin")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="admin" ? C.danger : "rgba(255,255,255,0.15)", color:"#fff" }}>Admin Panel</button>}
             </div>
           </div>
         </div>
@@ -760,7 +759,7 @@ export default function ImpactPartners() {
 
       {/* ── Partner Value Proposition — split layout ── */}
       {tab === "partners" && (
-        <section style={{ background:"#001A40", overflow:"hidden" }}>
+        <section style={{ background:C.darkBg, overflow:"hidden" }}>
           <div style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", minHeight:460, alignItems:"center" }}>
             {/* Left — message */}
             <div style={{ padding:"72px 56px 72px 32px", color:"#fff" }}>

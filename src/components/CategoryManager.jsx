@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { CAT_GROUPS, useCategory } from "../utils/categories.js";
-
-const C = {
-  primary: "#004B96", border: "#D8E4F0", muted: "#5A6E8A", text: "#0D1F3C",
-  danger: "#C0392B", card: "#fff", bg: "#F8FAFC",
-};
+import { C } from "../theme.js";
 
 // Inline admin panel to add / remove entries of one category group.
 // Usage: <CategoryManager group="stories" />  (gate with your own isAdmin check)

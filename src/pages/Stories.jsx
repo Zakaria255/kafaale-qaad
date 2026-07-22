@@ -118,7 +118,7 @@ function StorySubmitSection({ isMobile }) {
               <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:6, textTransform:"uppercase", letterSpacing:0.5 }}>Story Title *</label>
               <input value={form.title} onChange={e=>set("title",e.target.value)}
                 placeholder="e.g. My child received the surgery she needed" style={inp()} />
-              {errors.title && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>{errors.title}</div>}
+              {errors.title && <div style={{ fontSize:12, color:C.danger, marginTop:4 }}>{errors.title}</div>}
             </div>
 
             {/* Location */}
@@ -134,7 +134,7 @@ function StorySubmitSection({ isMobile }) {
               <textarea rows={4} value={form.what} onChange={e=>set("what",e.target.value)}
                 placeholder="Describe the situation before help arrived — what was the challenge or hardship?"
                 style={{ ...inp(), resize:"vertical", lineHeight:1.7 }} />
-              {errors.what && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>{errors.what}</div>}
+              {errors.what && <div style={{ fontSize:12, color:C.danger, marginTop:4 }}>{errors.what}</div>}
             </div>
 
             {/* Outcome */}
@@ -143,7 +143,7 @@ function StorySubmitSection({ isMobile }) {
               <textarea rows={4} value={form.outcome} onChange={e=>set("outcome",e.target.value)}
                 placeholder="Describe the outcome — how did the support change the situation?"
                 style={{ ...inp(), resize:"vertical", lineHeight:1.7 }} />
-              {errors.outcome && <div style={{ fontSize:12, color:"#C0392B", marginTop:4 }}>{errors.outcome}</div>}
+              {errors.outcome && <div style={{ fontSize:12, color:C.danger, marginTop:4 }}>{errors.outcome}</div>}
             </div>
 
             {/* Consent */}
@@ -152,7 +152,7 @@ function StorySubmitSection({ isMobile }) {
                 <input type="checkbox" checked={form.consent} onChange={e=>set("consent",e.target.checked)} style={{ marginTop:2, flexShrink:0 }} />
                 <span>I confirm that this story is true and I consent to Kafaala Qaad reviewing and potentially publishing it on their platform and social media. My identity will remain protected unless I chose otherwise.</span>
               </label>
-              {errors.consent && <div style={{ fontSize:12, color:"#C0392B", marginTop:6 }}>{errors.consent}</div>}
+              {errors.consent && <div style={{ fontSize:12, color:C.danger, marginTop:6 }}>{errors.consent}</div>}
             </div>
 
             <button onClick={submit} style={{

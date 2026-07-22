@@ -1,11 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-
-const C = {
-  primary: "#004B96", secondary: "#4B7D19", bg: "#F4F7FC",
-  border: "#D8E4F0", muted: "#5A6E8A", text: "#0D1F3C",
-  danger: "#C0392B", card: "#fff",
-};
+import { C } from "../theme.js";
 
 const STORE_KEY = "kf_media_posts";
 const loadPosts = () => { try { return JSON.parse(localStorage.getItem(STORE_KEY) || "[]"); } catch { return []; } };

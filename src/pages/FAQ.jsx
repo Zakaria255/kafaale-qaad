@@ -2,12 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../context/LanguageContext.jsx";
 import { useResponsive } from "../hooks/useResponsive.js";
-
-const C = {
-  navy:"#002651", primary:"#004B96", secondary:"#4B7D19",
-  gold:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC",
-  border:"#D8E4F0", text:"#0D1F3C",
-};
+import { C } from "../theme.js";
 
 const FAQ_DATA = [
   {

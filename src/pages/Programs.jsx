@@ -5,12 +5,7 @@ import { programs as programsApi, projects as projectsApi } from "../api/client.
 import { useLang } from "../context/LanguageContext.jsx";
 import ContractModal from "../components/ContractModal.jsx";
 import { getCat } from "../utils/categories.js";
-
-const C = {
-  navy: "#002651", primary: "#004B96", secondary: "#4B7D19",
-  accent: "#E0AB21", danger: "#C0392B", muted: "#5A6E8A",
-  bg: "#F4F7FC", border: "#D8E4F0", text: "#0D1F3C", teal: "#0E7490",
-};
+import { C } from "../theme.js";
 
 const PROGRAM_LABELS = {
   child_sponsorship: "Child Sponsorship",
@@ -21,20 +16,19 @@ const PROGRAM_LABELS = {
   emergency_relief: "Emergency Relief",
 };
 
-
 const StatusBadge = ({ status }) => {
   const map = {
     seeking_sponsor:  { bg: "#FEF3C7", color: "#92400E",  label: "Seeking Sponsor" },
     sponsored:        { bg: "#D1FAE5", color: "#065F46",  label: "Under Sponsor" },
     under_sponsor:    { bg: "#D1FAE5", color: "#065F46",  label: "Under Sponsor" },
     verified:         { bg: "#DBEAFE", color: "#1E40AF",  label: "Verified" },
-    pending_verification: { bg: "#F3F4F6", color: "#5A6E8A", label: "Pending" },
+    pending_verification: { bg: "#F3F4F6", color: C.muted, label: "Pending" },
     seeking_funding:  { bg: "#FEF3C7", color: "#92400E",  label: "Seeking Funding" },
     funded:           { bg: "#D1FAE5", color: "#065F46",  label: "Funded" },
     in_progress:      { bg: "#DBEAFE", color: "#1E40AF",  label: "In Progress" },
     completed:        { bg: "#F0FDF4", color: "#166534",  label: "Completed" },
   };
-  const s = map[status] || { bg: "#F3F4F6", color: "#5A6E8A", label: status };
+  const s = map[status] || { bg: "#F3F4F6", color: C.muted, label: status };
   return (
     <span style={{ background: s.bg, color: s.color, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
       {s.label}

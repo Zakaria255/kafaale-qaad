@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { C } from "../theme.js";
 
 const B = {
-  navy: "#002651", blue: "#004B96", green: "#4B7D19",
-  gold: "#E0AB21", bg: "#F4F7FC", border: "#D8E4F0",
-  text: "#0D1F3C", muted: "#5A6E8A",
+  navy: C.navy, blue: C.primary, green: C.secondary,
+  gold: C.accent, bg: C.bg, border: C.border,
+  text: C.text, muted: C.muted,
 };
 
 const PROJECTS = [

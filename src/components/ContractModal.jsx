@@ -1,10 +1,6 @@
 import { useState, useRef } from "react";
 import { openPrintWindow } from "../utils/printDoc.js";
-
-const C = {
-  navy: "#002651", primary: "#004B96", secondary: "#4B7D19",
-  accent: "#E0AB21", muted: "#5A6E8A", border: "#D8E4F0", danger: "#C0392B",
-};
+import { C } from "../theme.js";
 
 const CONTRACTS_KEY = "kf_contracts";
 
@@ -29,7 +25,7 @@ function saveContract(contract) {
 const Row = ({ label, value }) => (
   <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 8, marginBottom: 8, fontSize: 13 }}>
     <span style={{ color: C.muted, fontWeight: 700, textTransform: "uppercase", fontSize: 11, letterSpacing: 0.5, paddingTop: 2 }}>{label}</span>
-    <span style={{ color: "#0D1F3C", fontWeight: 600 }}>{value}</span>
+    <span style={{ color: C.text, fontWeight: 600 }}>{value}</span>
   </div>
 );
 

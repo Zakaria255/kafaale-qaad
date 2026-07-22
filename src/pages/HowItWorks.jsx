@@ -2,10 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
+import { C } from "../theme.js";
 
-const C = { navy:"#002651", primary:"#004B96", secondary:"#4B7D19", accent:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC", border:"#D8E4F0", text:"#0D1F3C", gold:"#E0AB21", green:"#4B7D19", blue:"#004B96" };
-
-const STEP_COLORS = ["#3B82F6","#8B5CF6","#F59E0B","#10B981","#EC4899","#C0392B","#06B6D4","#5A6E8A"];
+const STEP_COLORS = ["#3B82F6","#8B5CF6","#F59E0B","#10B981","#EC4899",C.danger,"#06B6D4",C.muted];
 
 export default function HowItWorks() {
   const { lang } = useLang();
@@ -108,7 +107,7 @@ export default function HowItWorks() {
     { icon:"", color:"#8B5CF6", steps:[2,4], role:"Verifier",    desc:"Approves/rejects, assigns teams, releases to donors" },
     { icon:"", color:"#F59E0B", steps:[3,7], role:"Field Team",  desc:"Investigates on-site, delivers aid" },
     { icon:"", color:"#EC4899", steps:[5,6], role:"Donor",       desc:"Browses verified cases, makes secure payments" },
-    { icon:"", color:"#C0392B", steps:[8],   role:"Admin",       desc:"Oversees everything, monitors fraud, generates reports" },
+    { icon:"", color:C.danger, steps:[8],   role:"Admin",       desc:"Oversees everything, monitors fraud, generates reports" },
   ];
 
   const SECURITY = [
@@ -116,7 +115,7 @@ export default function HowItWorks() {
     { icon:"", title:"ID Verification",     color:"#8B5CF6", desc:"All users identity-verified before gaining platform access." },
     { icon:"", title:"Face Verification",   color:"#10B981", desc:"AWS Rekognition powers biometric login checks." },
     { icon:"", title:"AES-256 Encryption",  color:"#F59E0B", desc:"All data encrypted at rest and in transit via TLS 1.3." },
-    { icon:"", title:"AI Fraud Detection",  color:"#C0392B", desc:"Real-time anomaly detection flags suspicious patterns." },
+    { icon:"", title:"AI Fraud Detection",  color:C.danger, desc:"Real-time anomaly detection flags suspicious patterns." },
     { icon:"", title:"Immutable Audit Log", color:"#06B6D4", desc:"Every action logged with timestamp, user ID, and hash." },
     { icon:"", title:"GDPR Compliant",      color:"#065F46", desc:"Full data privacy compliance — right to erasure supported." },
     { icon:"", title:"Secure Payments",     color:"#D97706", desc:"Stripe, PayPal, and bank transfers — end-to-end encrypted." },

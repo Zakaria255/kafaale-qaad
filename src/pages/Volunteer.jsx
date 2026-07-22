@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import FixedSelect from "../components/FixedSelect.jsx";
-
-const C = { navy:"#002651", primary:"#004B96", secondary:"#4B7D19", accent:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC", border:"#D8E4F0", text:"#0D1F3C", danger:"#C0392B" };
+import { C } from "../theme.js";
 
 const VOL_KEY = "kf_volunteer_applications";
 

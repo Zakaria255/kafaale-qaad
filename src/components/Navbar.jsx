@@ -4,11 +4,12 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useLang } from "../context/LanguageContext.jsx";
 import { useResponsive } from "../hooks/useResponsive.js";
 import Logo from "./Logo.jsx";
+import { C } from "../theme.js";
 
 const B = {
-  navy:   "#002651", blue:   "#004B96", green:  "#4B7D19",
-  gold:   "#E0AB21", bg:     "#F4F7FC", border: "#D8E4F0",
-  text:   "#0D1F3C", muted:  "#5A6E8A",
+  navy:   C.navy, blue:   C.primary, green:  C.secondary,
+  gold:   C.accent, bg:     C.bg, border: C.border,
+  text:   C.text, muted:  C.muted,
 };
 
 // All navigable pages with their default visibility state
@@ -315,7 +316,7 @@ export default function Navbar() {
                         </button>
                       )}
                       <button onClick={() => { logout(); navigate("/"); setOpenDrop(null); }}
-                        style={{ width: "100%", padding: "10px 14px", background: "none", border: "none", textAlign: "left", cursor: "pointer", borderRadius: 8, fontSize: 14, color: "#C0392B" }}>
+                        style={{ width: "100%", padding: "10px 14px", background: "none", border: "none", textAlign: "left", cursor: "pointer", borderRadius: 8, fontSize: 14, color: C.danger }}>
                         {t("signOut")}
                       </button>
                     </div>
@@ -388,7 +389,7 @@ export default function Navbar() {
                     {t("dashboard")}
                   </button>
                   <button onClick={() => { logout(); navigate("/"); closeAll(); }}
-                    style={{ width: "100%", padding: "13px 16px", background: "#FEF2F2", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: "pointer", color: "#C0392B", textAlign: "left" }}>
+                    style={{ width: "100%", padding: "13px 16px", background: "#FEF2F2", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: "pointer", color: C.danger, textAlign: "left" }}>
                     {t("signOut")}
                   </button>
                 </>

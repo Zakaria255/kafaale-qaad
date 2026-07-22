@@ -1,18 +1,13 @@
 import { Link } from "react-router-dom";
 import { useLang } from "../context/LanguageContext.jsx";
 import { useResponsive } from "../hooks/useResponsive.js";
-
-const C = {
-  navy:"#002651", primary:"#004B96", secondary:"#4B7D19",
-  gold:"#E0AB21", muted:"#5A6E8A", bg:"#F4F7FC",
-  border:"#D8E4F0", text:"#0D1F3C",
-};
+import { C } from "../theme.js";
 
 const FUND_BREAKDOWN = [
-  { label:"Direct Aid to Beneficiaries", pct:72, color:"#4B7D19",   desc:"Food, medicine, shelter materials, school fees delivered directly to verified cases." },
-  { label:"Field Verification Operations", pct:14, color:"#004B96",  desc:"Field agent travel, documentation, GPS equipment, and case investigation costs." },
-  { label:"Platform & Technology",         pct:8,  color:"#E0AB21",  desc:"Server hosting, security, mobile app, AI verification infrastructure." },
-  { label:"Administration & Compliance",   pct:6,  color:"#5A6E8A",  desc:"Legal, accounting, audit, and compliance with international humanitarian standards." },
+  { label:"Direct Aid to Beneficiaries", pct:72, color:C.secondary,   desc:"Food, medicine, shelter materials, school fees delivered directly to verified cases." },
+  { label:"Field Verification Operations", pct:14, color:C.primary,  desc:"Field agent travel, documentation, GPS equipment, and case investigation costs." },
+  { label:"Platform & Technology",         pct:8,  color:C.accent,  desc:"Server hosting, security, mobile app, AI verification infrastructure." },
+  { label:"Administration & Compliance",   pct:6,  color:C.muted,  desc:"Legal, accounting, audit, and compliance with international humanitarian standards." },
 ];
 
 const STATS = [
