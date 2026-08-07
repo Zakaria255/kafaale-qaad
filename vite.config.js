@@ -57,8 +57,10 @@ export default defineConfig({
           },
         ],
       },
-      // Allow testing the install prompt during `vite dev` too.
-      devOptions: { enabled: true, type: 'module' },
+      // Service worker is DISABLED in dev — when enabled it precaches assets and
+      // serves stale HTML/CSS/images, so edits (new photos, section changes)
+      // don't appear without a hard refresh. Production builds still ship the PWA.
+      devOptions: { enabled: false },
     }),
   ],
   server: {

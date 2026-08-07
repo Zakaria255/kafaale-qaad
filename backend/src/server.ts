@@ -108,6 +108,10 @@ async function sendPaymentReminders() {
 }
 
 const app = express();
+// Disable ETags on API responses. With ETags, browsers revalidate and the server
+// returns 304 Not Modified; a 304 fails the client's `res.ok` check and makes live
+// cases render as "not found". This data is always dynamic — never conditionally cache it.
+app.set('etag', false);
 const PORT = process.env.PORT || 4000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 const server = http.createServer(app);

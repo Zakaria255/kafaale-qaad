@@ -82,6 +82,13 @@ router.patch('/cases/:id/status', async (req: AuthRequest, res: Response) => {
     const auditAction = STATUS_TO_ACTION[status] || 'approved';
 
     const kase = await prisma.case.update({ where: { id: req.params.id }, data: updateData });
+    // Publishing makes the case public — expose its image media to donors. Media
+    // is created isPublic:false by default; nothing else flips it, so without
+    // this the public detail page (which filters isPublic:true) always shows
+    // the placeholder even when the reporter uploaded a photo.
+    if (status === 'waiting_for_sponsor') {
+      await prisma.caseMedia.updateMany({ where: { caseId: kase.id, type: 'image' }, data: { isPublic: true } });
+    }
     await prisma.adminAuditLog.create({
       data: { adminId: req.user!.id, caseId: kase.id, action: auditAction as any, notes },
     });
@@ -120,11 +127,20 @@ router.patch('/cases/:id/assign-delivery', async (req: AuthRequest, res: Respons
     const agent = await prisma.user.findUnique({ where: { id: agentId } });
     if (!agent || agent.role !== 'field_agent') return res.status(400).json({ error: 'Invalid field agent' });
 
-    const existing = await prisma.case.findUnique({ where: { id: req.params.id }, select: { status: true } });
+    const existing = await prisma.case.findUnique({ where: { id: req.params.id }, select: { status: true, totalRaised: true } });
     if (!existing) return res.status(404).json({ error: 'Case not found' });
-    const assignableStatuses = ['sponsored', 'delivering'];
-    if (!assignableStatuses.includes(existing.status)) {
-      return res.status(400).json({ error: `Cannot assign delivery — case is in '${existing.status}' status` });
+    // Deliverable once money is in escrow. A case moves to 'sponsored' only when
+    // fully funded, but the escrow "Ready for Delivery" queue lets an admin dispatch
+    // aid against confirmed partial donations too — so allow 'waiting_for_sponsor'
+    // as long as at least one donation has been confirmed (totalRaised > 0).
+    const hasConfirmedFunds = (existing.totalRaised || 0) > 0;
+    const assignable = ['sponsored', 'delivering'].includes(existing.status)
+      || (existing.status === 'waiting_for_sponsor' && hasConfirmedFunds);
+    if (!assignable) {
+      const reason = existing.status === 'waiting_for_sponsor'
+        ? 'no confirmed donations yet'
+        : `case is in '${existing.status}' status`;
+      return res.status(400).json({ error: `Cannot assign delivery — ${reason}` });
     }
 
     const kase = await prisma.case.update({
@@ -156,6 +172,8 @@ router.patch('/cases/:id/publish', async (req: AuthRequest, res: Response) => {
       where: { id: req.params.id },
       data: { status: 'waiting_for_sponsor', publicTitle, publicStory, publicCity, targetGoal, adminPublishedAt: new Date() },
     });
+    // Expose uploaded image media on the public detail page (isPublic defaults to false).
+    await prisma.caseMedia.updateMany({ where: { caseId: kase.id, type: 'image' }, data: { isPublic: true } });
     if (kase.reporterId) {
       await prisma.notification.create({
         data: { userId: kase.reporterId, caseId: kase.id, type: 'case_published', title: '✅ Your Case is Now Live', message: 'Your case has been verified and published to the donor portal.' },

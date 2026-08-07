@@ -125,6 +125,23 @@ export default function CaseDetail() {
         {/* ── LEFT COLUMN ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
+          {/* Case Photos — only public, image-type media */}
+          {Array.isArray(kase.mediaFiles) && kase.mediaFiles.filter(m => (m.type || "image") === "image").length > 0 && (
+            <div style={{ background: "#fff", borderRadius: 20, padding: 12, boxShadow: "0 2px 16px #0001", overflow: "hidden" }}>
+              <div style={{ display: "grid", gridTemplateColumns: kase.mediaFiles.length > 1 ? "1fr 1fr" : "1fr", gap: 8 }}>
+                {kase.mediaFiles.filter(m => (m.type || "image") === "image").map((m) => (
+                  <img
+                    key={m.id || m.url}
+                    src={m.url}
+                    alt="Verified case photo"
+                    loading="lazy"
+                    style={{ width: "100%", aspectRatio: "16 / 10", objectFit: "cover", borderRadius: 12, display: "block" }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Case Story */}
           <div style={{ background: "#fff", borderRadius: 20, padding: 32, boxShadow: "0 2px 16px #0001" }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: C.text, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 10 }}>

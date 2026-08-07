@@ -127,6 +127,13 @@ img { max-width: 100%; display: block; }
 @keyframes kf-scroll-rtl { from { transform: translateX(0); } to { transform: translateX(50%); } }
 .kf-marquee:hover .kf-marquee-track { animation-play-state: paused; }
 
+/* ── How-it-works dashed connector ─────────────────────────────────────── */
+/* Flowing dashes along the path between step cards. Offset is a multiple of
+   the 14px dash period (8+6) so the loop is seamless. Reduced-motion halts it
+   via the global rule below. */
+@keyframes kf-dash { to { stroke-dashoffset: -140; } }
+.kf-dash-flow { animation: kf-dash 3s linear infinite; }
+
 /* ── Reduced motion ────────────────────────────────────────────────────── */
 /* A fully static page: no reveals, no lifts, no count-up transitions. */
 @media (prefers-reduced-motion: reduce) {

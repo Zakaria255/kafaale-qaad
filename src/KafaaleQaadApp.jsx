@@ -6,6 +6,7 @@ import { useLang } from "./context/LanguageContext.jsx";
 import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
+import ImageCropper from "./components/ImageCropper.jsx";
 import { CAT_GROUPS, getCat } from "./utils/categories.js";
 import { openPrintWindow } from "./utils/printDoc.js";
 import "./responsive.css";
@@ -1001,6 +1002,15 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState("");
+  const [photos,  setPhotos]  = useState([]);   // File[] — cropped case photos (optional)
+  const [cropQueue, setCropQueue] = useState([]); // File[] — awaiting adjust/crop
+  const photoInputRef = useRef(null);
+  const addPhotos = (fileList) => {
+    const imgs = Array.from(fileList || []).filter(f => f.type.startsWith("image/"));
+    const room = Math.max(0, 8 - photos.length - cropQueue.length); // backend accepts up to 8
+    if (room > 0) setCropQueue(q => [...q, ...imgs.slice(0, room)]);
+  };
+  const removePhoto = (idx) => setPhotos(p => p.filter((_, i) => i !== idx));
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const toggleNeed = (val) => setForm(f => ({
     ...f,
@@ -1040,7 +1050,19 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
         ...(isCommunity && form.communityVillageName && { communityVillageName: form.communityVillageName.trim() }),
         ...(isCommunity && form.communityChildCount  && { communityChildCount:  parseInt(form.communityChildCount) }),
       };
-      const result = await casesApi.submit(payload);
+      let submission = payload;
+      if (photos.length > 0) {
+        // Multipart: append every scalar field, JSON-encode the array (the backend
+        // JSON.parses needsChecklist), then attach photos under the `media` field.
+        const fd = new FormData();
+        Object.entries(payload).forEach(([k, v]) => {
+          if (v === undefined || v === null) return;
+          fd.append(k, Array.isArray(v) ? JSON.stringify(v) : String(v));
+        });
+        photos.forEach(file => fd.append("media", file));
+        submission = fd;
+      }
+      const result = await casesApi.submit(submission);
       onSubmit(result);
       onClose();
     } catch (e) {
@@ -1185,6 +1207,41 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
             placeholder="Any extra context for the verification team — school name, hospital, documents available…" />
         </div>
       </div>
+
+      {/* Photos (optional) — become the public case image once admin publishes */}
+      <div style={{ marginTop: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text, marginBottom: 4 }}>Photos (optional)</div>
+        <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 10 }}>
+          Add a photo of the situation. It stays private until the case is verified and published. Up to 8 images.
+        </div>
+        <input ref={photoInputRef} type="file" accept="image/*" multiple style={{ display: "none" }}
+          onChange={e => { addPhotos(e.target.files); e.target.value = ""; }} />
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+          {photos.map((f, i) => (
+            <div key={i} style={{ position: "relative", width: 84, height: 84, borderRadius: 10, overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
+              <img src={URL.createObjectURL(f)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <button type="button" onClick={() => removePhoto(i)}
+                style={{ position: "absolute", top: 2, right: 2, width: 20, height: 20, borderRadius: "50%", border: "none", background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: 13, lineHeight: "20px", cursor: "pointer", padding: 0 }}>×</button>
+            </div>
+          ))}
+          {(photos.length + cropQueue.length) < 8 && (
+            <button type="button" onClick={() => photoInputRef.current?.click()}
+              style={{ width: 84, height: 84, borderRadius: 10, border: `2px dashed ${COLORS.border}`, background: "#F9FAFB", color: COLORS.muted, fontSize: 12, fontWeight: 600, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+              <span style={{ fontSize: 22, lineHeight: 1 }}>+</span>Add photo
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Adjust each newly-picked photo (zoom + drag) before it joins the list */}
+      {cropQueue.length > 0 && (
+        <ImageCropper
+          file={cropQueue[0]}
+          aspect={16 / 10}
+          onConfirm={(f) => { setPhotos(p => [...p, f].slice(0, 8)); setCropQueue(q => q.slice(1)); }}
+          onCancel={() => setCropQueue(q => q.slice(1))}
+        />
+      )}
 
       {error && (
         <div style={{ background: "#FEF2F2", color: COLORS.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginTop: 8 }}>

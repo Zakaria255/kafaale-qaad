@@ -96,8 +96,11 @@ export default function CaseCard({
               style={{ inlineSize: "100%", blockSize: "100%", objectFit: "cover" }}
             />
           ) : (
-            <div style={{ display: "grid", placeItems: "center", blockSize: "100%" }}>
-              <img src={BRAND_ICON} alt="" aria-hidden="true" style={{ inlineSize: 24, opacity: 0.4 }} />
+            <div style={{
+              display: "grid", placeItems: "center", blockSize: "100%",
+              background: "linear-gradient(135deg, var(--kf-navy-800) 0%, var(--kf-navy-900) 100%)",
+            }}>
+              <img src={BRAND_ICON} alt="" aria-hidden="true" style={{ inlineSize: 52, opacity: 0.3 }} />
             </div>
           )}
         </div>

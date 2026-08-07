@@ -3,6 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      // Dev-only self-heal: a service worker registered during development kept
+      // serving a stale precache (e.g. the hero photo would not appear). This
+      // unregisters any worker and clears all caches on localhost so edits show
+      // immediately. Production PWA is untouched — it runs on localhost only.
+      (function () {
+        var local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+        if (!local || !('serviceWorker' in navigator)) return;
+        navigator.serviceWorker.getRegistrations()
+          .then(function (rs) { rs.forEach(function (r) { r.unregister(); }); })
+          .catch(function () {});
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+        }
+      })();
+    </script>
     <title>Kafaala Qaad HOPE — Humanitarian Aid Platform</title>
     <meta name="description" content="Kafaala Qaad HOPE — Transparent humanitarian aid from report to delivery. 100% verified cases, GPS-tracked aid delivery, secure escrow payments." />
     <meta name="theme-color" content="#002651" />

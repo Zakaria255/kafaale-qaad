@@ -36,10 +36,18 @@ async function req(path, opts = {}) {
   }
   // Never send the fake token upstream — the server would just 401 on it.
   const authHeader = token && !inDemo ? { Authorization: `Bearer ${token}` } : {};
-  const headers = { 'Content-Type': 'application/json', ...authHeader, ...(opts.headers || {}) };
+  // FormData (file uploads) must NOT get a JSON Content-Type — the browser sets
+  // multipart/form-data with the correct boundary itself. Forcing JSON here breaks
+  // multer parsing on the server, so no files ever arrive.
+  const isFormData = typeof FormData !== 'undefined' && opts.body instanceof FormData;
+  const baseHeaders = isFormData ? {} : { 'Content-Type': 'application/json' };
+  const headers = { ...baseHeaders, ...authHeader, ...(opts.headers || {}) };
   let res;
   try {
-    res = await fetch(`${API}${path}`, { ...opts, headers });
+    // `no-store`: never let the browser serve or revalidate from its HTTP cache.
+    // Revalidation returns 304 Not Modified, which fails the `res.ok` check below
+    // and would surface live cases as "not found". API data is always dynamic.
+    res = await fetch(`${API}${path}`, { cache: 'no-store', ...opts, headers });
     emit('kf-api-online'); // got a response → server reachable
     // Backend is answering again, so the offline demo session is stale. Drop it
     // now; a real login below will write real credentials over the top.
@@ -93,7 +101,8 @@ export const cases = {
   list:   (params = {}) => req('/cases?' + new URLSearchParams(params)),
   get:    (id)          => req(`/cases/${id}`),
   my:     ()            => req('/cases/my'),
-  submit: (data)        => req('/cases', { method: 'POST', body: JSON.stringify(data) }),
+  // Accepts a plain object (JSON) or a FormData (multipart, for photo uploads).
+  submit: (data)        => req('/cases', { method: 'POST', body: data instanceof FormData ? data : JSON.stringify(data) }),
 };
 
 // ── Admin endpoints ───────────────────────────────────────────────

@@ -145,12 +145,12 @@ function ShareStoryBanner() {
       {/* Photo — full-bleed cover, fills the entire banner edge to edge */}
       <div style={{
         position: "absolute", inset: 0,
-        backgroundImage: `url("/story-bg.png")`,
-        backgroundSize: "cover", backgroundPosition: "center center",
+        backgroundImage: `url("/story-bg.jpg")`,
+        backgroundSize: "cover", backgroundPosition: "center right",
         backgroundRepeat: "no-repeat",
       }} />
-      {/* Left-weighted overlay so text stays readable over the photo */}
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(13,31,60,0.95) 0%, rgba(13,31,60,0.85) 30%, rgba(13,31,60,0.45) 55%, rgba(13,31,60,0.30) 100%)" }} />
+      {/* Left-weighted overlay so text stays readable while the community scene shows on the right */}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,26,64,0.94) 0%, rgba(0,26,64,0.8) 32%, rgba(0,38,81,0.4) 58%, rgba(0,38,81,0.12) 100%)" }} />
       {/* Subtle top & bottom fade */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(13,31,60,0.4) 0%, transparent 30%, transparent 70%, rgba(13,31,60,0.4) 100%)" }} />
 
@@ -194,7 +194,6 @@ function Layout({ children }) {
       <main>{children}</main>
       <ShareStoryBanner />
       <Footer />
-      <AiAssistant context="website" />
     </>
   );
 }

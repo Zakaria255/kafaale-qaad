@@ -32,11 +32,11 @@ const CreateCaseSchema = z.object({
   privateGuardianName: z.string().max(100).optional(),
   category:            z.enum(['food','medical','shelter','orphan','disaster','education','child_support','family_support','emergency','water_project','school_project','community_project','other']),
   emergencyLevel:      z.enum(['low','medium','high','critical']),
-  targetGoal:          z.number().positive().max(1000000).optional(),
+  targetGoal:          z.coerce.number().positive().max(1000000).optional(),
   caseType:            z.enum(['emergency','child_support','community_report']).optional(),
   needsChecklist:      z.array(z.string()).optional(),
   communityVillageName: z.string().max(200).optional(),
-  communityChildCount:  z.number().int().min(1).max(10000).optional(),
+  communityChildCount:  z.coerce.number().int().min(1).max(10000).optional(),
 });
 
 // GET /api/cases — Public cases feed (waiting_for_sponsor + completed)
@@ -56,6 +56,7 @@ router.get('/', async (req: Request, res: Response) => {
           id: true, publicTitle: true, publicStory: true, publicCity: true, publicCountry: true,
           category: true, emergencyLevel: true, status: true,
           targetGoal: true, totalRaised: true, adminPublishedAt: true,
+          mediaFiles: { where: { isPublic: true, type: 'image' }, take: 1, select: { url: true } },
           _count: { select: { donations: true } },
         },
       }),

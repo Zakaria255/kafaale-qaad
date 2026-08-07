@@ -11,7 +11,7 @@ import { useResponsive } from "../hooks/useResponsive.js";
 import { useReveal, usePrefersReducedMotion } from "../hooks/useReveal.js";
 import { cases as casesApi } from "../api/client.js";
 import {
-  Button, SectionHeader, SunriseRule, CaseCard, StatItem, Ticker, Arc, Timeline,
+  Button, SectionHeader, SunriseRule, CaseCard, StatItem, Ticker, Arc, Timeline, HowItWorks, GuidedByQuran,
 } from "../ui/index.js";
 
 const URGENCY_RANK = { critical: 4, high: 3, medium: 2, low: 1 };
@@ -64,6 +64,7 @@ export default function Home() {
         raised: c.totalRaised || 0,
         goal: c.targetGoal || 0,
         verifiedAt: c.adminPublishedAt || null,
+        image: c.mediaFiles?.[0]?.url || null,
       }));
       const sorted = normalized.sort((a, b) => (URGENCY_RANK[b.urgency] || 0) - (URGENCY_RANK[a.urgency] || 0));
       if (sorted.length > 0) setFeatured(sorted.slice(0, 3));
@@ -71,10 +72,12 @@ export default function Home() {
   }, []);
 
   const [showStats] = useState(() => {
+    // Off by default — the impact-counters strip only shows when site settings
+    // explicitly enable it (showStats === true).
     try {
       const s = JSON.parse(localStorage.getItem("kf_site_settings") || "{}");
-      return s.showStats !== false;
-    } catch { return true; }
+      return s.showStats === true;
+    } catch { return false; }
   });
 
   const cardLabels = {
@@ -117,6 +120,14 @@ export default function Home() {
     { n:8, icon:Archive,        label: lang==="so"?"La Dhammeeyay":lang==="ar"?"مكتملة":lang==="tr"?"Tamamlandı":lang==="es"?"Completado":lang==="fr"?"Terminé":"Completed",           desc: lang==="so"?"Xaaladda waxaa lagu kaydiyaa warbixin saameyn leh — xadhkaha buuxa oo ilaalinaya":lang==="ar"?"تُؤرشف الحالة مع تقرير التأثير — يُحفظ سجل التدقيق الكامل":lang==="tr"?"Vaka etki raporu ile arşivlenir — tam denetim izi korunur":lang==="es"?"Caso archivado con informe de impacto — rastro de auditoría completo preservado":lang==="fr"?"Cas archivé avec rapport d'impact — piste d'audit complète préservée":"Case archived with impact report — full audit trail preserved" },
   ];
 
+  // Five milestone steps for the animated How-it-works stage (subset of WORKFLOW).
+  const HIW_STEPS = [0, 1, 2, 5, 6].map((idx, i) => ({
+    icon:  WORKFLOW[idx].icon,
+    title: WORKFLOW[idx].label,
+    desc:  WORKFLOW[idx].desc,
+    theme: ["gold", "blue", "green", "gold", "blue"][i],
+  }));
+
   const ROLES = [
     { icon: FilePen,        label: lang==="so"?"Warbixiye":lang==="ar"?"مراسل":lang==="tr"?"Muhabir":lang==="es"?"Reportero":lang==="fr"?"Rapporteur":"Reporter" },
     { icon: SearchCheck,    label: lang==="so"?"Xafiiska":lang==="ar"?"التحقق":lang==="tr"?"Doğrulama":lang==="es"?"Verificación":lang==="fr"?"Vérification":"Verification" },
@@ -141,6 +152,28 @@ export default function Home() {
     position: "absolute", inset: 0, pointerEvents: "none",
     background: "radial-gradient(55% 45% at 12% 0%, rgba(26,108,181,.07), transparent 70%)",
   };
+  /* Hero field photo. The image's bright open space sits on the left, so the
+     headline reads over solid navy while the family shows through the sheer
+     scrim on the right, behind the floating live-case card. CSS background
+     degrades to plain navy if the asset is missing — the hero never breaks. */
+  const heroPhoto = {
+    position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+    backgroundImage: "url('/assets/hero/field-delivery.jpg')",
+    backgroundSize: "cover",
+    backgroundPosition: isMobile ? "center" : "center right",
+    backgroundRepeat: "no-repeat",
+  };
+  const heroScrim = {
+    position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
+    background: isMobile
+      ? "linear-gradient(180deg, #002651 0%, rgba(0,38,81,.4) 16%, rgba(0,38,81,.55) 60%, rgba(0,26,64,.94) 100%)"
+      // Horizontal: solid navy behind the text, clearing over the subjects, with a
+      // gentle navy return at the far-right edge so the photo never hard-stops.
+      : "linear-gradient(90deg, #002651 0%, rgba(0,38,81,.93) 20%, rgba(0,38,81,.6) 40%, rgba(0,38,81,.16) 62%, rgba(0,38,81,0) 82%, rgba(0,38,81,.32) 100%)," +
+        // Vertical: the photo melts into navy at the top and bottom so it reads as
+        // part of the page rather than a pasted rectangle.
+        "linear-gradient(180deg, #002651 0%, rgba(0,38,81,0) 20%, rgba(0,38,81,0) 66%, rgba(0,26,64,.92) 100%)",
+  };
 
   return (
     <div style={{ fontFamily: "var(--kf-font-body)", color: "var(--kf-ink-900)" }}>
@@ -155,18 +188,19 @@ export default function Home() {
           paddingBlock: "var(--kf-section-pad)",
         }}
       >
+        <div aria-hidden="true" style={heroPhoto} />
+        <div aria-hidden="true" style={heroScrim} />
         <div style={glow} />
         <div className="kf-dotgrid" />
 
-        <div style={{ ...container, position: "relative", inlineSize: "100%" }}>
+        <div style={{ ...container, position: "relative", zIndex: 1, inlineSize: "100%" }}>
           <div style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1.05fr .95fr",
-            gap: isMobile ? "var(--kf-s9)" : "var(--kf-s10)",
+            gridTemplateColumns: "1fr",
             alignItems: "center",
           }}>
-            {/* Start column — the message */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--kf-s5)" }}>
+            {/* The message — held to the left so the field photo breathes on the right */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--kf-s5)", maxInlineSize: isMobile ? "100%" : "min(600px, 52%)" }}>
               {/* transform-origin is set to inline-start in global.css so the
                   rule draws outward from the text edge in both directions. */}
               <SunriseRule className="kf-draw" />
@@ -224,29 +258,6 @@ export default function Home() {
                 </ul>
               </div>
             </div>
-
-            {/* End column — the proof */}
-            <div className="kf-rise" style={{ "--kf-rise-delay": "700ms", "--kf-rise-from": "24px" }}>
-              <div style={{
-                background: "var(--kf-navy-800)", borderRadius: "var(--kf-r-lg)",
-                padding: "var(--kf-s5)", display: "flex", flexDirection: "column", gap: "var(--kf-s3)",
-              }}>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: "var(--kf-s2)",
-                  fontSize: "var(--kf-fs-caption)", color: "var(--kf-on-dark-60)",
-                }}>
-                  <span className="kf-live-dot" aria-hidden="true" style={{
-                    inlineSize: 6, blockSize: 6, borderRadius: "var(--kf-r-pill)",
-                    background: "var(--kf-green-600)",
-                  }} />
-                  {P.hero_live2}
-                </div>
-                {flagship && (
-                  <CaseCard {...flagship} percent={flagship.funded} image={null}
-                    lang={lang} labels={cardLabels} elevation="var(--kf-e-3)" />
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -286,7 +297,7 @@ export default function Home() {
               title={P.workflow_title} lede={P.workflow_sub} />
           </Reveal>
 
-          <Timeline steps={WORKFLOW} pivot={4} isMobile={isMobile} lang={lang} />
+          <HowItWorks steps={HIW_STEPS} isMobile={isMobile} />
 
           <div style={{ marginBlockStart: "var(--kf-s8)", display: "flex", justifyContent: "center" }}>
             <Button to="/how-it-works" variant="ghost" size="md" iconEnd={ArrowRight}>
@@ -319,95 +330,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ §3-F WHY THIS PLATFORM (dark spec sheet) ═══════════ */}
-      <section className="kf-on-dark" style={{ ...section("var(--kf-navy-900)"), position: "relative", overflow: "hidden" }}>
-        <div style={glow} />
-        <div style={{ ...container, position: "relative" }}>
-          <Reveal>
-            <SectionHeader align="center" onDark overline={P.why_overline} title={P.why_title} lede={P.why_sub} />
-          </Reveal>
-
-          <div style={{
-            marginBlockStart: "var(--kf-s8)", display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
-          }}>
-            {CAPABILITIES.map((c, i) => {
-              const col = i % (isMobile ? 1 : 3);
-              return (
-                <Reveal key={c.title} delay={(i % 3) * 60}>
-                  <div
-                    onMouseEnter={(e) => {
-                      const ic = e.currentTarget.querySelector("[data-ic]");
-                      const ln = e.currentTarget.querySelector("[data-ln]");
-                      if (ic) ic.style.transform = "translateY(-2px)";
-                      if (ln) ln.style.transform = "scaleX(1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      const ic = e.currentTarget.querySelector("[data-ic]");
-                      const ln = e.currentTarget.querySelector("[data-ln]");
-                      if (ic) ic.style.transform = "";
-                      if (ln) ln.style.transform = "scaleX(0)";
-                    }}
-                    style={{
-                      blockSize: "100%", position: "relative",
-                      paddingBlock: "var(--kf-s6)",
-                      paddingInline: isMobile ? 0 : "var(--kf-s6)",
-                      borderBlockStart: "1px solid rgba(255,255,255,.08)",
-                      borderInlineStart: !isMobile && col > 0 ? "1px solid rgba(255,255,255,.08)" : "none",
-                      display: "flex", flexDirection: "column", gap: "var(--kf-s3)",
-                    }}
-                  >
-                    <span data-ic style={{ transition: "transform var(--kf-dur-base) var(--kf-ease-std)" }}>
-                      <c.icon size={24} strokeWidth={2} color="var(--kf-gold-500)" aria-hidden="true" />
-                    </span>
-                    <h3 style={{ fontSize: "var(--kf-fs-h4)", fontWeight: 600, color: "var(--kf-surface)" }}>
-                      {c.title}
-                    </h3>
-                    <p style={{ margin: 0, fontSize: "var(--kf-fs-body-sm)", lineHeight: 1.5, color: "rgba(255,255,255,.65)" }}>
-                      {c.desc}
-                    </p>
-                    <span data-ln aria-hidden="true" style={{
-                      position: "absolute", insetBlockStart: -1, insetInline: 0, blockSize: 1,
-                      background: "var(--kf-gold-500)", transform: "scaleX(0)", transformOrigin: "inline-start",
-                      transition: "transform var(--kf-dur-base) var(--kf-ease-std)",
-                    }} />
-                  </div>
-                </Reveal>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════ §3-G ROLES STRIP ═══════════ */}
-      <section style={{ background: "var(--kf-surface)", paddingBlock: "var(--kf-s8)" }}>
-        <div style={container}>
-          <Reveal>
-            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "var(--kf-s5)" }}>
-              <div style={{
-                fontSize: "var(--kf-fs-overline)", fontWeight: 700,
-                letterSpacing: "var(--kf-ls-overline)", textTransform: "uppercase",
-                color: "var(--kf-ink-500)",
-              }}>
-                {P.roles_overline}
-              </div>
-              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", gap: "var(--kf-s2)" }}>
-                {ROLES.map(({ icon: Icon, label }) => (
-                  <li key={label} style={{
-                    display: "inline-flex", alignItems: "center", gap: "var(--kf-s2)",
-                    blockSize: 32, paddingInline: "var(--kf-s3)",
-                    background: "var(--kf-navy-50)", borderRadius: "var(--kf-r-pill)",
-                    fontSize: "var(--kf-fs-caption)", fontWeight: 600, color: "var(--kf-navy-900)",
-                  }}>
-                    <Icon size={16} strokeWidth={2} aria-hidden="true" />
-                    {label}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+      {/* ═══════════ §3-F GUIDED BY THE QUR'AN AND SUNNAH ═══════════ */}
+      <Reveal>
+        <GuidedByQuran isMobile={isMobile} />
+      </Reveal>
 
       {/* ═══════════ §3-H PRE-FOOTER CTA ═══════════ */}
       <section className="kf-on-dark" style={{ ...section("var(--kf-navy-950)"), position: "relative", overflow: "hidden" }}>
