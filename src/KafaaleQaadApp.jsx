@@ -1348,7 +1348,7 @@ const SponsorModal = ({ c, onClose, onConfirm, currentUser }) => {
   return (
     <Modal title={`Sponsor This Case`} onClose={onClose} wide>
       {/* Case summary card */}
-      <div style={{ background: "linear-gradient(135deg, #004B96 0%, #4B7D19 100%)", borderRadius: 16, padding: 20, marginBottom: 24, color: "#fff" }}>
+      <div style={{ background: "linear-gradient(135deg, #204BA0 0%, #0F773C 100%)", borderRadius: 16, padding: 20, marginBottom: 24, color: "#fff" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{c.victim_name}</div>
@@ -2579,21 +2579,21 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
 
     const printStyles = `
       body { font-family: 'Segoe UI', sans-serif; color: #1a202c; padding: 32px; max-width: 900px; margin: 0 auto; }
-      h1 { font-size: 22px; color: #004B96; margin-bottom: 4px; }
+      h1 { font-size: 22px; color: #204BA0; margin-bottom: 4px; }
       .sub { font-size: 13px; color: #5A6E8A; margin-bottom: 28px; }
-      .section-title { background: #004B96; color: #fff; padding: 8px 16px; font-size: 12px; font-weight: 800; border-radius: 6px 6px 0 0; letter-spacing: 0.5px; margin-top: 20px; }
+      .section-title { background: #204BA0; color: #fff; padding: 8px 16px; font-size: 12px; font-weight: 800; border-radius: 6px 6px 0 0; letter-spacing: 0.5px; margin-top: 20px; }
       .section-body { border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 6px 6px; padding: 12px 16px; }
       .row { display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
       .label { color: #5A6E8A; font-weight: 700; min-width: 170px; }
       .val { color: #1a202c; font-weight: 500; }
-      .green { color: #065F46; } .red { color: #C0392B; } .blue { color: #004B96; }
+      .green { color: #065F46; } .red { color: #C0392B; } .blue { color: #204BA0; }
       .notes { background: #f8fafc; border-radius: 6px; padding: 10px 14px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; margin-top: 6px; }
       .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
       table { width: 100%; border-collapse: collapse; margin-top: 8px; }
       th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 700; color: #5A6E8A; border-bottom: 1px solid #e2e8f0; }
       td { padding: 8px 12px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
       .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #9CA3AF; border-top: 1px solid #e2e8f0; padding-top: 16px; }
-      body::after { content: "Kafaale Qaad Hope Society"; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-size: 60px; font-weight: 900; color: rgba(0,75,150,0.07); white-space: nowrap; pointer-events: none; z-index: 9999; letter-spacing: 4px; }
+      body::after { content: "Kafaale Qaad Foundation"; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-size: 60px; font-weight: 900; color: rgba(0,75,150,0.07); white-space: nowrap; pointer-events: none; z-index: 9999; letter-spacing: 4px; }
       @media print { body { padding: 0; } body::after { position: fixed; } }
     `;
 
@@ -2662,7 +2662,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
             fontSize: 52, fontWeight: 900, color: "rgba(0,75,150,0.06)",
             transform: "rotate(-35deg)", whiteSpace: "nowrap", letterSpacing: 4, userSelect: "none",
           }}>
-            Kafaale Qaad Hope Society
+            Kafaale Qaad Foundation
           </div>
         </div>
         <div style={{ position: "relative", zIndex: 1 }}>
@@ -2873,7 +2873,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
 
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 28, paddingTop: 16, borderTop: `1px solid ${COLORS.border}`, fontSize: 11, color: COLORS.muted }}>
-          <strong style={{ color: COLORS.primary }}>KAFAALE QAAD</strong> · Kafaale Qaad Hope Society · Confidential Case Report · {fmt(new Date().toISOString())} · For Super Admin review only
+          <strong style={{ color: COLORS.primary }}>KAFAALE QAAD</strong> · Kafaale Qaad Foundation · Confidential Case Report · {fmt(new Date().toISOString())} · For Super Admin review only
         </div>
         </div>{/* end zIndex:1 wrapper */}
       </div>
@@ -2901,7 +2901,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
       {/* Gradient KPI cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 28 }}>
         {[
-          { val: totalCases,             label: "Total Cases",      sub: "↑ 12% this month", grad: "135deg, #004B96 0%, #4B7D19 100%" },
+          { val: totalCases,             label: "Total Cases",      sub: "↑ 12% this month", grad: "135deg, #204BA0 0%, #0F773C 100%" },
           { val: completedCases,         label: "Completed",        sub: `${completionRate}% completion rate`, grad: "135deg, #10B981 0%, #059669 100%" },
           { val: `$${totalFunded.toLocaleString()}`, label: "Total Donated", sub: `Avg $${avgDonation} / donation`, grad: "135deg, #EC4899 0%, #DB2777 100%" },
           { val: urgentCases,            label: "Critical Cases",   sub: "Require immediate action", grad: "135deg, #EF4444 0%, #DC2626 100%" },
@@ -3486,10 +3486,10 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
             const printInv = () => {
               const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${invoiceNo}</title>
               <style>body{font-family:Georgia,serif;max-width:700px;margin:40px auto;padding:0 24px;color:#1a1a1a}
-              .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #004B96;padding-bottom:16px;margin-bottom:24px}
-              .logo{font-size:22px;font-weight:900;color:#004B96}h1{font-size:18px;margin:0 0 24px;color:#004B96}
+              .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #204BA0;padding-bottom:16px;margin-bottom:24px}
+              .logo{font-size:22px;font-weight:900;color:#204BA0}h1{font-size:18px;margin:0 0 24px;color:#204BA0}
               table{width:100%;border-collapse:collapse;margin:16px 0}td,th{padding:10px 12px;text-align:left;border:1px solid #e5e7eb}
-              th{background:#F0F4FF;font-weight:700;font-size:13px}.total{font-size:18px;font-weight:900;color:#004B96}
+              th{background:#F0F4FF;font-weight:700;font-size:13px}.total{font-size:18px;font-weight:900;color:#204BA0}
               .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#6B7280;text-align:center}
               .pay{background:#F0F4FF;border-radius:8px;padding:16px;margin:20px 0}
               </style></head><body>
@@ -4595,7 +4595,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
             <div style={{ background: "#10B981", borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
               Aid Delivered & Confirmed — {certDonation.case?.completedAt ? new Date(certDonation.case.completedAt).toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" }) : "Completed"}
             </div>
-            <div style={{ fontSize: 11, opacity: 0.55 }}>Issued by Kafaale Qaad Hope Society · kafaaleqaad.org</div>
+            <div style={{ fontSize: 11, opacity: 0.55 }}>Issued by Kafaale Qaad Foundation · kafaaleqaad.org</div>
           </div>
           <div className="no-print" style={{ display: "flex", gap: 10 }}>
             <Btn variant="ghost" onClick={() => setCertDonation(null)} style={{ flex: 1 }}>Close</Btn>
@@ -5309,7 +5309,7 @@ const NotebookPanel = ({ users = [], showToast }) => {
     <div>
       {/* Branded header — carries the Kafaale Qaad logo + icon */}
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 20px", borderRadius: 16, marginBottom: 20,
-        background: "linear-gradient(135deg,#002651 0%,#004B96 55%,#B8861A 140%)", color: "#fff" }}>
+        background: "linear-gradient(135deg,#112A63 0%,#204BA0 55%,#E28E12 140%)", color: "#fff" }}>
         <img src="/assets/brand/kafaala-qaad-hope-icon-192.png" alt="Kafaale Qaad" width={48} height={48}
           style={{ borderRadius: 12, background: "#fff", padding: 4, flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
@@ -5446,7 +5446,6 @@ const NotebookPanel = ({ users = [], showToast }) => {
 // ─── SITE SETTINGS PANEL (super admin) ───────────────────────────────────────
 const PAGE_DEFAULTS = {
   about:        { label: "About Us",       path: "/about",        icon: "", group: "About" },
-  howItWorks:   { label: "How We Work",    path: "/how-it-works", icon: "", group: "About" },
   cases:        { label: "Cases",          path: "/cases",        icon: "", group: "Operations" },
   programs:     { label: "Programs",       path: "/programs",     icon: "", group: "Operations" },
   projects:     { label: "Projects",       path: "/projects",     icon: "", group: "Operations" },
@@ -6498,7 +6497,7 @@ const ImpactStoriesPanel = ({ showToast }) => {
                   <div style={{ position:"absolute", top:8, left:8, background: side==="before"?"rgba(0,0,0,0.6)":"rgba(5,150,105,0.9)", color:"#fff", borderRadius:6, padding:"2px 9px", fontSize:11, fontWeight:800 }}>{lbl}</div>
                 </div>
               ))}
-              <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:30, height:30, borderRadius:"50%", background:COLORS.accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:900, zIndex:2, boxShadow:"0 2px 8px #E0AB2180" }}>→</div>
+              <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:30, height:30, borderRadius:"50%", background:COLORS.accent, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:900, zIndex:2, boxShadow:"0 2px 8px #FAA52880" }}>→</div>
             </div>
 
             {/* Descriptions */}
@@ -7071,10 +7070,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
 
   const SUPER_MODULES = [
     { id:"workflow",   icon:"", label:"Workflow",        sub:`${workflowAlerts} need action`, color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: workflowAlerts },
-    { id:"overview",   icon:"", label:"Overview",        sub:`${cases.length} cases`,         color:COLORS.primary, g:"linear-gradient(135deg,#004B96,#0072CE)", badge: pendingCases.length },
+    { id:"overview",   icon:"", label:"Overview",        sub:`${cases.length} cases`,         color:COLORS.primary, g:"linear-gradient(135deg,#204BA0,#2E5EC0)", badge: pendingCases.length },
     { id:"users",      icon:"", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
     { id:"cases",      icon:"", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
-    { id:"donations",  icon:"", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:COLORS.secondary, g:"linear-gradient(135deg,#4B7D19,#65A30D)", badge: donations.filter(d=>d.status==="pending").length },
+    { id:"donations",  icon:"", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:COLORS.secondary, g:"linear-gradient(135deg,#0F773C,#17924A)", badge: donations.filter(d=>d.status==="pending").length },
     { id:"analytics",  icon:"", label:"Analytics",       sub:"Charts & reports",               color:"#EA580C", g:"linear-gradient(135deg,#EA580C,#F97316)", badge: 0 },
     { id:"programs",   icon:"", label:"Programs",        sub:"Children enrolled",              color:"#059669", g:"linear-gradient(135deg,#059669,#10B981)", badge: 0 },
     { id:"partners",   icon:"", label:"Partners",        sub:`${partnerApps.filter(a=>a.status==="pending").length} pending`, color:"#2563EB", g:"linear-gradient(135deg,#2563EB,#3B82F6)", badge: partnerApps.filter(a=>a.status==="pending").length },
@@ -7084,7 +7083,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"completed",  icon:"", label:"Completed Ops",   sub:`${completedCases.length} operations`, color:"#065F46", g:"linear-gradient(135deg,#065F46,#10B981)", badge: 0 },
     { id:"history",    icon:"📚", label:"History",         sub:"Records & archive",              color:"#0F766E", g:"linear-gradient(135deg,#0F766E,#14B8A6)", badge: 0 },
     { id:"chat",       icon:"", label:"Communication",   sub:"Team channels & messages",       color:"#0284C7", g:"linear-gradient(135deg,#0284C7,#0EA5E9)", badge: 0 },
-    { id:"notebook",   icon:"", label:"Notebook",        sub:"Notes & tasks",                  color:"#B8861A", g:"linear-gradient(135deg,#B8861A,#E0AB21)", badge: 0 },
+    { id:"notebook",   icon:"", label:"Notebook",        sub:"Notes & tasks",                  color:"#E28E12", g:"linear-gradient(135deg,#E28E12,#FAA528)", badge: 0 },
     { id:"settings",   icon:"", label:"Settings",        sub:"Site configuration",             color:"#374151", g:"linear-gradient(135deg,#374151,#6B7280)", badge: 0 },
   ];
   const ADMIN_MODULES = SUPER_MODULES.filter(m => !["users","settings"].includes(m.id));
@@ -7724,7 +7723,7 @@ const CreateProgramModal = ({ onClose, onDone, showToast }) => {
       <Textarea label="Description *" value={form.description} onChange={e => set("description", e.target.value)} placeholder="Describe what this program does and who it helps…" />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <Input label="Icon (emoji)" value={form.icon} onChange={e => set("icon", e.target.value)} placeholder="" />
-        <Input label="Color (hex)" value={form.color} onChange={e => set("color", e.target.value)} placeholder="#004B96" />
+        <Input label="Color (hex)" value={form.color} onChange={e => set("color", e.target.value)} placeholder="#204BA0" />
       </div>
       <Input label="Monthly Budget ($)" type="number" value={form.monthlyBudget} onChange={e => set("monthlyBudget", e.target.value)} placeholder="Optional" />
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>

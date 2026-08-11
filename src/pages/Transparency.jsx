@@ -49,7 +49,7 @@ export default function Transparency() {
           <span style={{ background:"rgba(255,255,255,0.15)", borderRadius:100, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1.5, textTransform:"uppercase" }}>
             {lang==="so"?"Daahfurnaan & Xisaabteynta":lang==="ar"?"الشفافية والمساءلة":lang==="tr"?"Şeffaflık ve Hesap Verebilirlik":lang==="es"?"Transparencia y Rendición de Cuentas":lang==="fr"?"Transparence et Responsabilité":"Transparency & Accountability"}
           </span>
-          <h1 style={{ fontSize:"clamp(28px,5vw,56px)", fontWeight:900, margin:"20px 0 18px", lineHeight:1.1, letterSpacing:-1 }}>
+          <h1 style={{ fontSize:"clamp(28px,5vw,56px)", fontWeight:900, margin:"20px 0 18px", lineHeight:1.1, letterSpacing:-1, color:"#fff" }}>
             {lang==="so"?"Waxaad Siisaa, Waxaad Aragto":"See Where Every Dollar Goes"}
           </h1>
           <p style={{ fontSize:"clamp(14px,2vw,18px)", opacity:0.85, lineHeight:1.7, maxWidth:560, margin:"0 auto" }}>
@@ -176,7 +176,7 @@ export default function Transparency() {
       {/* CTA */}
       <section style={{ background:`linear-gradient(135deg,${C.navy},${C.primary})`, color:"#fff", padding: isMobile?"48px 16px":"64px 32px", textAlign:"center" }}>
         <div style={{ maxWidth:600, margin:"0 auto" }}>
-          <h2 style={{ fontSize:"clamp(22px,4vw,36px)", fontWeight:900, margin:"0 0 14px" }}>Donate with Confidence</h2>
+          <h2 style={{ fontSize:"clamp(22px,4vw,36px)", fontWeight:900, margin:"0 0 14px", color:"#fff" }}>Donate with Confidence</h2>
           <p style={{ fontSize:16, opacity:0.85, lineHeight:1.7, marginBottom:28 }}>
             Every dollar is tracked, verified, and reported. You'll receive a delivery confirmation for every case you sponsor.
           </p>

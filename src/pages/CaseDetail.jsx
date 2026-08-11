@@ -106,7 +106,7 @@ export default function CaseDetail() {
               Field Verified
             </span>
           </div>
-          <h1 style={{ fontSize: "clamp(22px, 4vw, 36px)", fontWeight: 900, margin: "0 0 10px", lineHeight: 1.3 }}>
+          <h1 style={{ fontSize: "clamp(22px, 4vw, 36px)", fontWeight: 900, margin: "0 0 10px", lineHeight: 1.3, color: "#fff" }}>
             {kase.publicTitle || "Verified Emergency Case"}
           </h1>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap", fontSize: 14, opacity: 0.85 }}>
@@ -258,7 +258,7 @@ export default function CaseDetail() {
           )}
 
           {/* Trust & Transparency */}
-          <div style={{ background: "linear-gradient(135deg, #004B96, #4B7D19)", borderRadius: 20, padding: 32, color: "#fff" }}>
+          <div style={{ background: "linear-gradient(135deg, #204BA0, #0F773C)", borderRadius: 20, padding: 32, color: "#fff" }}>
             <h3 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 800 }}>Our Guarantee to Donors</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {[
@@ -356,7 +356,7 @@ export default function CaseDetail() {
       {(kase.status === "waiting_for_sponsor" || kase.status === "sponsored") && pct < 100 && (
         <div style={{ background: C.primary, color: "#fff", padding: "40px 24px", textAlign: "center" }}>
           <div style={{ maxWidth: 600, margin: "0 auto" }}>
-            <h2 style={{ margin: "0 0 10px", fontSize: 24, fontWeight: 900 }}>Help Complete This Case</h2>
+            <h2 style={{ margin: "0 0 10px", fontSize: 24, fontWeight: 900, color: "#fff" }}>Help Complete This Case</h2>
             <p style={{ margin: "0 0 24px", opacity: 0.85, fontSize: 15 }}>
               {pct}% funded toward a ${(kase.targetGoal || 0).toLocaleString()} goal. Every contribution is tracked and delivered with proof.
             </p>

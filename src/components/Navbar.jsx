@@ -15,7 +15,6 @@ const B = {
 // All navigable pages with their default visibility state
 const ALL_PAGES = {
   about:        true,
-  howItWorks:   true,
   cases:        true,
   programs:     true,
   projects:     true,
@@ -62,13 +61,7 @@ export default function Navbar() {
 
   // ── Nav structure ──────────────────────────────────────────────────────────
   const NAV = [
-    {
-      id: "about", label: "About",
-      items: [
-        show("about")      && { to: "/about",        label: "About Us",    icon: "", desc: "Our mission, team & values" },
-        show("howItWorks") && { to: "/how-it-works",  label: "How We Work", icon: "", desc: "The 11-step verification pipeline" },
-      ].filter(Boolean),
-    },
+    show("about") && { id: "about", label: "About", to: "/about", direct: true },
     {
       id: "ops", label: "Operations",
       items: [
@@ -101,7 +94,6 @@ export default function Navbar() {
   const mobileLinks = [
     { to: "/",             label: "Home"         },
     show("about")      && { to: "/about",        label: "About Us"    },
-    show("howItWorks") && { to: "/how-it-works",  label: "How We Work" },
     show("cases")      && { to: "/cases",         label: "Cases"       },
     show("programs")   && { to: "/programs",      label: "Programs"    },
     show("projects")   && { to: "/projects",      label: "Projects"    },
@@ -136,7 +128,7 @@ export default function Navbar() {
         position: "sticky", top: 0, zIndex: 500,
         background: "#fff",
         borderBottom: scrolled ? `1px solid ${B.border}` : `2px solid ${B.border}`,
-        boxShadow: scrolled ? "0 4px 28px rgba(0,38,81,0.13)" : "0 1px 4px rgba(0,38,81,0.06)",
+        boxShadow: scrolled ? "0 4px 28px rgba(17,42,99,0.13)" : "0 1px 4px rgba(17,42,99,0.06)",
         transition: "box-shadow 0.25s, border 0.25s",
       }}>
         <div style={{
@@ -190,7 +182,7 @@ export default function Navbar() {
                       right: item.id === "more" ? 0 : "auto",
                       transform: item.id === "more" ? "none" : "translateX(-50%)",
                       background: "#fff", borderRadius: 14,
-                      boxShadow: "0 8px 40px rgba(0,38,81,0.16)",
+                      boxShadow: "0 8px 40px rgba(17,42,99,0.16)",
                       zIndex: 600, minWidth: 210,
                       border: `1px solid ${B.border}`, overflow: "hidden",
                       paddingTop: 4, paddingBottom: 4,
@@ -249,7 +241,7 @@ export default function Navbar() {
                 <div style={{
                   position: "absolute", right: 0, top: 46,
                   background: "#fff", borderRadius: 12,
-                  boxShadow: "0 8px 32px rgba(0,38,81,0.18)",
+                  boxShadow: "0 8px 32px rgba(17,42,99,0.18)",
                   zIndex: 600, minWidth: 170,
                   border: `1px solid ${B.border}`, overflow: "hidden",
                 }}>
@@ -296,7 +288,7 @@ export default function Navbar() {
                     <div style={{
                       position: "absolute", right: 0, top: "calc(100% + 8px)",
                       background: "#fff", borderRadius: 14,
-                      boxShadow: "0 8px 36px rgba(0,38,81,0.18)",
+                      boxShadow: "0 8px 36px rgba(17,42,99,0.18)",
                       padding: 8, minWidth: 210, zIndex: 600,
                       border: `1px solid ${B.border}`,
                     }}>

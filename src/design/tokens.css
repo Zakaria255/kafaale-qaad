@@ -6,27 +6,29 @@
    ========================================================================== */
 
 :root {
-  /* ── Brand: navy ───────────────────────────────────────────────────────── */
-  --kf-navy-950: #001A40;
-  --kf-navy-900: #002651;
-  --kf-navy-800: #00325F;
-  --kf-navy-50:  #EEF4FA;
+  /* ── Brand: navy — dark surfaces, harmonized with the logo royal blue ──── */
+  --kf-navy-950: #0A1D45;
+  --kf-navy-900: #112A63;
+  --kf-navy-800: #18367C;
+  --kf-navy-50:  #EAF1FB;
 
-  /* ── Brand: blue (primary action / informational) ──────────────────────── */
-  --kf-blue-600: #004B96;
-  --kf-blue-500: #1A6CB5;
-  --kf-blue-100: #DBEAF7;
-  --kf-blue-50:  #F0F6FC;
+  /* ── Brand: blue (family / trust) — the logo wordmark & figures ────────── */
+  --kf-blue-600: #204BA0;
+  --kf-blue-500: #2E5EC0;
+  --kf-blue-100: #D6E1F5;
+  --kf-blue-50:  #EEF3FC;
 
-  /* ── Brand: green (verification / success) ─────────────────────────────── */
-  --kf-green-600: #4B7D19;
-  --kf-green-100: #E4F0D3;
-  --kf-green-50:  #F2F8E9;
+  /* ── Brand: green (care / verification) — the logo cradling hands ──────── */
+  --kf-green-600: #0F773C;
+  --kf-green-500: #17924A;
+  --kf-green-100: #D6EBDD;
+  --kf-green-50:  #EEF6F1;
 
-  /* ── Brand: gold — the ONLY accent. Reserved for CTAs. ─────────────────── */
-  --kf-gold-500: #E0AB21;
-  --kf-gold-600: #D19C1D;
-  --kf-gold-100: #FBF0D2;
+  /* ── Brand: gold — the sun. The ONLY accent, reserved for CTAs. ────────── */
+  --kf-gold-500: #FAA528;
+  --kf-gold-400: #FEC43F;
+  --kf-gold-600: #E28E12;
+  --kf-gold-100: #FDEBC5;
 
   /* ── Ink: text and borders ─────────────────────────────────────────────── */
   --kf-ink-900: #0D1F3C; /* body text            */
@@ -109,6 +111,13 @@
   --kf-container:    1200px;
   --kf-gutter:       24px;
   --kf-section-pad:  96px;
+
+  /* Brand photo grade — layered over site imagery to match the logo atmosphere:
+     sun-gold glow (top) · emerald breath (base) · royal-navy depth for legibility. */
+  --kf-img-grade:
+    radial-gradient(72% 55% at 50% -6%, rgba(250,165,40,.16), transparent 60%),
+    radial-gradient(90% 60% at 50% 118%, rgba(15,119,60,.16), transparent 68%),
+    linear-gradient(180deg, rgba(10,29,69,.30) 0%, rgba(10,29,69,.10) 44%, rgba(10,29,69,.62) 100%);
 
   /* The Sunrise Rule gradient — the ONLY gradient on the page. Declared here
      (rather than with logical keywords, which gradients don't support widely)

@@ -11,7 +11,7 @@ import { useResponsive } from "../hooks/useResponsive.js";
 import { useReveal, usePrefersReducedMotion } from "../hooks/useReveal.js";
 import { cases as casesApi } from "../api/client.js";
 import {
-  Button, SectionHeader, SunriseRule, CaseCard, StatItem, Ticker, Arc, Timeline, HowItWorks, GuidedByQuran,
+  Button, SectionHeader, SunriseRule, CaseCard, StatItem, Ticker, Arc, Timeline, GuidedByQuran, FeaturedCase,
 } from "../ui/index.js";
 
 const URGENCY_RANK = { critical: 4, high: 3, medium: 2, low: 1 };
@@ -108,26 +108,6 @@ export default function Home() {
     { val: "100%",   label: P.stat_proofrate },
   ];
 
-  // Existing 8-step pipeline; all six translations preserved verbatim.
-  const WORKFLOW = [
-    { n:1, icon:FilePen,        label: lang==="so"?"Abuurista Warbixinta":lang==="ar"?"إنشاء التقرير":lang==="tr"?"Rapor Oluşturma":lang==="es"?"Creación del Reporte":lang==="fr"?"Création du Rapport":"Report Creation",     desc: lang==="so"?"Warbixiyuhu wuxuu soo gudbinaayaa xaaladda oo leh faahfaahinta, sawirrada iyo goobta":lang==="ar"?"يقدم المُبلِّغ حالة مع التفاصيل والصور والموقع":lang==="tr"?"Muhabir ayrıntılar, fotoğraflar ve konum ile vaka gönderir":lang==="es"?"El reportero envía un caso con detalles, fotos y ubicación":lang==="fr"?"Le rapporteur soumet un cas avec détails, photos et localisation":"Reporter submits a case with details, photos and location" },
-    { n:2, icon:SearchCheck,    label: lang==="so"?"Xafiiska Xaqiijinta":lang==="ar"?"مكتب التحقق":lang==="tr"?"Doğrulama Ofisi":lang==="es"?"Oficina de Verificación":lang==="fr"?"Bureau de Vérification":"Verification Office", desc: lang==="so"?"Saraakiishu waxay dib u eegayaan warbixinta oo u xilsaarayaan koox goobta":lang==="ar"?"يراجع المسؤولون التقرير ويعيّنون فريقًا ميدانيًا":lang==="tr"?"Yetkililer raporu inceler ve saha ekibi atar":lang==="es"?"Los oficiales revisan el reporte y asignan equipo de campo":lang==="fr"?"Les officiers examinent le rapport et assignent une équipe de terrain":"Officers review the report and assign a field team" },
-    { n:3, icon:ClipboardCheck, label: lang==="so"?"Baarista Goobta":lang==="ar"?"التحقيق الميداني":lang==="tr"?"Saha Soruşturması":lang==="es"?"Investigación de Campo":lang==="fr"?"Enquête de Terrain":"Field Investigation", desc: lang==="so"?"Wakiilku waxuu booqanayaa, xaqiijinayaa oo dukumeentinaayaa iyada oo leh GPS + caddayn sawir":lang==="ar"?"يزور العملاء الميدانيون ويتحققون ويوثقون بـGPS + دليل صوري":lang==="tr"?"Saha ajanları ziyaret eder, doğrular ve GPS + fotoğraf kanıtıyla belgeler":lang==="es"?"Agentes visitan, verifican y documentan con GPS + prueba fotográfica":lang==="fr"?"Les agents visitent, vérifient et documentent avec GPS + preuve photo":"Field agents visit, verify and document with GPS + photo proof" },
-    { n:4, icon:BadgeCheck,     label: lang==="so"?"Xaqiijisan":lang==="ar"?"تم التحقق":lang==="tr"?"Doğrulandı":lang==="es"?"Verificado":lang==="fr"?"Vérifié":"Verified",            desc: lang==="so"?"Xaaladda waxaa la xaqiijiyay oo la muujiyay deeq-bixiyeyaasha si ay u taageeraan":lang==="ar"?"تم تأكيد الحالة وأصبحت مرئية للمانحين للرعاية":lang==="tr"?"Vaka onaylandı ve sponsorlar için bağışçılara görünür hale getirildi":lang==="es"?"Caso confirmado y visible para donantes para apadrinamiento":lang==="fr"?"Cas confirmé et rendu visible aux donateurs pour parrainage":"Case confirmed and made visible to donors for sponsorship" },
-    { n:5, icon:Users,          label: lang==="so"?"Safka Deeq-bixiyeyaasha":lang==="ar"?"قائمة انتظار المانحين":lang==="tr"?"Bağışçı Kuyruğu":lang==="es"?"Cola de Donantes":lang==="fr"?"File des Donateurs":"Donor Queue",         desc: lang==="so"?"Xaaladda waxay galaysaa baanka deeq-bixiyeyaasha — deeq-bixiyeyaashu waxay ka baadhi karaan oo dooranayaan":lang==="ar"?"تدخل الحالة تجمع المانحين — يمكن للرعاة التصفح والاختيار":lang==="tr"?"Vaka bağışçı havuzuna girer — sponsorlar göz atabilir ve seçebilir":lang==="es"?"El caso entra al fondo de donantes — patrocinadores pueden explorar y seleccionar":lang==="fr"?"Le cas entre dans le pool des donateurs — les sponsors peuvent parcourir et sélectionner":"Case enters the donor pool — sponsors can browse and select" },
-    { n:6, icon:HeartHandshake, label: lang==="so"?"Taageerada":lang==="ar"?"الرعاية":lang==="tr"?"Sponsorluk":lang==="es"?"Apadrinamiento":lang==="fr"?"Parrainage":"Sponsorship",         desc: lang==="so"?"Deeq-bixiyuhu wuxuu taageeraa xaaladda oo lacagtu si amaahday loo daabacanayaa":lang==="ar"?"يرعى المانح الحالة ويتم معالجة الدفع بأمان":lang==="tr"?"Bağışçı vakayı destekler ve ödeme güvenli şekilde işlenir":lang==="es"?"El donante patrocina el caso y el pago se procesa de forma segura":lang==="fr"?"Le donateur parraine le cas et le paiement est traité en toute sécurité":"Donor sponsors the case and payment is securely processed" },
-    { n:7, icon:PackageCheck,   label: lang==="so"?"Gaarsiinta Gargaarka":lang==="ar"?"تسليم المساعدة":lang==="tr"?"Yardım Teslimatı":lang==="es"?"Entrega de Ayuda":lang==="fr"?"Livraison de l'Aide":"Aid Delivery",        desc: lang==="so"?"Kooxda goobtu waxay gaarsiisaa gargaarka oo soo raraysaa caddaynta gaarsiinta":lang==="ar"?"يسلم الفريق الميداني المساعدة ويرفع دليل التسليم":lang==="tr"?"Saha ekibi yardımı teslim eder ve teslimat kanıtı yükler":lang==="es"?"El equipo de campo entrega la ayuda y sube prueba de entrega":lang==="fr"?"L'équipe de terrain livre l'aide et télécharge la preuve de livraison":"Field team delivers aid and uploads proof of delivery" },
-    { n:8, icon:Archive,        label: lang==="so"?"La Dhammeeyay":lang==="ar"?"مكتملة":lang==="tr"?"Tamamlandı":lang==="es"?"Completado":lang==="fr"?"Terminé":"Completed",           desc: lang==="so"?"Xaaladda waxaa lagu kaydiyaa warbixin saameyn leh — xadhkaha buuxa oo ilaalinaya":lang==="ar"?"تُؤرشف الحالة مع تقرير التأثير — يُحفظ سجل التدقيق الكامل":lang==="tr"?"Vaka etki raporu ile arşivlenir — tam denetim izi korunur":lang==="es"?"Caso archivado con informe de impacto — rastro de auditoría completo preservado":lang==="fr"?"Cas archivé avec rapport d'impact — piste d'audit complète préservée":"Case archived with impact report — full audit trail preserved" },
-  ];
-
-  // Five milestone steps for the animated How-it-works stage (subset of WORKFLOW).
-  const HIW_STEPS = [0, 1, 2, 5, 6].map((idx, i) => ({
-    icon:  WORKFLOW[idx].icon,
-    title: WORKFLOW[idx].label,
-    desc:  WORKFLOW[idx].desc,
-    theme: ["gold", "blue", "green", "gold", "blue"][i],
-  }));
-
   const ROLES = [
     { icon: FilePen,        label: lang==="so"?"Warbixiye":lang==="ar"?"مراسل":lang==="tr"?"Muhabir":lang==="es"?"Reportero":lang==="fr"?"Rapporteur":"Reporter" },
     { icon: SearchCheck,    label: lang==="so"?"Xafiiska":lang==="ar"?"التحقق":lang==="tr"?"Doğrulama":lang==="es"?"Verificación":lang==="fr"?"Vérification":"Verification" },
@@ -150,7 +130,7 @@ export default function Home() {
   const section = (bg) => ({ background: bg, paddingBlock: "var(--kf-section-pad)" });
   const glow = {
     position: "absolute", inset: 0, pointerEvents: "none",
-    background: "radial-gradient(55% 45% at 12% 0%, rgba(26,108,181,.07), transparent 70%)",
+    background: "radial-gradient(55% 45% at 12% 0%, rgba(46,94,192,.07), transparent 70%)",
   };
   /* Hero field photo. The image's bright open space sits on the left, so the
      headline reads over solid navy while the family shows through the sheer
@@ -158,7 +138,7 @@ export default function Home() {
      degrades to plain navy if the asset is missing — the hero never breaks. */
   const heroPhoto = {
     position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
-    backgroundImage: "url('/assets/hero/field-delivery.jpg')",
+    backgroundImage: "var(--kf-img-grade), url('/assets/hero/field-delivery.jpg')",
     backgroundSize: "cover",
     backgroundPosition: isMobile ? "center" : "center right",
     backgroundRepeat: "no-repeat",
@@ -166,13 +146,13 @@ export default function Home() {
   const heroScrim = {
     position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
     background: isMobile
-      ? "linear-gradient(180deg, #002651 0%, rgba(0,38,81,.4) 16%, rgba(0,38,81,.55) 60%, rgba(0,26,64,.94) 100%)"
+      ? "linear-gradient(180deg, #112A63 0%, rgba(17,42,99,.4) 16%, rgba(17,42,99,.55) 60%, rgba(10,29,69,.94) 100%)"
       // Horizontal: solid navy behind the text, clearing over the subjects, with a
       // gentle navy return at the far-right edge so the photo never hard-stops.
-      : "linear-gradient(90deg, #002651 0%, rgba(0,38,81,.93) 20%, rgba(0,38,81,.6) 40%, rgba(0,38,81,.16) 62%, rgba(0,38,81,0) 82%, rgba(0,38,81,.32) 100%)," +
+      : "linear-gradient(90deg, #112A63 0%, rgba(17,42,99,.93) 20%, rgba(17,42,99,.6) 40%, rgba(17,42,99,.16) 62%, rgba(17,42,99,0) 82%, rgba(17,42,99,.32) 100%)," +
         // Vertical: the photo melts into navy at the top and bottom so it reads as
         // part of the page rather than a pasted rectangle.
-        "linear-gradient(180deg, #002651 0%, rgba(0,38,81,0) 20%, rgba(0,38,81,0) 66%, rgba(0,26,64,.92) 100%)",
+        "linear-gradient(180deg, #112A63 0%, rgba(17,42,99,0) 20%, rgba(17,42,99,0) 66%, rgba(10,29,69,.92) 100%)",
   };
 
   return (
@@ -238,7 +218,7 @@ export default function Home() {
 
               <div className="kf-rise" style={{ "--kf-rise-delay": "560ms", display: "flex", flexWrap: "wrap", gap: "var(--kf-s3)" }}>
                 <Button to="/donate" variant="cta" size="lg">{P.btn_sponsor}</Button>
-                <Button to="/how-it-works" variant="secondary" size="lg">{P.btn_how}</Button>
+                <Button to="/about" variant="secondary" size="lg">{P.btn_how}</Button>
               </div>
 
               <div style={{ borderBlockStart: "1px solid var(--kf-on-dark-14)", paddingBlockStart: "var(--kf-s5)" }}>
@@ -289,21 +269,24 @@ export default function Home() {
         </section>
       )}
 
-      {/* ═══════════ §3-D THE VERIFICATION JOURNEY ═══════════ */}
+      {/* ═══════════ §3-D FEATURED VERIFIED CASE ═══════════ */}
       <section style={section("var(--kf-canvas)")}>
         <div style={container}>
           <Reveal>
-            <SectionHeader align="center" overline={P.journey_overline}
-              title={P.workflow_title} lede={P.workflow_sub} />
+            <FeaturedCase
+              id={flagship?.id}
+              caseRef={flagship?.id ? `KQ-${flagship.id}` : undefined}
+              title={flagship?.title}
+              location={flagship?.location}
+              story={flagship?.story}
+              raised={flagship?.raised ?? (flagship ? Math.round((flagship.goal || 0) * (flagship.funded || 0) / 100) : undefined)}
+              goal={flagship?.goal}
+              percent={flagship?.funded}
+              image={flagship?.image || undefined}
+              isMobile={isMobile}
+              lang={lang}
+            />
           </Reveal>
-
-          <HowItWorks steps={HIW_STEPS} isMobile={isMobile} />
-
-          <div style={{ marginBlockStart: "var(--kf-s8)", display: "flex", justifyContent: "center" }}>
-            <Button to="/how-it-works" variant="ghost" size="md" iconEnd={ArrowRight}>
-              {P.how_link}
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -337,15 +320,40 @@ export default function Home() {
 
       {/* ═══════════ §3-H PRE-FOOTER CTA ═══════════ */}
       <section className="kf-on-dark" style={{ ...section("var(--kf-navy-950)"), position: "relative", overflow: "hidden" }}>
+        {/* Background video — PLACEHOLDER. Drop the real file at
+            public/assets/video/sponsor-cta.mp4 (poster degrades to the field
+            photo until then). Muted + loop + playsInline so it autoplays. */}
+        <video
+          aria-hidden="true"
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="/assets/hero/field-delivery.jpg"
+          style={{
+            position: "absolute", inset: 0, zIndex: 0,
+            inlineSize: "100%", blockSize: "100%", objectFit: "cover", pointerEvents: "none",
+          }}
+        >
+          <source src="/assets/video/sponsor-cta.mp4" type="video/mp4" />
+        </video>
+        {/* Brand grade + navy scrim so the white CTA text stays legible. */}
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
+          background:
+            "var(--kf-img-grade), " +
+            "linear-gradient(180deg, rgba(10,29,69,.82) 0%, rgba(10,29,69,.72) 50%, rgba(10,29,69,.88) 100%)",
+        }} />
+
         {/* The Arc, oversized and cropped — the logo's sunrise closing the page. */}
         <div aria-hidden="true" style={{
           position: "absolute", insetBlockEnd: "-12%", insetInlineStart: "50%",
-          transform: "translateX(-50%)", pointerEvents: "none",
+          transform: "translateX(-50%)", zIndex: 1, pointerEvents: "none",
         }}>
           <Arc mode="static" size={900} stroke={1.5} color="var(--kf-surface)" opacity={0.06} />
         </div>
 
-        <div style={{ ...container, position: "relative" }}>
+        <div style={{ ...container, position: "relative", zIndex: 1 }}>
           <Reveal>
             <div style={{
               maxInlineSize: 640, marginInline: "auto", textAlign: "center",

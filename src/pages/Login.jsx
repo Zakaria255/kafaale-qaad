@@ -207,7 +207,7 @@ export default function Login() {
     }}>
       {/* Background orbs */}
       <div style={{ position:'absolute', top:-120, right:-120, width:400, height:400, borderRadius:'50%', background:'rgba(255,255,255,0.04)', pointerEvents:'none' }} />
-      <div style={{ position:'absolute', bottom:-80, left:-80, width:300, height:300, borderRadius:'50%', background:'rgba(224,171,33,0.07)', pointerEvents:'none' }} />
+      <div style={{ position:'absolute', bottom:-80, left:-80, width:300, height:300, borderRadius:'50%', background:'rgba(250,165,40,0.07)', pointerEvents:'none' }} />
 
       <div style={{
         background:'#fff', borderRadius:24, width:'100%', maxWidth:440,

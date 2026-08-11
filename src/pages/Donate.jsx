@@ -210,7 +210,7 @@ export default function Donate() {
             100% Field-Verified
           </span>
 
-          <h1 style={{ fontSize: "clamp(28px, 4.5vw, 52px)", fontWeight: 900, margin: "0 0 20px", lineHeight: 1.08, letterSpacing: -1.5, textShadow: "0 2px 24px rgba(0,0,0,0.3)" }}>
+          <h1 style={{ fontSize: "clamp(28px, 4.5vw, 52px)", fontWeight: 900, margin: "0 0 20px", lineHeight: 1.08, letterSpacing: -1.5, textShadow: "0 2px 24px rgba(0,0,0,0.3)", color: "#fff" }}>
             Your Gift Reaches a Real Family — Guaranteed
           </h1>
 
@@ -372,7 +372,7 @@ export default function Donate() {
 
             {/* ── Project mode: locked project banner ── */}
             {isProjectMode && (
-              <div style={{ background: "linear-gradient(135deg, #004B96 0%, #4B7D19 100%)", borderRadius: 14, padding: "18px 20px", marginBottom: 24, color: "#fff" }}>
+              <div style={{ background: "linear-gradient(135deg, #204BA0 0%, #0F773C 100%)", borderRadius: 14, padding: "18px 20px", marginBottom: 24, color: "#fff" }}>
                 <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.75, marginBottom: 6 }}>Community Project</div>
                 <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.35, marginBottom: 4 }}>{preProjectTitle}</div>
                 <div style={{ fontSize: 12, opacity: 0.8, marginBottom: preProjectGoal ? 12 : 0 }}>{preProjectLoc}</div>
@@ -387,7 +387,7 @@ export default function Donate() {
 
             {/* Selected case summary — case mode only */}
             {!isProjectMode && selectedCase ? (
-              <div style={{ background: "linear-gradient(135deg, #004B96 0%, #4B7D19 100%)", borderRadius: 14, padding: "14px 16px", marginBottom: 20, color: "#fff", overflow: "hidden" }}>
+              <div style={{ background: "linear-gradient(135deg, #204BA0 0%, #0F773C 100%)", borderRadius: 14, padding: "14px 16px", marginBottom: 20, color: "#fff", overflow: "hidden" }}>
                 <div style={{ fontSize: 14, fontWeight: 800, lineHeight: 1.4, wordBreak: "break-word", marginBottom: 4 }}>
                   {isMobile ? (selectedCase.publicTitle?.slice(0, 40) + (selectedCase.publicTitle?.length > 40 ? "…" : "")) : selectedCase.publicTitle}
                 </div>

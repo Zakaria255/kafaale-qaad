@@ -220,7 +220,7 @@ export default function ImageCropper({
             step="0.001"
             value={scale}
             onChange={(e) => applyZoom(parseFloat(e.target.value))}
-            style={{ flex: 1, accentColor: "#004B96" }}
+            style={{ flex: 1, accentColor: "#204BA0" }}
           />
           <span style={{ fontSize: 14, color: "#5A6E8A", fontWeight: 700 }}>+</span>
         </div>
@@ -229,7 +229,7 @@ export default function ImageCropper({
           <button type="button" onClick={onCancel} style={{ ...btn, background: "#eef2f7", color: "#0D1F3C" }}>
             Cancel
           </button>
-          <button type="button" onClick={confirm} style={{ ...btn, background: "#004B96", color: "#fff" }}>
+          <button type="button" onClick={confirm} style={{ ...btn, background: "#204BA0", color: "#fff" }}>
             Use photo
           </button>
         </div>

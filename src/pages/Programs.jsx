@@ -16,6 +16,27 @@ const PROGRAM_LABELS = {
   emergency_relief: "Emergency Relief",
 };
 
+// Type-based accent colors — used as a fallback whenever the API doesn't
+// supply its own `color` for a program/project.
+const PROGRAM_TYPE_COLORS = {
+  child_sponsorship: "#EC4899",
+  education:         "#8B5CF6",
+  medical:           "#EF4444",
+  family_care:       "#F59E0B",
+  nutrition:         "#10B981",
+  emergency_relief:  "#C0392B",
+};
+const PROJECT_CAT_COLORS = {
+  water:       "#06B6D4",
+  school:      "#8B5CF6",
+  health:      "#EC4899",
+  agriculture: "#84CC16",
+  shelter:     "#F59E0B",
+  energy:      "#EF4444",
+};
+const programColor = (type)     => PROGRAM_TYPE_COLORS[type] || C.primary;
+const projectCatColor = (cat)   => PROJECT_CAT_COLORS[cat] || C.teal;
+
 const StatusBadge = ({ status }) => {
   const map = {
     seeking_sponsor:  { bg: "#FEF3C7", color: "#92400E",  label: "Seeking Sponsor" },
@@ -38,10 +59,13 @@ const StatusBadge = ({ status }) => {
 
 const BeneficiaryCard = ({ b, onSponsor }) => {
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const accent = b.program?.color || programColor(b.programType);
   return (
-    <div style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", transition: "box-shadow 0.25s, transform 0.25s" }}
+      onMouseOver={e => { e.currentTarget.style.boxShadow = "0 12px 32px rgba(17,42,99,0.15)"; e.currentTarget.style.transform = "translateY(-3px)"; }}
+      onMouseOut={e => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)"; e.currentTarget.style.transform = "none"; }}>
       {/* Photo / avatar */}
-      <div style={{ background: `linear-gradient(135deg, ${b.program?.color || C.primary} 0%, ${C.secondary} 100%)`, padding: "28px 24px 20px", textAlign: "center", position: "relative" }}>
+      <div style={{ background: `linear-gradient(135deg, ${accent} 0%, ${C.secondary} 100%)`, padding: "28px 24px 20px", textAlign: "center", position: "relative" }}>
         {b.publicPhotoUrl ? (
           <img src={b.publicPhotoUrl} alt="Beneficiary" style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(255,255,255,0.5)" }} />
         ) : (
@@ -65,7 +89,7 @@ const BeneficiaryCard = ({ b, onSponsor }) => {
       <div style={{ padding: "16px 20px", flex: 1 }}>
         {/* Program badge */}
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-          <span style={{ background: (b.program?.color || C.primary) + "15", color: b.program?.color || C.primary, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
+          <span style={{ background: accent + "15", color: accent, borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
             {b.program?.name || PROGRAM_LABELS[b.programType]}
           </span>
         </div>
@@ -105,7 +129,9 @@ const BeneficiaryCard = ({ b, onSponsor }) => {
       <div style={{ padding: "12px 20px", borderTop: `1px solid ${C.border}` }}>
         {b.status === "seeking_sponsor" ? (
           <button onClick={() => onSponsor(b)}
-            style={{ width: "100%", padding: "11px", background: `linear-gradient(135deg, ${C.primary}, ${C.secondary})`, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 800 }}>
+            style={{ width: "100%", padding: "11px", background: accent, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 800, transition: "box-shadow 0.2s" }}
+            onMouseOver={e => e.currentTarget.style.boxShadow = `0 4px 12px ${accent}50`}
+            onMouseOut={e => e.currentTarget.style.boxShadow = "none"}>
             Sponsor This {b.programType === "child_sponsorship" ? "Child" : b.programType === "family_care" ? "Family" : "Program"}
           </button>
         ) : (b.status === "under_sponsor" || b.status === "sponsored") ? (
@@ -124,16 +150,18 @@ const BeneficiaryCard = ({ b, onSponsor }) => {
 
 const ProjectCard = ({ p, onContribute }) => {
   const pct = p.fundingGoal > 0 ? Math.min(100, Math.round((p.totalRaised / p.fundingGoal) * 100)) : 0;
-  const remaining = Math.max(0, p.fundingGoal - p.totalRaised);
+  const accent = projectCatColor(p.category);
 
   return (
-    <div style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", border: `1px solid ${C.border}` }}>
+    <div style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", border: `1px solid ${C.border}`, transition: "box-shadow 0.25s, transform 0.25s" }}
+      onMouseOver={e => { e.currentTarget.style.boxShadow = "0 12px 32px rgba(17,42,99,0.15)"; e.currentTarget.style.transform = "translateY(-3px)"; }}
+      onMouseOut={e => { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)"; e.currentTarget.style.transform = "none"; }}>
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, ${C.navy} 0%, ${C.teal} 100%)`, padding: "20px 24px", color: "#fff" }}>
+      <div style={{ background: `linear-gradient(135deg, ${accent} 0%, ${accent}CC 100%)`, padding: "20px 24px", color: "#fff" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800 }}>{p.title}</div>
-            <div style={{ fontSize: 11, opacity: 0.75, marginTop: 4 }}>{p.location}, {p.region}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{p.title}</div>
+            <div style={{ fontSize: 11, opacity: 0.8, marginTop: 4, color: "#fff" }}>{p.location}, {p.region}</div>
           </div>
           <StatusBadge status={p.status} />
         </div>
@@ -154,18 +182,18 @@ const ProjectCard = ({ p, onContribute }) => {
         {/* Funding progress */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 900, color: pct >= 100 ? C.secondary : C.primary }}>
+            <span style={{ fontSize: 20, fontWeight: 900, color: pct >= 100 ? C.secondary : accent }}>
               {pct}% <span style={{ fontSize: 11, fontWeight: 600, color: C.muted }}>funded</span>
             </span>
             <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>Goal: ${p.fundingGoal.toLocaleString()}</span>
           </div>
           <div style={{ background: C.border, borderRadius: 20, height: 8, overflow: "hidden" }}>
-            <div style={{ background: pct >= 100 ? C.secondary : C.primary, width: `${pct}%`, height: "100%", borderRadius: 20, transition: "width 0.6s" }} />
+            <div style={{ background: pct >= 100 ? C.secondary : accent, width: `${pct}%`, height: "100%", borderRadius: 20, transition: "width 0.6s" }} />
           </div>
         </div>
 
         {/* Category tag */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.teal, background: "#CFFAFE", borderRadius: 20, display: "inline-block", padding: "3px 10px", marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: accent, background: accent + "15", borderRadius: 20, display: "inline-block", padding: "3px 10px", marginBottom: 12 }}>
           {p.category.charAt(0).toUpperCase() + p.category.slice(1)}
         </div>
       </div>
@@ -173,12 +201,14 @@ const ProjectCard = ({ p, onContribute }) => {
       <div style={{ padding: "12px 20px", borderTop: `1px solid ${C.border}` }}>
         {["seeking_funding","funded"].includes(p.status) && (
           <button onClick={() => onContribute(p)}
-            style={{ width: "100%", padding: "11px", background: `linear-gradient(135deg, ${C.navy}, ${C.teal})`, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 800 }}>
+            style={{ width: "100%", padding: "11px", background: accent, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 800, transition: "box-shadow 0.2s" }}
+            onMouseOver={e => e.currentTarget.style.boxShadow = `0 4px 12px ${accent}50`}
+            onMouseOut={e => e.currentTarget.style.boxShadow = "none"}>
             Fund This Project
           </button>
         )}
         {p.status === "in_progress" && (
-          <div style={{ textAlign: "center", fontSize: 13, color: C.teal, fontWeight: 700, padding: "8px 0" }}>
+          <div style={{ textAlign: "center", fontSize: 13, color: accent, fontWeight: 700, padding: "8px 0" }}>
             Project is underway
           </div>
         )}
@@ -506,6 +536,10 @@ export default function Programs() {
   const [contributeTarget, setContributeTarget] = useState(null);
   const [filterType, setFilterType] = useState("");
   const [filterCat, setFilterCat] = useState("");
+  const [benSearch, setBenSearch] = useState("");
+  const [benSort, setBenSort] = useState("newest");
+  const [projSearch, setProjSearch] = useState("");
+  const [projSort, setProjSort] = useState("newest");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -550,8 +584,26 @@ export default function Programs() {
     ...beneficiaries,
   ];
 
-  const filteredBeneficiaries = filterType ? allBeneficiaries.filter(b => b.programType === filterType) : allBeneficiaries;
-  const filteredProjects = filterCat ? projectsList.filter(p => p.category === filterCat) : projectsList;
+  const benQuery = benSearch.trim().toLowerCase();
+  const filteredBeneficiaries = allBeneficiaries
+    .filter(b => !filterType || b.programType === filterType)
+    .filter(b => !benQuery || [b.publicId, b._localName, b.publicCity, b.publicNeedsDesc].some(v => v?.toLowerCase().includes(benQuery)))
+    .sort((a, b) => {
+      if (benSort === "amount")  return (b.monthlyNeed || 0) - (a.monthlyNeed || 0);
+      if (benSort === "alpha")   return (a.publicId || "").localeCompare(b.publicId || "");
+      if (benSort === "oldest")  return new Date(a.enrolledAt || 0) - new Date(b.enrolledAt || 0);
+      return new Date(b.enrolledAt || 0) - new Date(a.enrolledAt || 0); // newest
+    });
+
+  const projQuery = projSearch.trim().toLowerCase();
+  const filteredProjects = projectsList
+    .filter(p => !filterCat || p.category === filterCat)
+    .filter(p => !projQuery || [p.title, p.location, p.region].some(v => v?.toLowerCase().includes(projQuery)))
+    .sort((a, b) => {
+      if (projSort === "funded") return (b.totalRaised || 0) - (a.totalRaised || 0);
+      if (projSort === "alpha")  return (a.title || "").localeCompare(b.title || "");
+      return 0; // newest = API order
+    });
 
   const PROGRAM_TYPE_FILTERS = [{ value: "", label: "All Programs" }, ...getCat("programTypes")];
 
@@ -569,14 +621,14 @@ export default function Programs() {
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
       {/* Hero */}
-      <div style={{ backgroundImage: `url('/programs-hero.png')`, backgroundSize: "cover", backgroundPosition: "center", position: "relative", color: "#fff", padding: isMobile ? "60px 20px 48px" : "90px 32px 72px", textAlign: "center" }}>
+      <div style={{ backgroundImage: `var(--kf-img-grade), url('/programs-hero.png')`, backgroundSize: "cover", backgroundPosition: "center", position: "relative", color: "#fff", padding: isMobile ? "60px 20px 48px" : "90px 32px 72px", textAlign: "center" }}>
         <div style={{ position: "absolute", inset: 0, background: "rgba(0,20,60,0.62)" }} />
         <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.12)", borderRadius: 100, padding: "6px 18px", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginBottom: 20 }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
           Humanitarian Programs
         </div>
-        <h1 style={{ fontSize: isMobile ? 28 : 44, fontWeight: 900, margin: "0 0 16px", letterSpacing: -0.5 }}>
+        <h1 style={{ fontSize: isMobile ? 28 : 44, fontWeight: 900, margin: "0 0 16px", letterSpacing: -0.5, color: "#fff" }}>
           Sponsor a Future
         </h1>
         <p style={{ fontSize: isMobile ? 14 : 17, opacity: 0.85, maxWidth: 600, margin: "0 auto 28px", lineHeight: 1.7 }}>
@@ -681,7 +733,7 @@ export default function Programs() {
 
             {/* What sponsors see */}
             <div style={{ background: C.navy, borderRadius: 20, padding: isMobile ? 24 : 40, color: "#fff", marginBottom: 40, textAlign: "center" }}>
-              <h3 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 20px" }}>The Sponsor Journey</h3>
+              <h3 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 20px", color: "#fff" }}>The Sponsor Journey</h3>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>
                 {[
                   { step: "Choose", desc: "Select a child, family, or program to sponsor" },
@@ -704,6 +756,17 @@ export default function Programs() {
           <div>
             <div style={{ textAlign: "center", marginBottom: 24 }}>
               <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 16px" }}>Beneficiaries</h2>
+              <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+                <input value={benSearch} onChange={e => setBenSearch(e.target.value)} placeholder="Search by ID, city, or need…"
+                  aria-label="Search beneficiaries"
+                  style={{ flex: "1 1 260px", maxWidth: 320, padding: "10px 16px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 13, boxSizing: "border-box" }} />
+                <FixedSelect value={benSort} onChange={e => setBenSort(e.target.value)} style={{ width: 190, fontSize: 13, borderRadius: 10, padding: "10px 14px" }}>
+                  <option value="newest">Sort: Newest</option>
+                  <option value="oldest">Sort: Oldest</option>
+                  <option value="amount">Sort: Highest need</option>
+                  <option value="alpha">Sort: Alphabetical</option>
+                </FixedSelect>
+              </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
                 {PROGRAM_TYPE_FILTERS.map(f => (
                   <button key={f.value} onClick={() => setFilterType(f.value)}
@@ -787,6 +850,16 @@ export default function Programs() {
           <div>
             <div style={{ textAlign: "center", marginBottom: 24 }}>
               <h2 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 16px" }}>Community Projects</h2>
+              <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+                <input value={projSearch} onChange={e => setProjSearch(e.target.value)} placeholder="Search by name or location…"
+                  aria-label="Search projects"
+                  style={{ flex: "1 1 260px", maxWidth: 320, padding: "10px 16px", border: `1.5px solid ${C.border}`, borderRadius: 10, fontSize: 13, boxSizing: "border-box" }} />
+                <FixedSelect value={projSort} onChange={e => setProjSort(e.target.value)} style={{ width: 190, fontSize: 13, borderRadius: 10, padding: "10px 14px" }}>
+                  <option value="newest">Sort: Newest</option>
+                  <option value="funded">Sort: Most funded</option>
+                  <option value="alpha">Sort: Alphabetical</option>
+                </FixedSelect>
+              </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
                 {PROJECT_CAT_FILTERS.map(f => (
                   <button key={f.value} onClick={() => setFilterCat(f.value)}

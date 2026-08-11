@@ -294,12 +294,12 @@ export default function MediaFeed() {
       {/* Hero */}
       <div style={{ position: "relative", overflow: "hidden", padding: "48px 24px 40px", textAlign: "center" }}>
         {/* Background photo */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `url("/media-hero.png")`, backgroundSize: "cover", backgroundPosition: "center center" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `var(--kf-img-grade), url("/media-hero.png")`, backgroundSize: "cover", backgroundPosition: "center center" }} />
         {/* Brand gradient overlay for text readability */}
         <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${C.primary}E6, ${C.secondary}CC)` }} />
         <div style={{ position: "relative", zIndex: 1 }}>
           <h1 style={{ color: "#fff", fontSize: 32, fontWeight: 900, margin: "0 0 8px", textShadow: "0 2px 16px rgba(0,0,0,0.5)" }}>Community Media</h1>
-          <p style={{ color: "rgba(255,255,255,0.9)", fontSize: 16, margin: 0, textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>Stories, updates, and moments from Kafaale Qaad Hope Society</p>
+          <p style={{ color: "rgba(255,255,255,0.9)", fontSize: 16, margin: 0, textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>Stories, updates, and moments from Kafaale Qaad Foundation</p>
         </div>
       </div>
 

@@ -38,7 +38,7 @@ export default function Footer() {
 
   return (
     <footer style={{
-      background: `linear-gradient(180deg, ${B.navy} 0%, #001A40 100%)`,
+      background: `linear-gradient(180deg, ${B.navy} 0%, #0A1D45 100%)`,
       color: "#fff",
       fontFamily: "'Segoe UI', system-ui, sans-serif",
       marginTop: 80,
@@ -87,7 +87,6 @@ export default function Footer() {
             {[
               [P.link_home,    "/",              true          ],
               [P.link_about,   "/about",         show("about") ],
-              [P.link_how,     "/how-it-works",  show("howItWorks")],
               [P.link_cases,   "/cases",         show("cases") ],
               ["Programs",     "/programs",      show("programs")],
               ["Stories",      "/stories",       show("stories")],
@@ -135,7 +134,7 @@ export default function Footer() {
             <Link to="/donate" style={{
               display: "inline-block", marginTop: 20,
               padding: "10px 20px",
-              background: `linear-gradient(135deg, ${B.gold}, #B8861A)`,
+              background: `linear-gradient(135deg, ${B.gold}, #E28E12)`,
               color: "#fff", borderRadius: 10, textDecoration: "none",
               fontSize: 13, fontWeight: 800,
               boxShadow: `0 4px 16px ${B.gold}40`,

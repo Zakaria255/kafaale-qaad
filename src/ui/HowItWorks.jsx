@@ -13,8 +13,8 @@ import React from "react";
 
 // On-brand accent themes (humanitarian palette), cycled across the cards.
 const THEMES = {
-  gold:  { text: "#B67F0D", bg: "rgba(224,171,33,.10)", border: "rgba(224,171,33,.30)" },
-  blue:  { text: "#1A6CB5", bg: "rgba(26,108,181,.09)", border: "rgba(26,108,181,.24)" },
+  gold:  { text: "#B67F0D", bg: "rgba(250,165,40,.10)", border: "rgba(250,165,40,.30)" },
+  blue:  { text: "#2E5EC0", bg: "rgba(46,94,192,.09)", border: "rgba(46,94,192,.24)" },
   green: { text: "#0E8A4F", bg: "rgba(14,138,79,.09)",  border: "rgba(14,138,79,.24)" },
 };
 

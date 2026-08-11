@@ -27,6 +27,22 @@ h1, h2, h3, h4 {
 
 img { max-width: 100%; display: block; }
 
+/* ── Brand photo grade ─────────────────────────────────────────────────────
+   Unifies every site photo with the logo's atmosphere: a warm sun-gold glow
+   at the top (the rising sun), an emerald breath at the base (the hands), over
+   a royal-navy depth that keeps overlaid text legible. Two ways to apply it:
+     • add className="kf-img-grade" to an absolutely-positioned overlay <div>
+       that sits above a background-image layer, or
+     • drop var(--kf-img-grade) in front of a url() in a `background` shorthand. */
+.kf-img-grade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--kf-img-grade);
+}
+/* Slightly richer, warmer photos so the whole library reads as one shoot. */
+.kf-photo-tone { filter: saturate(1.06) contrast(1.02); }
+
 /* Numbers must never reflow as they animate — tabular figures reserve width. */
 .kf-tabular { font-variant-numeric: tabular-nums; }
 

@@ -162,12 +162,12 @@ export default function Volunteer() {
 
       {/* ── Hero ── */}
       <section style={{ position:"relative", overflow:"hidden", minHeight:380, display:"flex", alignItems:"center", background:"#8B0000" }}>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"url('/volunteer-hero.png')", backgroundSize:"cover", backgroundPosition:"center" }} />
-        <div style={{ position:"absolute", inset:0, zIndex:5, background:"linear-gradient(135deg, rgba(0,38,81,0.82) 0%, rgba(0,75,150,0.65) 60%, rgba(139,0,0,0.45) 100%)" }} />
+        <div style={{ position:"absolute", inset:0, backgroundImage:"var(--kf-img-grade), url('/volunteer-hero.png')", backgroundSize:"cover", backgroundPosition:"center" }} />
+        <div style={{ position:"absolute", inset:0, zIndex:5, background:"linear-gradient(135deg, rgba(17,42,99,0.82) 0%, rgba(0,75,150,0.65) 60%, rgba(139,0,0,0.45) 100%)" }} />
         <div style={{ position:"relative", zIndex:10, padding:"88px 24px 72px", width:"100%", textAlign:"center", color:"#fff" }}>
           <div style={{ maxWidth:720, margin:"0 auto" }}>
-            <span style={{ display:"inline-block", background:"rgba(224,171,33,0.2)", border:"1px solid rgba(224,171,33,0.4)", color:C.accent, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>JOIN OUR TEAM</span>
-            <h1 style={{ fontSize:"clamp(28px,5vw,54px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.08, letterSpacing:-1 }}>Volunteer With Kafaale Qaad</h1>
+            <span style={{ display:"inline-block", background:"rgba(250,165,40,0.2)", border:"1px solid rgba(250,165,40,0.4)", color:C.accent, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>JOIN OUR TEAM</span>
+            <h1 style={{ fontSize:"clamp(28px,5vw,54px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.08, letterSpacing:-1, color:"#fff" }}>Volunteer With Kafaale Qaad</h1>
             <p style={{ fontSize:17, opacity:0.85, lineHeight:1.75, maxWidth:540, margin:"0 auto" }}>Choose your role below. From field agents to tech volunteers — every skill matters in the fight against poverty.</p>
           </div>
         </div>

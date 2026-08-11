@@ -53,7 +53,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   gap: 4px;
-  border-bottom: 2px solid #D8E4F0;
+  border-bottom: 2px solid #D6E1F5;
   margin-bottom: 24px;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -98,7 +98,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
 
 /* ── Header / top bar ─────────────────────────────────────────────────────── */
 .kf-header {
-  background: #004B96;
+  background: #204BA0;
   color: #fff;
   position: sticky;
   top: 0;
@@ -397,9 +397,9 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
 }
 .kf-hero-animated-bg {
   background: linear-gradient(-45deg,
-    #002651 0%, #003a7a 20%,
-    #004B96 40%, #4B7D19 60%,
-    #003a7a 80%, #002651 100%);
+    #112A63 0%, #1B3A86 20%,
+    #204BA0 40%, #0F773C 60%,
+    #1B3A86 80%, #112A63 100%);
   background-size: 400% 400%;
   animation: kf-hero-shift 16s ease infinite;
 }
@@ -408,7 +408,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 28% 65%, rgba(224,171,33,0.13) 0%, transparent 58%),
+    radial-gradient(ellipse at 28% 65%, rgba(250,165,40,0.13) 0%, transparent 58%),
     radial-gradient(ellipse at 72% 28%, rgba(75,125,25,0.16) 0%, transparent 52%);
   animation: kf-hero-zoom 16s ease infinite;
   pointer-events: none;

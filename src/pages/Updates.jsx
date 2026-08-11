@@ -86,13 +86,13 @@ export default function Updates() {
         padding: "80px 24px 64px", textAlign: "center", color: "#fff",
         position: "relative", overflow: "hidden", background: "#0a1628",
       }}>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"url('/updates-hero-img0.png')", backgroundSize:"cover", backgroundPosition:"center" }} />
+        <div style={{ position:"absolute", inset:0, backgroundImage:"var(--kf-img-grade), url('/updates-hero-img0.png')", backgroundSize:"cover", backgroundPosition:"center" }} />
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, rgba(10,22,40,0.88) 0%, rgba(26,58,110,0.78) 55%, rgba(80,20,100,0.65) 100%)" }} />
         <div style={{ position:"relative", maxWidth:700, margin:"0 auto" }}>
-          <span style={{ display:"inline-block", background:"rgba(224,171,33,0.18)", border:"1px solid rgba(224,171,33,0.4)", color:"#F4D04A", borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>
+          <span style={{ display:"inline-block", background:"rgba(250,165,40,0.18)", border:"1px solid rgba(250,165,40,0.4)", color:"#FEC43F", borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>
             LIVE UPDATES
           </span>
-          <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.1, letterSpacing:-1 }}>
+          <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.1, letterSpacing:-1, color:"#fff" }}>
             Field Updates &<br /><span style={{ color:C.accent }}>Emergency Alerts</span>
           </h1>
           <p style={{ fontSize:17, opacity:0.82, lineHeight:1.75, maxWidth:540, margin:"0 auto" }}>
@@ -171,7 +171,7 @@ export default function Updates() {
           {/* Donate CTA */}
           <div style={{ marginTop:56, background:`linear-gradient(135deg,${C.navy},${C.primary})`, borderRadius:20, padding:"40px 32px", textAlign:"center", color:"#fff" }}>
             <div style={{ fontSize:36, marginBottom:12 }}></div>
-            <h2 style={{ fontSize:26, fontWeight:900, margin:"0 0 10px" }}>Every Emergency Needs an Immediate Response</h2>
+            <h2 style={{ fontSize:26, fontWeight:900, margin:"0 0 10px", color:"#fff" }}>Every Emergency Needs an Immediate Response</h2>
             <p style={{ opacity:0.82, maxWidth:480, margin:"0 auto 24px", lineHeight:1.7, fontSize:15 }}>
               Your donation is verified, tracked, and delivered with GPS-confirmed proof. No middlemen.
             </p>

@@ -352,7 +352,7 @@ export default function StoryDetail() {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:16 }}>
               {related.map(s => (
                 <Link key={s.id} to={`/stories/${s.id}`} style={{ textDecoration:"none", display:"block", borderRadius:14, overflow:"hidden", border:`1px solid ${C.border}`, background:C.bg, transition:"box-shadow .2s" }}
-                  onMouseOver={e => e.currentTarget.style.boxShadow="0 6px 20px rgba(0,38,81,0.12)"}
+                  onMouseOver={e => e.currentTarget.style.boxShadow="0 6px 20px rgba(17,42,99,0.12)"}
                   onMouseOut={e  => e.currentTarget.style.boxShadow="none"}
                 >
                   <div style={{ height:100, background:`linear-gradient(135deg,${catColor(s.category)}25,${catColor(s.category)}55)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:40 }}>

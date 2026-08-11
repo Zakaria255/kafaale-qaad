@@ -1,11 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { ShieldCheck, Lock, BadgeCheck, MapPin, AlertTriangle, HeartHandshake, ArrowRight } from "lucide-react";
 import { cases as casesApi } from "../api/client";
 import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
 import { useResponsive } from "../hooks/useResponsive.js";
 import FixedSelect from "../components/FixedSelect.jsx";
 import { C, URGENCY_COLOR } from "../theme.js";
+
+// Vivid trust-green for the featured showcase accents (funding, verification badges).
+const GREEN = "#2F9E44";
+const URGENCY_RANK = { critical: 4, high: 3, medium: 2, low: 1 };
+
+// Human-friendly case reference derived from the DB id (e.g. "KQ-2026-A1B2").
+function caseRef(c) {
+  const tail = String(c.id || "").replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase() || "0000";
+  return `KQ-2026-${tail}`;
+}
 
 const CAT_IMG = {
   food:      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=600&q=75",
@@ -124,6 +135,147 @@ function loadCasesVis() {
   catch { return CASES_VIS_DEFAULTS; }
 }
 
+// Premium spotlight card for the single most-urgent verified case.
+function FeaturedCase({ c, isMobile }) {
+  const pct = c.targetGoal > 0 ? Math.min(100, Math.round((c.totalRaised / c.targetGoal) * 100)) : 0;
+  const crit = c.emergencyLevel === "critical";
+  const urgencyName = (c.emergencyLevel || "high").charAt(0).toUpperCase() + (c.emergencyLevel || "high").slice(1);
+  const alertLabel = crit ? "Critical — Immediate Support Needed" : `${urgencyName} Priority — Support Needed`;
+
+  const TRUST = [
+    { icon: ShieldCheck, title: "Field Verified",     sub: "Our team verified this case on-site" },
+    { icon: Lock,        title: "Identity Protected", sub: "Beneficiary identity is protected" },
+    { icon: BadgeCheck,  title: "Needs Confirmed",    sub: "Needs assessed and confirmed" },
+  ];
+
+  return (
+    <div style={{ background: C.darkBg, borderRadius: 26, padding: isMobile ? 6 : 10, boxShadow: "0 20px 50px rgba(10,29,69,0.28)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,0.88fr) minmax(0,1.12fr)", background: "#fff", borderRadius: 18, overflow: "hidden" }}>
+
+        {/* ── LEFT · photo ── */}
+        <div style={{ position: "relative", minHeight: isMobile ? 300 : 500 }}>
+          <img src={getCaseImg(c)} alt="" loading="lazy"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,20,50,0.62) 0%, rgba(0,20,50,0.04) 48%)" }} />
+
+          {/* urgency badge */}
+          <div style={{ position: "absolute", top: 18, left: 18, display: "flex", alignItems: "center", gap: 9, background: C.danger, color: "#fff", padding: "9px 15px", borderRadius: 12, boxShadow: "0 6px 18px rgba(192,57,43,0.45)" }}>
+            <AlertTriangle size={20} strokeWidth={2.4} />
+            <div style={{ lineHeight: 1.05 }}>
+              <div style={{ fontSize: 15, fontWeight: 900, letterSpacing: 0.5 }}>{(c.emergencyLevel || "urgent").toUpperCase()}</div>
+              <div style={{ fontSize: 9, fontWeight: 700, opacity: 0.92, letterSpacing: 1.2 }}>VERIFIED CASE</div>
+            </div>
+          </div>
+
+          {/* glass reassurance card */}
+          <div style={{ position: "absolute", left: 16, right: 16, bottom: 16, display: "flex", gap: 12, alignItems: "flex-start", background: "rgba(10,29,69,0.72)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 16, padding: "14px 16px" }}>
+            <div style={{ flexShrink: 0, width: 38, height: 38, borderRadius: 10, background: "rgba(250,165,40,0.18)", border: "1px solid rgba(250,165,40,0.42)", display: "grid", placeItems: "center" }}>
+              <ShieldCheck size={20} color={C.accent} />
+            </div>
+            <div>
+              <div style={{ color: C.accent, fontWeight: 800, fontSize: 14 }}>Your support can save a life</div>
+              <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 12, lineHeight: 1.5, marginTop: 2 }}>Every contribution brings hope, healing, and a brighter future.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── RIGHT · details ── */}
+        <div style={{ padding: isMobile ? "22px 20px" : "30px 34px", display: "flex", flexDirection: "column" }}>
+          {/* top row */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ background: "#FBEFD0", color: "#8A6410", fontWeight: 800, fontSize: 11, letterSpacing: 1, padding: "5px 12px", borderRadius: 20 }}>CASE ID</span>
+              <span style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{caseRef(c)}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#EAF6EE", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <ShieldCheck size={19} color={GREEN} />
+              </div>
+              <div style={{ lineHeight: 1.15 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: GREEN, letterSpacing: 0.3 }}>VERIFIED BY KAFAALE QAAD</div>
+                <div style={{ fontSize: 11, color: C.muted }}>Your trust. Their hope.</div>
+              </div>
+            </div>
+          </div>
+
+          {/* title */}
+          <h2 style={{ fontSize: "clamp(23px,2.6vw,36px)", fontWeight: 900, lineHeight: 1.12, color: C.navy, margin: "0 0 12px" }}>
+            {c.publicTitle || "Verified Emergency Case"}
+          </h2>
+
+          {/* location */}
+          <div style={{ display: "flex", alignItems: "center", gap: 7, color: C.text, fontSize: 15, fontWeight: 600, marginBottom: 14 }}>
+            <MapPin size={18} color={C.accent} />
+            {[c.publicCity, c.publicCountry].filter(Boolean).join(", ") || "Somalia"}
+          </div>
+
+          {/* description */}
+          <p style={{ fontSize: 15, lineHeight: 1.7, color: "#3A4A63", margin: "0 0 18px", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+            {c.publicStory || "Our field team has verified this case on-site and confirmed the family's immediate needs."}
+          </p>
+
+          {/* alert banner */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#FCEEEC", borderRadius: 12, padding: "12px 16px", marginBottom: 20 }}>
+            <AlertTriangle size={18} color={C.danger} />
+            <span style={{ color: C.danger, fontWeight: 800, fontSize: 15 }}>{alertLabel}</span>
+          </div>
+
+          {/* funding box */}
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 16, padding: "18px 20px", marginBottom: 22 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
+              <div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: GREEN, lineHeight: 1 }}>${(c.totalRaised || 0).toLocaleString()}</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>raised</div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: C.navy, lineHeight: 1 }}>{pct}%</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>Funded</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: C.navy, lineHeight: 1 }}>${(c.targetGoal || 0).toLocaleString()}</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>goal</div>
+              </div>
+            </div>
+
+            {/* progress with bubble marker */}
+            <div style={{ position: "relative", background: "#E6ECF3", borderRadius: 20, height: 10, marginBottom: 22, marginTop: 6 }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: GREEN, borderRadius: 20, transition: "width 0.6s ease" }} />
+              <div style={{ position: "absolute", top: "50%", left: `${Math.min(96, Math.max(8, pct))}%`, transform: "translate(-50%,-50%)", background: "#fff", border: `2px solid ${GREEN}`, color: GREEN, fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", boxShadow: "0 2px 6px rgba(0,0,0,0.12)" }}>{pct}%</div>
+            </div>
+
+            {/* trust indicators */}
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 14, borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+              {TRUST.map(t => (
+                <div key={t.title} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ flexShrink: 0, width: 34, height: 34, borderRadius: "50%", background: "#EAF6EE", display: "grid", placeItems: "center" }}>
+                    <t.icon size={18} color={GREEN} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: GREEN }}>{t.title}</div>
+                    <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>{t.sub}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: "auto" }}>
+            <Link to={`/donate?caseId=${c.id}`}
+              style={{ flex: "1 1 240px", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: C.accent, color: C.navy, fontWeight: 800, fontSize: 16, padding: "15px 22px", borderRadius: 14, textDecoration: "none", boxShadow: "0 8px 24px rgba(250,165,40,0.42)" }}>
+              <HeartHandshake size={20} /> Sponsor This Case <ArrowRight size={18} />
+            </Link>
+            <Link to={`/cases/${c.id}`}
+              style={{ flex: "0 1 190px", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", color: C.navy, fontWeight: 800, fontSize: 16, padding: "15px 22px", borderRadius: 14, textDecoration: "none", border: `1.5px solid ${C.border}` }}>
+              View Full Case
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Cases() {
   const { lang } = useLang();
   const P = PT.cases[lang] || PT.cases.en;
@@ -176,6 +328,14 @@ export default function Cases() {
     ["", P.badge_escrow],
   ];
 
+  // Spotlight the most-urgent, not-yet-funded case — only on the default (unfiltered) view.
+  const noFilters = catFilter === "all" && urgFilter === "all" && !search;
+  const featured = noFilters
+    ? [...items]
+        .filter(c => (c.targetGoal > 0 ? c.totalRaised / c.targetGoal : 0) < 1)
+        .sort((a, b) => (URGENCY_RANK[b.emergencyLevel] || 0) - (URGENCY_RANK[a.emergencyLevel] || 0))[0]
+    : null;
+
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       {/* Hero */}
@@ -192,22 +352,29 @@ export default function Cases() {
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
               Verified Cases
             </div>
-            <h1 style={{ margin: "0 0 18px", fontSize: "clamp(26px,3vw,42px)", fontWeight: 900, lineHeight: 1.15 }}>{P.hero_title}</h1>
+            <h1 style={{ margin: "0 0 18px", fontSize: "clamp(26px,3vw,42px)", fontWeight: 900, lineHeight: 1.15, color: "#fff" }}>{P.hero_title}</h1>
             <p style={{ margin: 0, opacity: 0.82, fontSize: 16, lineHeight: 1.8 }}>{P.hero_sub}</p>
           </div>
         </div>
       </div>
 
+      {/* Featured — most urgent verified case */}
+      {!loading && featured && (
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: isMobile ? "24px 16px 0" : "36px 20px 0" }}>
+          <FeaturedCase c={featured} isMobile={isMobile} />
+        </div>
+      )}
+
       {/* Filters */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 20px" }}>
-        <div style={{ background: "#fff", borderRadius: 16, padding: isMobile ? "16px" : "20px 24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: 24 }}>
-          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: 10, alignItems: "stretch" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px 20px" }}>
+        <div style={{ background: "#fff", borderRadius: 12, padding: isMobile ? "10px" : "10px 12px", boxShadow: "0 1px 6px rgba(0,0,0,0.05)", border: `1px solid ${C.border}`, marginBottom: 20 }}>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={P.search_ph}
-              style={{ flex: 1, minWidth: 0, padding: "10px 16px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 14 }} />
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              style={{ flex: "1 1 200px", minWidth: 0, boxSizing: "border-box", padding: "8px 12px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13 }} />
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
               {vis.showCategoryFilter && (
                 <FixedSelect value={catFilter} onChange={e => setCatFilter(e.target.value)}
-                  style={{ padding:"10px 14px", border:`1.5px solid ${C.border}`, borderRadius:8, fontSize:14 }}>
+                  style={{ width: isMobile ? "100%" : 160, padding: "8px 10px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13 }}>
                   {cats.map(c => (
                     <option key={c} value={c}>{(CAT_ICON[c] || "🌍") + " " + (c === "all" ? P.cat_all : c.charAt(0).toUpperCase()+c.slice(1))}</option>
                   ))}
@@ -215,16 +382,17 @@ export default function Cases() {
               )}
               {vis.showUrgencyFilter && (
                 <FixedSelect value={urgFilter} onChange={e => setUrgFilter(e.target.value)}
-                  style={{ padding:"10px 14px", border:`1.5px solid ${C.border}`, borderRadius:8, fontSize:14 }}>
+                  style={{ width: isMobile ? "100%" : 130, padding: "8px 10px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13 }}>
                   {urgs.map(u => (
                     <option key={u} value={u}>{u === "all" ? P.urg_all : u.charAt(0).toUpperCase()+u.slice(1)}</option>
                   ))}
                 </FixedSelect>
               )}
               {vis.showTableView && (
-                <div style={{ display: "flex", gap: 4 }}>
+                <div style={{ display: "flex", gap: 3, background: C.bg, borderRadius: 8, padding: 3 }}>
                   {[["⊞","grid"],["☰","table"]].map(([icon, v]) => (
-                    <button key={v} onClick={() => setView(v)} style={{ padding: "8px 12px", border: `1px solid ${C.border}`, borderRadius: 8, background: view===v ? C.primary : "#fff", color: view===v ? "#fff" : C.muted, cursor: "pointer" }}>{icon}</button>
+                    <button key={v} onClick={() => setView(v)} aria-pressed={view===v} aria-label={v === "grid" ? "Grid view" : "Table view"}
+                      style={{ padding: "6px 11px", border: "none", borderRadius: 6, fontSize: 13, lineHeight: 1, background: view===v ? "#fff" : "transparent", color: view===v ? C.primary : C.muted, boxShadow: view===v ? "0 1px 3px rgba(0,0,0,0.1)" : "none", cursor: "pointer", transition: "all 0.15s" }}>{icon}</button>
                   ))}
                 </div>
               )}

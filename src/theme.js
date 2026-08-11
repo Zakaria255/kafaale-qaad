@@ -1,14 +1,16 @@
 // Single source of truth for brand colors and urgency mappings.
 // Import { C, URGENCY_COLOR, URGENCY_LABEL, URGENCY_BG } from "../theme.js"
 
+// Values mirror the Kafaala Qaad logo (emerald hands, royal-blue family, sun-gold)
+// and the CSS tokens in design/tokens.css — keep the two in sync.
 export const C = {
-  navy:    "#002651",
-  primary: "#004B96",
-  secondary:"#4B7D19",
-  accent:  "#E0AB21",
-  gold:    "#E0AB21",
-  green:   "#4B7D19",
-  blue:    "#004B96",
+  navy:    "#112A63",
+  primary: "#204BA0",
+  secondary:"#0F773C",
+  accent:  "#FAA528",
+  gold:    "#FAA528",
+  green:   "#0F773C",
+  blue:    "#204BA0",
   danger:  "#C0392B",
   error:   "#C0392B", // alias of danger; kept so Login.jsx reads naturally
   teal:    "#0E7490",
@@ -17,10 +19,10 @@ export const C = {
   bg:      "#F4F7FC",
   white:   "#FFFFFF",
   card:    "#FFFFFF", // alias of white; surface colour for cards
-  border:  "#D8E4F0",
+  border:  "#D6E1F5",
   text:    "#0D1F3C",
-  darkBg:  "#001A40",
-  darkCard:"#00244F",
+  darkBg:  "#0A1D45",
+  darkCard:"#112A63",
 };
 
 // Keys are always lowercase to match API values

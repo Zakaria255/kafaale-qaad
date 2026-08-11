@@ -2,14 +2,14 @@ import React from "react";
 
 /**
  * "Guided by the Qur'an and Sunnah" — the mission's spiritual foundation.
- * Emerald-and-gold Islamic styling: geometric star field, hanging lanterns,
- * a gold ornamental frame, and four gold-bordered verse/hadith cards.
- * Self-contained (no design-token dependency for its palette) so the section
- * reads as a deliberate, sacred interlude distinct from the navy product UI.
+ * Rendered on the system navy surface with the brand gold (and the gold→green
+ * Sunrise gradient as the signature accent) so it reads as part of the same
+ * navy/gold identity as the hero and pre-footer, not a separate palette.
  */
 
-const GOLD = "#D9B85C";
-const GOLD_SOFT = "#E7CE86";
+// System gold (matches --kf-gold-500) for SVG fills that can't take CSS vars.
+const GOLD = "#FAA528";
+const GOLD_SOFT = "#F0CE7A"; // lighter tint for Arabic text on navy
 
 const VERSES = [
   {
@@ -87,19 +87,31 @@ function VerseCard({ ar, reference, en }) {
       onMouseLeave={() => setHover(false)}
       style={{
         position: "relative",
-        borderRadius: 16,
-        padding: "28px 26px 26px",
+        overflow: "hidden",
+        borderRadius: "var(--kf-r-lg)",
+        padding: "30px 26px 26px",
         textAlign: "center",
-        background:
-          "linear-gradient(160deg, rgba(23,86,73,0.92) 0%, rgba(11,52,46,0.94) 55%, rgba(8,38,45,0.96) 100%)",
-        border: `1px solid ${hover ? "rgba(231,206,134,0.85)" : "rgba(217,184,92,0.45)"}`,
+        background: "linear-gradient(160deg, var(--kf-navy-800) 0%, var(--kf-navy-900) 60%, var(--kf-navy-950) 100%)",
+        border: `1px solid ${hover ? "rgba(250,165,40,0.75)" : "rgba(250,165,40,0.30)"}`,
         boxShadow: hover
-          ? "0 22px 50px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(231,206,134,0.35)"
-          : "0 16px 40px -22px rgba(0,0,0,0.6), inset 0 1px 0 rgba(231,206,134,0.18)",
+          ? "0 22px 50px -20px rgba(0,10,30,0.75), inset 0 1px 0 rgba(250,165,40,0.30)"
+          : "0 16px 40px -22px rgba(0,10,30,0.6), inset 0 1px 0 rgba(250,165,40,0.14)",
         transform: hover ? "translateY(-3px)" : "none",
-        transition: "transform .35s ease, border-color .35s ease, box-shadow .35s ease",
+        transition:
+          "transform var(--kf-dur-base) var(--kf-ease-out), " +
+          "border-color var(--kf-dur-base) var(--kf-ease-out), " +
+          "box-shadow var(--kf-dur-base) var(--kf-ease-out)",
       }}
     >
+      {/* Sunrise accent — the brand's gold→green signature, tying green in */}
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute", insetBlockStart: 0, insetInline: 0, blockSize: 3,
+          background: "var(--kf-sunrise)", opacity: hover ? 1 : 0.85,
+          transition: "opacity var(--kf-dur-base) var(--kf-ease-out)",
+        }}
+      />
       <p
         dir="rtl"
         lang="ar"
@@ -117,12 +129,12 @@ function VerseCard({ ar, reference, en }) {
       </p>
       <div
         style={{
-          color: GOLD,
-          fontSize: 13,
-          letterSpacing: 1,
+          color: "var(--kf-gold-500)",
+          fontSize: "var(--kf-fs-caption)",
+          letterSpacing: ".06em",
           marginBottom: 12,
           fontStyle: "italic",
-          opacity: 0.95,
+          fontWeight: 600,
         }}
       >
         ({reference})
@@ -130,7 +142,7 @@ function VerseCard({ ar, reference, en }) {
       <p
         style={{
           margin: 0,
-          color: "rgba(240,236,222,0.86)",
+          color: "var(--kf-on-dark-75)",
           fontSize: "clamp(13px, 1.4vw, 15px)",
           lineHeight: 1.7,
         }}
@@ -144,19 +156,20 @@ function VerseCard({ ar, reference, en }) {
 export default function GuidedByQuran({ isMobile = false }) {
   return (
     <section
+      className="kf-on-dark"
       style={{
         position: "relative",
         overflow: "hidden",
         paddingBlock: isMobile ? "56px" : "88px",
         paddingInline: "clamp(16px, 5vw, 48px)",
         background:
-          "radial-gradient(120% 90% at 50% -10%, #14574a 0%, #0c3b34 40%, #082a34 70%, #05202e 100%)",
+          "radial-gradient(120% 90% at 50% -10%, var(--kf-navy-800) 0%, var(--kf-navy-900) 45%, var(--kf-navy-950) 100%)",
       }}
     >
       {/* Geometric star field */}
       <svg
         aria-hidden="true"
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.12 }}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.1 }}
       >
         <defs>
           <pattern id="kf-stars" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="rotate(0)">
@@ -182,7 +195,7 @@ export default function GuidedByQuran({ isMobile = false }) {
           transform: "translateX(-50%)",
           width: 620,
           height: 320,
-          background: "radial-gradient(ellipse at center, rgba(231,206,134,0.22) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse at center, rgba(250,165,40,0.20) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -193,10 +206,10 @@ export default function GuidedByQuran({ isMobile = false }) {
         style={{
           position: "absolute",
           inset: isMobile ? 10 : 18,
-          border: "1px solid rgba(217,184,92,0.35)",
-          borderRadius: 14,
+          border: "1px solid rgba(250,165,40,0.30)",
+          borderRadius: "var(--kf-r-lg)",
           pointerEvents: "none",
-          boxShadow: "inset 0 0 0 4px rgba(217,184,92,0.06)",
+          boxShadow: "inset 0 0 0 4px rgba(250,165,40,0.05)",
         }}
       />
 
@@ -216,28 +229,29 @@ export default function GuidedByQuran({ isMobile = false }) {
           <h2
             style={{
               margin: 0,
-              color: GOLD_SOFT,
-              fontFamily: '"Amiri", Georgia, "Times New Roman", serif',
-              fontSize: "clamp(28px, 4vw, 42px)",
-              fontWeight: 700,
-              letterSpacing: 0.3,
+              color: "var(--kf-gold-500)",
+              fontFamily: "var(--kf-font-display)",
+              fontSize: "var(--kf-fs-h2)",
+              lineHeight: "var(--kf-lh-h2)",
+              fontWeight: 800,
+              letterSpacing: "-.01em",
               textShadow: "0 2px 20px rgba(0,0,0,0.45)",
             }}
           >
             Guided by the Qur'an and Sunnah
           </h2>
-          {/* divider flourish */}
+          {/* divider flourish — sunrise gradient */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, margin: "14px 0 16px" }} aria-hidden="true">
-            <span style={{ height: 1, width: 60, background: `linear-gradient(90deg, transparent, ${GOLD})` }} />
-            <span style={{ width: 8, height: 8, transform: "rotate(45deg)", background: GOLD, boxShadow: `0 0 10px ${GOLD}` }} />
-            <span style={{ height: 1, width: 60, background: `linear-gradient(90deg, ${GOLD}, transparent)` }} />
+            <span style={{ height: 2, width: 60, background: "linear-gradient(90deg, transparent, var(--kf-gold-500))" }} />
+            <span style={{ width: 8, height: 8, transform: "rotate(45deg)", background: "var(--kf-gold-500)", boxShadow: "0 0 10px rgba(250,165,40,0.9)" }} />
+            <span style={{ height: 2, width: 60, background: "linear-gradient(90deg, var(--kf-green-600), transparent)" }} />
           </div>
           <p
             style={{
               margin: "0 auto",
               maxWidth: 620,
-              color: "rgba(240,236,222,0.85)",
-              fontSize: "clamp(14px, 1.6vw, 17px)",
+              color: "var(--kf-on-dark-75)",
+              fontSize: "var(--kf-fs-body-lg)",
               lineHeight: 1.7,
             }}
           >

@@ -38,3 +38,6 @@ Thumbs.db
 .claude/
 backend/prisma/.studio.local.prisma
 dev-dist
+
+# Stray nested clone of Zakaria255/kafaale-qaad — separate repo, not part of this tree
+/kafaale-qaad/

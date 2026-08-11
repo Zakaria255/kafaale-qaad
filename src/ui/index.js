@@ -9,5 +9,6 @@ export { default as StatItem }      from "./StatItem.jsx";
 export { default as Ticker }        from "./Ticker.jsx";
 export { default as Arc }           from "./Arc.jsx";
 export { default as HowItWorks }    from "./HowItWorks.jsx";
+export { default as FeaturedCase }  from "./FeaturedCase.jsx";
 export { default as GuidedByQuran } from "./GuidedByQuran.jsx";
 export { default as Timeline }      from "./Timeline.jsx";

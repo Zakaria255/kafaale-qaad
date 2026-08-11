@@ -40,7 +40,7 @@ function contractBody(type, data, ref, date) {
   if (type === "child_sponsorship") return (
     <>
       <Section title="Parties">
-        <Row label="Organisation" value="Kafaale Qaad HOPE Society · Mogadishu, Somalia" />
+        <Row label="Organisation" value="Kafaale Qaad Foundation · Mogadishu, Somalia" />
         <Row label="Sponsor" value={data.sponsorName || "—"} />
         <Row label="Contact" value={data.sponsorEmail || "—"} />
       </Section>
@@ -70,7 +70,7 @@ function contractBody(type, data, ref, date) {
   if (type === "project_funding") return (
     <>
       <Section title="Parties">
-        <Row label="Organisation" value="Kafaale Qaad HOPE Society · Mogadishu, Somalia" />
+        <Row label="Organisation" value="Kafaale Qaad Foundation · Mogadishu, Somalia" />
         <Row label="Contributor" value={data.contributorName || "—"} />
         <Row label="Contact" value={data.contributorEmail || "—"} />
       </Section>
@@ -96,7 +96,7 @@ function contractBody(type, data, ref, date) {
   if (type === "partner_agreement") return (
     <>
       <Section title="Parties">
-        <Row label="Platform" value="Kafaale Qaad HOPE Society · Mogadishu, Somalia" />
+        <Row label="Platform" value="Kafaale Qaad Foundation · Mogadishu, Somalia" />
         <Row label="Partner Org" value={data.orgName || "—"} />
         <Row label="Type" value={data.orgType || "—"} />
         <Row label="Country" value={data.country || "—"} />
@@ -123,7 +123,7 @@ function contractBody(type, data, ref, date) {
   if (type === "case_sponsorship") return (
     <>
       <Section title="Parties">
-        <Row label="Organisation" value="Kafaale Qaad HOPE Society · Mogadishu, Somalia" />
+        <Row label="Organisation" value="Kafaale Qaad Foundation · Mogadishu, Somalia" />
         <Row label="Donor" value={data.donorName || "—"} />
         <Row label="Contact" value={data.donorEmail || "—"} />
       </Section>
@@ -211,18 +211,18 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a202c; padding: 48px; max-width: 820px; margin: 0 auto; }
-  .header { background: linear-gradient(135deg, #002651, #004B96); color: #fff; border-radius: 12px; padding: 28px 32px; margin-bottom: 28px; }
+  .header { background: linear-gradient(135deg, #112A63, #204BA0); color: #fff; border-radius: 12px; padding: 28px 32px; margin-bottom: 28px; }
   .org-label { font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; opacity: .7; margin-bottom: 6px; }
   .title { font-size: 22px; font-weight: 900; }
   .meta { display: flex; gap: 24px; margin-top: 14px; font-size: 12px; opacity: .75; }
   .section { margin-bottom: 22px; }
-  .section-head { font-size: 10px; font-weight: 800; color: #004B96; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid #D8E4F0; padding-bottom: 6px; margin-bottom: 12px; }
+  .section-head { font-size: 10px; font-weight: 800; color: #204BA0; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid #D6E1F5; padding-bottom: 6px; margin-bottom: 12px; }
   table { width: 100%; border-collapse: collapse; }
   td { padding: 7px 4px; font-size: 13px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
   td.lbl { color: #5A6E8A; font-weight: 700; width: 180px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; padding-top: 9px; }
   .terms { font-size: 12px; color: #374151; line-height: 1.9; white-space: pre-line; }
-  .sig-box { border: 2px solid #004B96; border-radius: 10px; padding: 20px 24px; margin-top: 24px; }
-  .sig-name { font-size: 20px; font-family: 'Georgia', serif; font-style: italic; color: #002651; border-bottom: 1.5px solid #D8E4F0; padding-bottom: 6px; margin: 10px 0 14px; }
+  .sig-box { border: 2px solid #204BA0; border-radius: 10px; padding: 20px 24px; margin-top: 24px; }
+  .sig-name { font-size: 20px; font-family: 'Georgia', serif; font-style: italic; color: #112A63; border-bottom: 1.5px solid #D6E1F5; padding-bottom: 6px; margin: 10px 0 14px; }
   .sig-row { display: flex; gap: 40px; font-size: 12px; color: #5A6E8A; margin-top: 8px; }
   .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-size: 56px; font-weight: 900; color: rgba(0,75,150,0.06); white-space: nowrap; pointer-events: none; z-index: 9999; letter-spacing: 4px; }
   .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #9CA3AF; }
@@ -233,7 +233,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
   <div class="watermark">KAFAALE QAAD</div>
 
   <div class="header">
-    <div class="org-label">Kafaale Qaad HOPE Society</div>
+    <div class="org-label">Kafaale Qaad Foundation</div>
     <div class="title">${sections[type] || "Agreement"}</div>
     <div class="meta">
       <span>Ref: <strong>${contractRef}</strong></span>
@@ -244,7 +244,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
   <div class="section">
     <div class="section-head">Parties</div>
     <table>
-      <tr><td class="lbl">Organisation</td><td>Kafaale Qaad HOPE Society · Mogadishu, Somalia</td></tr>
+      <tr><td class="lbl">Organisation</td><td>Kafaale Qaad Foundation · Mogadishu, Somalia</td></tr>
       <tr><td class="lbl">${type === "partner_agreement" ? "Partner" : type === "child_sponsorship" ? "Sponsor" : "Contributor"}</td><td>${signerName}</td></tr>
     </table>
   </div>
@@ -271,7 +271,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
   </div>
 
   <div class="footer">
-    Kafaale Qaad HOPE Society · Mogadishu, Somalia · kafaale.so<br>
+    Kafaale Qaad Foundation · Mogadishu, Somalia · kafaale.so<br>
     This document is legally binding once signed.
   </div>
 </body></html>`;
@@ -310,7 +310,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
           <div style={{ background: `linear-gradient(135deg, ${C.navy}, ${C.primary})`, color: "#fff", padding: "28px 32px", borderRadius: "20px 20px 0 0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", opacity: 0.7, marginBottom: 6 }}>Kafaale Qaad HOPE Society</div>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", opacity: 0.7, marginBottom: 6 }}>Kafaale Qaad Foundation</div>
                 <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1.2 }}>{TYPE_TITLES[type] || "Agreement"}</div>
               </div>
               <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, width: 36, height: 36, cursor: "pointer", fontSize: 18, color: "#fff", flexShrink: 0 }}>×</button>
@@ -348,7 +348,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
               <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", marginBottom: 18 }}>
                 <input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} style={{ marginTop: 2, width: 18, height: 18, cursor: "pointer", flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "#374151", lineHeight: 1.6 }}>
-                  I have read and understood this agreement. I confirm that all information I have provided is accurate and I agree to all terms stated above. I understand this constitutes a binding commitment between myself and Kafaale Qaad HOPE Society.
+                  I have read and understood this agreement. I confirm that all information I have provided is accurate and I agree to all terms stated above. I understand this constitutes a binding commitment between myself and Kafaale Qaad Foundation.
                 </span>
               </label>
 

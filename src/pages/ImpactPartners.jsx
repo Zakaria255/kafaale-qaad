@@ -267,12 +267,12 @@ export default function ImpactPartners() {
         .kf-ptn-slide{ position:absolute;inset:0;background-size:cover;background-position:center;animation-duration:24s;animation-timing-function:ease-in-out;animation-iteration-count:infinite; }
       `}</style>
       <section style={{ position:"relative", overflow:"hidden", minHeight:360, display:"flex", alignItems:"center", background:C.darkBg }}>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"url('/partners-bg.jpg')", backgroundSize:"cover", backgroundPosition:"center center" }} />
-        <div style={{ position:"absolute", inset:0, zIndex:5, background:"linear-gradient(135deg, rgba(0,38,81,0.82) 0%, rgba(0,75,150,0.72) 55%, rgba(75,125,25,0.65) 100%)" }} />
+        <div style={{ position:"absolute", inset:0, backgroundImage:"var(--kf-img-grade), url('/partners-bg.jpg')", backgroundSize:"cover", backgroundPosition:"center center" }} />
+        <div style={{ position:"absolute", inset:0, zIndex:5, background:"linear-gradient(135deg, rgba(17,42,99,0.82) 0%, rgba(0,75,150,0.72) 55%, rgba(75,125,25,0.65) 100%)" }} />
         <div style={{ position:"relative", zIndex:10, padding:"80px 24px", width:"100%", textAlign:"center", color:"#fff" }}>
           <div style={{ maxWidth:760, margin:"0 auto" }}>
-            <span style={{ display:"inline-block", background:"rgba(224,171,33,0.2)", border:"1px solid rgba(224,171,33,0.4)", color:C.accent, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>IMPACT PARTNERS</span>
-            <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.1, letterSpacing:-1 }}>Partner with Kafaale Qaad</h1>
+            <span style={{ display:"inline-block", background:"rgba(250,165,40,0.2)", border:"1px solid rgba(250,165,40,0.4)", color:C.accent, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>IMPACT PARTNERS</span>
+            <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.1, letterSpacing:-1, color:"#fff" }}>Partner with Kafaale Qaad</h1>
             <p style={{ fontSize:17, opacity:0.85, lineHeight:1.7, maxWidth:540, margin:"0 auto 32px" }}>Join our network of verified NGOs, foundations, and agencies delivering impact across Somalia and East Africa.</p>
             <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
               <button onClick={() => setTab("partners")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="partners" ? C.accent : "rgba(255,255,255,0.15)", color:"#fff" }}>View Partners</button>
@@ -764,7 +764,7 @@ export default function ImpactPartners() {
             {/* Left — message */}
             <div style={{ padding:"72px 56px 72px 32px", color:"#fff" }}>
               <span style={{ display:"inline-block", background:"rgba(0,200,255,0.15)", border:"1.5px solid rgba(0,200,255,0.4)", borderRadius:24, padding:"6px 20px", fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase", marginBottom:24, color:"#00D4FF" }}>Global Impact Network</span>
-              <h2 style={{ fontSize:"clamp(26px,3.5vw,44px)", fontWeight:900, margin:"0 0 20px", lineHeight:1.1, letterSpacing:-1, textShadow:"0 2px 20px rgba(0,0,0,0.4)" }}>
+              <h2 style={{ fontSize:"clamp(26px,3.5vw,44px)", fontWeight:900, margin:"0 0 20px", lineHeight:1.1, letterSpacing:-1, textShadow:"0 2px 20px rgba(0,0,0,0.4)", color:"#fff" }}>
                 Connect to a Network That Delivers — Every Time
               </h2>
               <p style={{ fontSize:16, color:"rgba(255,255,255,0.82)", lineHeight:1.85, margin:"0 0 32px", maxWidth:440 }}>
@@ -802,7 +802,7 @@ export default function ImpactPartners() {
             <div style={{ background:`linear-gradient(135deg, ${C.navy}, ${C.primary})`, color:"#fff", padding:"28px 32px", borderRadius:"20px 20px 0 0", position:"sticky", top:0, zIndex:1 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <div>
-                  <div style={{ fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase", opacity:0.7, marginBottom:4 }}>Kafaale Qaad HOPE Society</div>
+                  <div style={{ fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase", opacity:0.7, marginBottom:4 }}>Kafaale Qaad Foundation</div>
                   <div style={{ fontSize:22, fontWeight:900 }}>Partner Terms & Conditions</div>
                   <div style={{ fontSize:12, opacity:0.7, marginTop:4 }}>Effective Date: January 1, 2025 · Version 2.1</div>
                 </div>
@@ -814,7 +814,7 @@ export default function ImpactPartners() {
               {[
                 {
                   title:"1. Definitions",
-                  body:`"Kafaale Qaad" refers to Kafaale Qaad HOPE Society, a registered humanitarian organisation based in Mogadishu, Somalia. "Partner" refers to any organisation accepted into the Kafaale Qaad partner network. "Platform" refers to the Kafaale Qaad digital platform and case management system. "Beneficiary" refers to individuals or families receiving aid through the Platform.`
+                  body:`"Kafaale Qaad" refers to Kafaale Qaad Foundation, a registered humanitarian organisation based in Mogadishu, Somalia. "Partner" refers to any organisation accepted into the Kafaale Qaad partner network. "Platform" refers to the Kafaale Qaad digital platform and case management system. "Beneficiary" refers to individuals or families receiving aid through the Platform.`
                 },
                 {
                   title:"2. Eligibility & Admission",
@@ -858,7 +858,7 @@ export default function ImpactPartners() {
                 },
                 {
                   title:"12. Contact",
-                  body:`For questions regarding these Terms, contact: kafaaleqaad@gmail.com · Kafaale Qaad HOPE Society, Juma Tower, Room 403, Howl-wadaag, Mogadishu.`
+                  body:`For questions regarding these Terms, contact: kafaaleqaad@gmail.com · Kafaale Qaad Foundation, Juma Tower, Room 403, Howl-wadaag, Mogadishu.`
                 },
               ].map(({ title, body }) => (
                 <div key={title} style={{ marginBottom:24, paddingBottom:24, borderBottom:`1px solid ${C.border}` }}>

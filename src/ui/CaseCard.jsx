@@ -93,6 +93,7 @@ export default function CaseCard({
               src={image}
               alt=""
               loading="lazy"
+              className="kf-photo-tone"
               style={{ inlineSize: "100%", blockSize: "100%", objectFit: "cover" }}
             />
           ) : (
@@ -104,6 +105,8 @@ export default function CaseCard({
             </div>
           )}
         </div>
+
+        <div aria-hidden="true" className="kf-img-grade" />
 
         <div style={{ position: "absolute", insetBlockStart: "var(--kf-s3)", insetInlineStart: "var(--kf-s3)" }}>
           <Badge level={urgency}>{L[String(urgency).toLowerCase()] || urgency}</Badge>

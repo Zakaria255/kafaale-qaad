@@ -50,7 +50,7 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-import { BrowserRouter, Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { useEffect } from 'react';
 
 function ScrollToTop() {
@@ -89,7 +89,6 @@ import Login from './pages/Login.jsx';
 import { C } from "./theme.js";
 // Lazy — code-split to reduce initial bundle
 const About         = lazyWithReload(() => import('./pages/About.jsx'));
-const HowItWorks    = lazyWithReload(() => import('./pages/HowItWorks.jsx'));
 const Cases         = lazyWithReload(() => import('./pages/Cases.jsx'));
 const CaseDetail    = lazyWithReload(() => import('./pages/CaseDetail.jsx'));
 const Donate        = lazyWithReload(() => import('./pages/Donate.jsx'));
@@ -150,7 +149,7 @@ function ShareStoryBanner() {
         backgroundRepeat: "no-repeat",
       }} />
       {/* Left-weighted overlay so text stays readable while the community scene shows on the right */}
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,26,64,0.94) 0%, rgba(0,26,64,0.8) 32%, rgba(0,38,81,0.4) 58%, rgba(0,38,81,0.12) 100%)" }} />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(10,29,69,0.94) 0%, rgba(10,29,69,0.8) 32%, rgba(17,42,99,0.4) 58%, rgba(17,42,99,0.12) 100%)" }} />
       {/* Subtle top & bottom fade */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(13,31,60,0.4) 0%, transparent 30%, transparent 70%, rgba(13,31,60,0.4) 100%)" }} />
 
@@ -158,7 +157,7 @@ function ShareStoryBanner() {
       <div style={{ position: "relative", zIndex: 1, color: "#fff", maxWidth: 600 }}>
         <div style={{
           display: "inline-block",
-          background: "rgba(224,171,33,0.18)", border: "1.5px solid rgba(224,171,33,0.55)",
+          background: "rgba(250,165,40,0.18)", border: "1.5px solid rgba(250,165,40,0.55)",
           color: "#F5C842", borderRadius: 24, padding: "5px 18px",
           fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase",
           marginBottom: 18, backdropFilter: "blur(6px)",
@@ -176,7 +175,7 @@ function ShareStoryBanner() {
         position: "relative", zIndex: 1, flexShrink: 0,
         padding: "17px 42px", borderRadius: 50, fontWeight: 800, fontSize: 15,
         background: C.accent, color: "#fff", textDecoration: "none", whiteSpace: "nowrap",
-        boxShadow: "0 8px 32px rgba(224,171,33,0.45)",
+        boxShadow: "0 8px 32px rgba(250,165,40,0.45)",
         fontFamily: "inherit", letterSpacing: 0.3,
       }}>
         Share My Story →
@@ -228,7 +227,7 @@ function App() {
           <Routes>
             <Route path="/"              element={<Layout><Home /></Layout>} />
             <Route path="/about"         element={<Layout><PageGate pageKey="about"><About /></PageGate></Layout>} />
-            <Route path="/how-it-works"  element={<Layout><PageGate pageKey="howItWorks"><HowItWorks /></PageGate></Layout>} />
+            <Route path="/how-it-works"  element={<Navigate to="/about" replace />} />
             <Route path="/cases"         element={<Layout><PageGate pageKey="cases"><Cases /></PageGate></Layout>} />
             <Route path="/cases/:id"     element={<Layout><CaseDetail /></Layout>} />
             <Route path="/donate"        element={<Layout><PageGate pageKey="donate"><Donate /></PageGate></Layout>} />

@@ -9,10 +9,10 @@ const FAQ_DATA = [
     category: "About Kafaala Qaad",
     icon: "",
     items: [
-      { q:"What is Kafaala Qaad?", a:"Kafaala Qaad (Hope Society) is a digital humanitarian aid platform that connects people in need in Somalia with verified donors and sponsors worldwide. We use an 11-step verified pipeline to ensure every case is real before funds are collected or distributed." },
+      { q:"What is Kafaala Qaad?", a:"Kafaala Qaad (Foundation) is a digital humanitarian aid platform that connects people in need in Somalia with verified donors and sponsors worldwide. We use an 11-step verified pipeline to ensure every case is real before funds are collected or distributed." },
       { q:"How is Kafaala Qaad different from other donation platforms?", a:"Unlike general crowdfunding sites, every case on Kafaala Qaad is physically verified by a trained field agent with GPS-tagged photos and a documented field report. Donors see the before and after — not just the request." },
       { q:"What regions do you currently serve?", a:"We currently operate across Somalia including Mogadishu, Baidoa, Kismayo, Garowe, and surrounding regions. We are expanding to new districts monthly." },
-      { q:"Is Kafaala Qaad a registered organization?", a:"Yes. Kafaala Qaad Hope Society is a registered humanitarian organization operating under Somali law with international compliance standards." },
+      { q:"Is Kafaala Qaad a registered organization?", a:"Yes. Kafaala Qaad Foundation is a registered humanitarian organization operating under Somali law with international compliance standards." },
     ],
   },
   {
@@ -102,7 +102,7 @@ export default function FAQ() {
       {/* Hero */}
       <section style={{ background:`linear-gradient(135deg,${C.navy} 0%,${C.primary} 60%,${C.secondary} 100%)`, color:"#fff", padding: isMobile?"60px 16px 48px":"90px 32px 64px", textAlign:"center" }}>
         <div style={{ maxWidth:640, margin:"0 auto" }}>
-          <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 18px", lineHeight:1.1, letterSpacing:-1 }}>
+          <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 18px", lineHeight:1.1, letterSpacing:-1, color:"#fff" }}>
             {lang==="so"?"Su'aalaha Badanaa la Is Weydiiyo":"Frequently Asked Questions"}
           </h1>
           <p style={{ fontSize:"clamp(14px,2vw,17px)", opacity:0.85, lineHeight:1.7, marginBottom:28 }}>
@@ -143,7 +143,7 @@ export default function FAQ() {
             </div>
           )}
           {filteredData.map(section => (
-            <div key={section.category} style={{ background:"#fff", borderRadius:16, padding: isMobile?20:32, marginBottom:24, border:`1px solid ${C.border}`, boxShadow:"0 2px 8px rgba(0,38,81,0.04)" }}>
+            <div key={section.category} style={{ background:"#fff", borderRadius:16, padding: isMobile?20:32, marginBottom:24, border:`1px solid ${C.border}`, boxShadow:"0 2px 8px rgba(17,42,99,0.04)" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, paddingBottom:16, borderBottom:`2px solid ${C.border}` }}>
                 <span style={{ fontSize:24 }}>{section.icon}</span>
                 <h2 style={{ fontSize:18, fontWeight:800, color:C.text, margin:0 }}>{section.category}</h2>

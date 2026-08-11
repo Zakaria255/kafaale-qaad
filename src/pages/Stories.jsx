@@ -80,7 +80,7 @@ function StorySubmitSection({ isMobile }) {
         </div>
 
         {phase === "success" ? (
-          <div style={{ background:"#fff", borderRadius:20, padding:"48px 32px", textAlign:"center", boxShadow:"0 4px 24px rgba(0,38,81,0.09)", border:`1px solid ${C.border}` }}>
+          <div style={{ background:"#fff", borderRadius:20, padding:"48px 32px", textAlign:"center", boxShadow:"0 4px 24px rgba(17,42,99,0.09)", border:`1px solid ${C.border}` }}>
             <div style={{ fontSize:64, marginBottom:16 }}></div>
             <h3 style={{ fontSize:24, fontWeight:900, color:C.navy, margin:"0 0 12px" }}>Story Submitted!</h3>
             <p style={{ fontSize:15, color:C.muted, maxWidth:400, margin:"0 auto 28px", lineHeight:1.7 }}>
@@ -92,7 +92,7 @@ function StorySubmitSection({ isMobile }) {
             }}>Submit Another Story</button>
           </div>
         ) : (
-          <div style={{ background:"#fff", borderRadius:20, padding: isMobile?"24px 18px":"36px 40px", boxShadow:"0 4px 24px rgba(0,38,81,0.09)", border:`1px solid ${C.border}` }}>
+          <div style={{ background:"#fff", borderRadius:20, padding: isMobile?"24px 18px":"36px 40px", boxShadow:"0 4px 24px rgba(17,42,99,0.09)", border:`1px solid ${C.border}` }}>
             <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr":"1fr 1fr", gap:18, marginBottom:18 }}>
               {/* Name */}
               <div>
@@ -334,7 +334,7 @@ export default function Stories() {
             <span style={{ display:"inline-block", background:"rgba(255,255,255,0.14)", border:"1.5px solid rgba(255,255,255,0.32)", borderRadius:24, padding:"5px 18px", fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase", marginBottom:22, backdropFilter:"blur(8px)" }}>
               {lang==="so"?"Wararkii & Xikaayada":"News & Stories"}
             </span>
-            <h1 style={{ fontSize:"clamp(28px,4vw,52px)", fontWeight:900, margin:"0 0 18px", lineHeight:1.08, letterSpacing:-1.5, textShadow:"0 2px 24px rgba(0,0,0,0.5)" }}>
+            <h1 style={{ fontSize:"clamp(28px,4vw,52px)", fontWeight:900, margin:"0 0 18px", lineHeight:1.08, letterSpacing:-1.5, textShadow:"0 2px 24px rgba(0,0,0,0.5)", color:"#fff" }}>
               {lang==="so"?"Xikaayada Saameynta Dhabta ah":"Real Impact Stories"}
             </h1>
             <p style={{ fontSize:16, color:"rgba(255,255,255,0.88)", lineHeight:1.85, margin:"0 0 32px" }}>
@@ -388,9 +388,9 @@ export default function Stories() {
                 const ICON = story.category==="Education"?"":story.category==="Medical"?"":story.category==="Press Release"?"":story.category==="Partnership"?"":"";
                 return (
                   <Link key={story.id} to={`/stories/${story.id}`}
-                    style={{ background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 4px 24px rgba(0,38,81,0.10)", border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
-                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(0,38,81,0.14)";}}
-                    onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 4px 24px rgba(0,38,81,0.10)";}}>
+                    style={{ background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 4px 24px rgba(17,42,99,0.10)", border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
+                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(17,42,99,0.14)";}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 4px 24px rgba(17,42,99,0.10)";}}>
                     <img src={getStoryImg(story)} alt={story.title} style={{ width:"100%", height:220, objectFit:"cover", display:"block" }} />
                     <div style={{ padding:"20px 24px" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
@@ -432,9 +432,9 @@ export default function Stories() {
               const ICON = story.category==="Education"?"":story.category==="Medical"?"":story.category==="Press Release"?"":story.category==="Partnership"?"":story.category==="Emergency"?"🚨":"";
               return (
                 <Link key={story.id} to={`/stories/${story.id}`}
-                  style={{ background:"#fff", borderRadius:16, overflow:"hidden", boxShadow:"0 2px 12px rgba(0,38,81,0.07)", border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
-                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 6px 24px rgba(0,38,81,0.12)";}}
-                  onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 2px 12px rgba(0,38,81,0.07)";}}>
+                  style={{ background:"#fff", borderRadius:16, overflow:"hidden", boxShadow:"0 2px 12px rgba(17,42,99,0.07)", border:`1px solid ${C.border}`, textDecoration:"none", display:"block", transition:"transform .15s, box-shadow .15s" }}
+                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 6px 24px rgba(17,42,99,0.12)";}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 2px 12px rgba(17,42,99,0.07)";}}>
                   <img src={getStoryImg(story)} alt={story.title} style={{ width:"100%", height:160, objectFit:"cover", display:"block" }} />
                   <div style={{ padding:"16px 18px" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
@@ -468,7 +468,7 @@ export default function Stories() {
       {/* CTA section */}
       <section style={{ background:`linear-gradient(135deg,${C.navy},${C.primary})`, color:"#fff", padding: isMobile?"48px 16px":"64px 32px", textAlign:"center" }}>
         <div style={{ maxWidth:640, margin:"0 auto" }}>
-          <h2 style={{ fontSize:"clamp(22px,4vw,38px)", fontWeight:900, margin:"0 0 16px" }}>
+          <h2 style={{ fontSize:"clamp(22px,4vw,38px)", fontWeight:900, margin:"0 0 16px", color:"#fff" }}>
             {lang==="so"?"Noqo Qayb Ka Mid ah Xikaayadan":"Be Part of the Next Story"}
           </h2>
           <p style={{ fontSize:16, opacity:0.85, lineHeight:1.75, marginBottom:32 }}>
