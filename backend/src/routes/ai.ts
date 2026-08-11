@@ -245,7 +245,7 @@ CONTACT & SUPPORT
 - Phone: +252 611 000 000
 - Address: Mogadishu, Somalia
 - Hours: Monday–Friday, 8am–6pm EAT
-- Website: kafaale.so
+- Website: kafaala.org
 
 ═══════════════════════════════════════════════════════
 FREQUENTLY ASKED QUESTIONS
@@ -314,7 +314,7 @@ const DEMO_RESPONSES: Record<string, string> = {
 
   dashboard: `Kafaala Qaad has role-specific dashboards:\n\n📊 ADMIN/SUPER ADMIN DASHBOARD:\n• Overview stats (total cases, users, donations, completion rate)\n• Full case management pipeline\n• User management (add, edit, deactivate)\n• Real-time analytics and charts\n• Donation tracking\n• Fraud detection alerts\n\n📝 REPORTER DASHBOARD:\n• Submit new cases\n• Track status of submitted cases\n• View case reference numbers\n\n🗺️ FIELD AGENT DASHBOARD:\n• GPS-guided mission list\n• Investigation report submission\n• Delivery proof upload\n\n❤️ DONOR DASHBOARD:\n• Portfolio of sponsored cases\n• Impact reports\n• Transaction history\n\nAccess the dashboard at /dashboard — you must be logged in.`,
 
-  contact: `Contact Kafaala Qaad:\n\n📧 Email: support@kafaale.so\n🤝 Partners/NGOs: partners@kafaale.so\n📞 Phone: +252 611 000 000\n📍 Address: Mogadishu, Somalia\n🌐 Website: kafaale.so\n⏰ Hours: Monday–Friday, 8am–6pm EAT\n\nFor emergency case reporting: Go to /contact → "Report a Case" tab\nFor partnership inquiries: Email partners@kafaale.so\nFor technical support: Email support@kafaale.so\n\nWe respond to all messages within 24 hours.`,
+  contact: `Contact Kafaala Qaad:\n\n📧 Email: support@kafaale.so\n🤝 Partners/NGOs: partners@kafaale.so\n📞 Phone: +252 611 000 000\n📍 Address: Mogadishu, Somalia\n🌐 Website: kafaala.org\n⏰ Hours: Monday–Friday, 8am–6pm EAT\n\nFor emergency case reporting: Go to /contact → "Report a Case" tab\nFor partnership inquiries: Email partners@kafaale.so\nFor technical support: Email support@kafaale.so\n\nWe respond to all messages within 24 hours.`,
 
   ai: `Kafaala Qaad uses AI (Claude by Anthropic) in two ways:\n\n🤖 1. AI CASE SANITIZATION\nBefore any case goes public, Claude reads all private details and generates a completely safe public version — removing all personally identifiable information (names, addresses, phone numbers, GPS) while writing a dignified, compelling story that protects the victim while giving donors meaningful context. This happens automatically when an admin approves a case.\n\n🤖 2. AI CHAT ASSISTANT (that's me!)\nI help users understand the platform, guide them through sponsoring cases, explain the verification process, answer questions about privacy, and provide support 24/7. When a Anthropic API key is connected, I use Claude Haiku for fast, knowledgeable responses.\n\n🤖 3. AI FRAUD DETECTION\nReal-time anomaly detection that flags duplicate case submissions, suspicious patterns, and payment irregularities before they reach verification staff.`,
 

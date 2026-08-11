@@ -129,6 +129,8 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:5175',
   'http://localhost:3000',
   // Production frontends
+  'https://kafaala.org',
+  'https://www.kafaala.org',
   'https://kafaale-qaad.vercel.app',
   'https://kafaale-qaad1.vercel.app',
   'https://kafaaleqaad.org',

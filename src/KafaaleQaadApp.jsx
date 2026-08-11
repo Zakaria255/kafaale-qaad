@@ -3112,7 +3112,7 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
   const DEFAULT_INVOICE_SETTINGS = {
     orgName:       "Kafaala Qaad",
     orgSub:        "Humanitarian Relief Organization",
-    orgCountry:    "Somalia · kafaaleqaad.org",
+    orgCountry:    "Somalia · kafaala.org",
     bankName:      "Kafaala Qaad",
     bankIBAN:      "SO00 0000 0000 0000 0000",
     bankBIC:       "CAFGSO1X",
@@ -5464,7 +5464,7 @@ const SITE_INFO_DEFAULTS = {
   email:      "kafaaleqaad@gmail.com",
   phone:      "+252 61 502 4050",
   address:    "Juma Tower, Room 403, Howl-wadaag, Mogadishu",
-  website:    "kafaale.so",
+  website:    "kafaala.org",
   facebook:   "https://facebook.com/kafaaleqaad",
   twitter:    "https://twitter.com/kafaaleqaad",
   linkedin:   "https://linkedin.com/company/kafaaleqaad",

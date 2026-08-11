@@ -1,3 +1,48 @@
+# 🚀 Kafaala Qaad — Deployment
+
+> **CURRENT (2026-08): domain `kafaala.org`, ALL-ON-VERCEL.**
+> The whole stack runs in **one Vercel project**: the frontend (Vite → `dist/`)
+> and the backend (Express, served as the `/api` serverless function via
+> `api/index.ts` + `vercel.json`). Data = **Supabase `kafaale-pro`**
+> (ref `sdfjckovzhtospxdvuaf`). The frontend calls the API **same-origin** at
+> `/api`, so there is **no cross-origin/CORS between them** and **no separate
+> backend host** (Railway is legacy — ignore the older sections below).
+
+## Connect the domain — runbook
+
+**Already done in the repo** (nothing for you to code):
+- `backend/src/server.ts` CORS allows `https://kafaala.org` + `https://www.kafaala.org`.
+- `src/api/client.js` uses same-origin `/api` in production (no `VITE_API_URL` needed).
+- `vercel.json` builds frontend + backend and routes `/api*` to the function; SPA fallback for the rest.
+
+**You do these once, in the dashboards (I can't from here):**
+
+1. **Vercel → Project** — confirm it's linked to `Iconic-83/kafaale-qaad`, Production Branch = `master`.
+2. **Vercel → Settings → Environment Variables** (scope **Production**), from `backend/.env.production.example`:
+   `DATABASE_URL`, `DIRECT_URL` (Supabase `kafaale-pro`, pooled 6543 / direct 5432),
+   `JWT_SECRET`, `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
+   `SUPABASE_STORAGE_BUCKET=kafaale-media`, `FRONTEND_URL=https://kafaala.org`,
+   `BASE_URL=https://kafaala.org`. Optional: `EMAIL_*` (SMTP), `GOOGLE_CLIENT_ID` +
+   `VITE_GOOGLE_CLIENT_ID` (Google sign-in — `VITE_*` is build-time, so redeploy after adding).
+3. **Vercel → Settings → Domains** — add `kafaala.org` **and** `www.kafaala.org`
+   (make one canonical, e.g. apex primary + `www` → redirect). Vercel then shows the exact DNS records.
+4. **Registrar DNS** — add what Vercel shows, typically:
+   - apex `kafaala.org` → `A 76.76.21.21` (or ALIAS/ANAME → `cname.vercel-dns.com`)
+   - `www` → `CNAME cname.vercel-dns.com`
+   SSL is issued automatically once DNS resolves.
+5. **Google Cloud console** (only if using Google sign-in) — add `https://kafaala.org`
+   to Authorized JavaScript origins for the OAuth client.
+6. **Redeploy** production (so new/`VITE_*` env vars take effect).
+7. **Verify:** `https://kafaala.org` loads · `https://kafaala.org/api/cases` returns `200` · sign-in works.
+
+> **Email/mailboxes:** contact emails still use `@kafaale.so` / `noreply@kafaaleqaad.org`.
+> If you want mail on `@kafaala.org`, set up a mailbox + MX/SPF/DKIM for `kafaala.org`
+> and update `EMAIL_FROM` and the contact addresses — that's separate from the website.
+
+---
+
+<details><summary>Legacy notes (Railway / old Supabase project) — superseded by the above</summary>
+
 # 🚀 Kafaale Qaad — Full Production Deployment Guide
 
 > One backend serves **both the web app and the mobile app**.
@@ -223,3 +268,5 @@ cd .. && npm run dev
 # Or redeploy manually:
 railway up   # if Railway CLI installed
 ```
+
+</details>

@@ -19,7 +19,7 @@ export default function Contact() {
   const siteEmail   = site.email   || "kafaaleqaad@gmail.com";
   const sitePhone   = site.phone   || "+252 61 502 4050";
   const siteAddress = site.address || "Juma Tower, Room 403, Howl-wadaag, Mogadishu";
-  const siteWebsite = site.website || "kafaale.so";
+  const siteWebsite = site.website || "kafaala.org";
 
   const [tab,       setTab]      = useState("report");
   const [form,      setForm]     = useState({ name: "", age: "", gender: P.gender_female, location: "", urgency: "Medium", desc: "", phone: "" });

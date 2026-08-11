@@ -10,7 +10,7 @@ export const DEFAULT_TEMPLATES: Record<string, string> = {
   // Invoice letter fields
   'invoice.orgName':      'Kafaala Qaad',
   'invoice.orgSub':       'Humanitarian Relief Organization',
-  'invoice.orgCountry':   'Somalia · kafaaleqaad.org',
+  'invoice.orgCountry':   'Somalia · kafaala.org',
   'invoice.description':  'Monthly Sponsorship Support',
   'invoice.bankName':     'Kafaala Qaad',
   'invoice.bankIBAN':     'SO00 0000 0000 0000 0000',

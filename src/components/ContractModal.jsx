@@ -271,7 +271,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
   </div>
 
   <div class="footer">
-    Kafaala Qaad Foundation · Mogadishu, Somalia · kafaale.so<br>
+    Kafaala Qaad Foundation · Mogadishu, Somalia · kafaala.org<br>
     This document is legally binding once signed.
   </div>
 </body></html>`;
