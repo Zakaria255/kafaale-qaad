@@ -106,6 +106,7 @@ export default function FeaturedCase({
               alt={title}
               loading="lazy"
               className="kf-photo-tone"
+              onError={(e) => { if (!e.currentTarget.src.endsWith(DEFAULT_PHOTO)) e.currentTarget.src = DEFAULT_PHOTO; }}
               style={{ position: "absolute", inset: 0, inlineSize: "100%", blockSize: "100%", objectFit: "cover", objectPosition: "72% center" }}
             />
           ) : (

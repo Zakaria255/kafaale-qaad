@@ -77,17 +77,8 @@ export default function Navbar() {
         show("partners") && { to: "/partners", label: "Partners", icon: "", desc: "Join as an NGO partner" },
       ].filter(Boolean),
     },
-    {
-      id: "more", label: "More",
-      items: [
-        show("stories")      && { to: "/stories",      label: "Stories",      icon: "", desc: "Impact & success stories" },
-        show("volunteer")    && { to: "/volunteer",     label: "Volunteer",    icon: "", desc: "Join our field team" },
-        show("faq")          && { to: "/faq",           label: "FAQ",          icon: "", desc: "Frequently asked questions" },
-        show("updates")      && { to: "/updates",        label: "Updates",      icon: "🚨", desc: "Field updates & emergency alerts" },
-                                 { to: "/media",          label: "Media",        icon: "", desc: "Photos, videos & community posts" },
-      ].filter(Boolean),
-    },
-    show("contact") && { id: "contact", label: "Contact", to: "/contact", direct: true },
+    // Everything else (Stories, Volunteer, FAQ, Updates, Media, Contact) lives in
+    // the footer to keep the top bar focused on About / Operations / Give.
   ].filter(Boolean).filter(item => !item.items || item.items.length > 0);
 
   // Mobile flat list

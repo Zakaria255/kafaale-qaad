@@ -100,12 +100,15 @@ export default function Footer() {
               [P.link_about,   "/about",         show("about") ],
               [P.link_cases,   "/cases",         show("cases") ],
               ["Programs",     "/programs",      show("programs")],
+              ["Projects",     "/projects",      show("projects")],
               ["Stories",      "/stories",       show("stories")],
               [P.link_donate,  "/donate",        show("donate")],
               ["Partners",     "/partners",      show("partners")],
               ["Volunteer",    "/volunteer",     show("volunteer")],
               ["FAQ",          "/faq",           show("faq")   ],
               ["Updates",      "/updates",       show("updates")],
+              ["Media",        "/media",         true          ],
+              ["Contact",      "/contact",       show("contact")],
             ].filter(([,,vis]) => vis).map(([label, to]) => (
               <div key={to} style={{ marginBottom: 12 }}>
                 <Link to={to} style={{
