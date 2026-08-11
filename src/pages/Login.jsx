@@ -340,34 +340,6 @@ export default function Login() {
             <GoogleButton onCredential={handleGoogle} />
           </form>
 
-          {/* ── Quick demo logins ── */}
-          {tab === 'login' && (
-            <div style={{ marginTop:20, paddingTop:18, borderTop:`1px solid ${C.border}` }}>
-              <div style={{ fontSize:11, fontWeight:800, color:C.muted, textTransform:'uppercase', letterSpacing:1, marginBottom:10, textAlign:'center' }}>Quick Demo Access</div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                {[
-                  { icon:"", label:"Super Admin", email:"superadmin@kafaale.org", color:"#991B1B", bg:"#FEF2F2" },
-                  { icon:"🟠", label:"Admin",        email:"admin@kafaale.org",      color:"#92400E", bg:"#FFFBEB" },
-                  { icon:"", label:"Verifier",    email:"verifier@kafaale.org",   color:"#1E40AF", bg:"#EFF6FF" },
-                  { icon:"", label:"Field Agent",  email:"agent@kafaale.org",      color:"#5B21B6", bg:"#F5F3FF" },
-                  { icon:"", label:"Donor",        email:"donor@kafaale.org",      color:"#9D174D", bg:"#FDF2F8" },
-                  { icon:"", label:"Reporter",     email:"reporter@kafaale.org",   color:"#065F46", bg:"#ECFDF5" },
-                ].map(d => (
-                  <button key={d.email} type="button"
-                    onClick={() => { setForm(f => ({ ...f, email:d.email, password:'Kafaale123!' })); }}
-                    style={{
-                      padding:'7px 10px', borderRadius:9, border:`1px solid ${d.color}30`,
-                      background:d.bg, cursor:'pointer', display:'flex', alignItems:'center', gap:6,
-                      fontSize:11, fontWeight:700, color:d.color, textAlign:'left',
-                    }}>
-                    <span style={{ fontSize:14 }}>{d.icon}</span>{d.label}
-                  </button>
-                ))}
-              </div>
-              <div style={{ fontSize:10, color:C.muted, textAlign:'center', marginTop:8 }}>Password: <strong>Kafaale123!</strong> · Click a role to fill credentials</div>
-            </div>
-          )}
-
           <div style={{ textAlign:'center', marginTop:16, fontSize:13, color:C.muted }}>
             <Link to="/" style={{ color:C.primary, fontWeight:600, textDecoration:'none' }}>← {t('backToHome')}</Link>
           </div>
