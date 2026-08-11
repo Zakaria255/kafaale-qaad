@@ -206,10 +206,6 @@ export default function Donate() {
         <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, rgba(194,24,91,0.82) 0%, rgba(0,75,150,0.78) 60%, rgba(21,101,192,0.85) 100%)` }} />
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: 680, margin: "0 auto" }}>
-          <span style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.35)", borderRadius: 24, padding: "6px 20px", fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", marginBottom: 24, backdropFilter: "blur(8px)" }}>
-            100% Field-Verified
-          </span>
-
           <h1 style={{ fontSize: "clamp(28px, 4.5vw, 52px)", fontWeight: 900, margin: "0 0 20px", lineHeight: 1.08, letterSpacing: -1.5, textShadow: "0 2px 24px rgba(0,0,0,0.3)", color: "#fff" }}>
             Your Gift Reaches a Real Family — Guaranteed
           </h1>
@@ -217,12 +213,6 @@ export default function Donate() {
           <p style={{ fontSize: 17, opacity: 0.9, lineHeight: 1.8, maxWidth: 540, margin: "0 auto 28px" }}>
             Every case is personally investigated by our field team before it reaches you. Your donation is GPS-tracked from the moment you give — and you receive proof of delivery.
           </p>
-
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
-            {["Field Verified", "GPS Tracked", "Proof of Delivery", "No Hidden Fees"].map(t => (
-              <span key={t} style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 99, padding: "5px 14px", fontSize: 12, fontWeight: 700, backdropFilter: "blur(6px)" }}>✓ {t}</span>
-            ))}
-          </div>
 
           {!user && (
             <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 14, padding: "11px 20px", fontSize: 13, display: "inline-block", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)" }}>
@@ -518,26 +508,6 @@ export default function Donate() {
         </div>
       </section>
 
-      {/* Trust indicators */}
-      <section style={{ padding: "60px 24px", background: "#fff", textAlign: "center" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 32 }}>Why Donors Trust Kafaala Qaad</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 20 }}>
-            {[
-              { icon: "", title: "Verified Cases",    desc: "Every case is field-investigated before you see it" },
-              { icon: "", title: "Proof of Delivery", desc: "Photo + GPS confirmation when aid is delivered" },
-              { icon: "", title: "Full Transparency",  desc: "Complete transaction history & impact reports" },
-              { icon: "", title: "Secure Payments",   desc: "All transactions encrypted and audited" },
-            ].map((t, i) => (
-              <div key={i} style={{ padding: 24, borderRadius: 16, background: C.bg, border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 32, marginBottom: 10 }}>{t.icon}</div>
-                <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 6 }}>{t.title}</div>
-                <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>{t.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

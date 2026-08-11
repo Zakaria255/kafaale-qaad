@@ -329,21 +329,6 @@ export default function Volunteer() {
         </section>
       )}
 
-      {/* ── Impact numbers ── */}
-      <section style={{ background:`linear-gradient(135deg, ${C.navy} 0%, #0f3460 100%)`, padding:"64px 24px", textAlign:"center", color:"#fff" }}>
-        <div style={{ maxWidth:900, margin:"0 auto" }}>
-          <h2 style={{ fontSize:"clamp(24px,3.5vw,40px)", fontWeight:900, margin:"0 0 12px" }}>Our Volunteer Impact</h2>
-          <p style={{ opacity:0.7, marginBottom:48, fontSize:15 }}>Thousands of volunteers have helped us reach more families in need.</p>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:2 }}>
-            {[["840+","Active Volunteers"],["14","Countries"],["2,400+","Cases Documented"],["98.8%","Satisfaction Rate"]].map(([v,l],i) => (
-              <div key={l} style={{ padding:"28px 16px", borderRight:`1px solid rgba(255,255,255,0.1)` }}>
-                <div style={{ fontSize:"clamp(30px,4vw,48px)", fontWeight:900, color:C.accent, lineHeight:1 }}>{v}</div>
-                <div style={{ fontSize:12, opacity:0.65, marginTop:8, fontWeight:600, textTransform:"uppercase", letterSpacing:1 }}>{l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

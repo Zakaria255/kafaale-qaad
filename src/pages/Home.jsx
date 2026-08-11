@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  BadgeCheck, MapPin, Lock, ScrollText,
+  MapPin, Lock,
   FilePen, SearchCheck, ClipboardCheck, Users, HeartHandshake, PackageCheck, Archive,
   ShieldCheck, ChartNoAxesColumn, ScanEye, Globe, Settings2,
   ArrowRight,
@@ -11,7 +11,7 @@ import { useResponsive } from "../hooks/useResponsive.js";
 import { useReveal, usePrefersReducedMotion } from "../hooks/useReveal.js";
 import { cases as casesApi } from "../api/client.js";
 import {
-  Button, SectionHeader, SunriseRule, CaseCard, StatItem, Ticker, Arc, Timeline, GuidedByQuran, FeaturedCase,
+  Button, SectionHeader, SunriseRule, CaseCard, StatItem, Arc, Timeline, GuidedByQuran, FeaturedCase,
 } from "../ui/index.js";
 
 const URGENCY_RANK = { critical: 4, high: 3, medium: 2, low: 1 };
@@ -85,21 +85,9 @@ export default function Home() {
     goalOf: P.card_goal_of,
     critical: P.urg_critical, high: P.urg_high, medium: P.urg_medium, low: P.urg_low,
   };
-  const tickerLabels = {
-    ev_verified: P.ev_verified, ev_delivered: P.ev_delivered, ev_sponsor: P.ev_sponsor,
-    ev_dispatch: P.ev_dispatch, ev_min: P.ev_min, ev_label: P.ev_label,
-  };
-
   const flagship = featured[0];
 
   /* ── Data ───────────────────────────────────────────────────────────────── */
-
-  const TRUST = [
-    { icon: BadgeCheck, label: P.trust_verified },
-    { icon: MapPin,     label: P.trust_gps },
-    { icon: Lock,       label: P.trust_escrow },
-    { icon: ScrollText, label: P.trust_audit },
-  ];
 
   const STATS = [
     { val: "2,400+", label: P.stat_sponsored },
@@ -220,30 +208,10 @@ export default function Home() {
                 <Button to="/donate" variant="cta" size="lg">{P.btn_sponsor}</Button>
                 <Button to="/about" variant="secondary" size="lg">{P.btn_how}</Button>
               </div>
-
-              <div style={{ borderBlockStart: "1px solid var(--kf-on-dark-14)", paddingBlockStart: "var(--kf-s5)" }}>
-                <ul style={{
-                  listStyle: "none", margin: 0, padding: 0, display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: "var(--kf-s3) var(--kf-s5)",
-                }}>
-                  {TRUST.map(({ icon: Icon, label }, i) => (
-                    <li key={label} className="kf-rise" style={{ "--kf-rise-delay": `${900 + i * 60}ms`,
-                      display: "flex", alignItems: "center", gap: "var(--kf-s2)",
-                      fontSize: "var(--kf-fs-caption)", color: "var(--kf-on-dark-75)",
-                    }}>
-                      <Icon size={16} strokeWidth={2} aria-hidden="true" />
-                      {label}
-                    </li>
-                  ))}
-                </ul>
-              </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* ═══════════ §3-B LIVE TICKER ═══════════ */}
-      <Ticker labels={tickerLabels} />
 
       {/* ═══════════ §3-C IMPACT COUNTERS ═══════════ */}
       {showStats && (
@@ -337,12 +305,14 @@ export default function Home() {
         >
           <source src="/assets/video/sponsor-cta.mp4" type="video/mp4" />
         </video>
-        {/* Brand grade + navy scrim so the white CTA text stays legible. */}
+        {/* Brand grade + navy scrim. Lighter through the middle so the footage
+            reads, with a soft center vignette that keeps the CTA text legible. */}
         <div aria-hidden="true" style={{
           position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
           background:
+            "radial-gradient(60% 70% at 50% 50%, rgba(10,29,69,.55), transparent 75%), " +
             "var(--kf-img-grade), " +
-            "linear-gradient(180deg, rgba(10,29,69,.82) 0%, rgba(10,29,69,.72) 50%, rgba(10,29,69,.88) 100%)",
+            "linear-gradient(180deg, rgba(10,29,69,.74) 0%, rgba(10,29,69,.52) 45%, rgba(10,29,69,.82) 100%)",
         }} />
 
         {/* The Arc, oversized and cropped — the logo's sunrise closing the page. */}

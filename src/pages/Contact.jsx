@@ -13,6 +13,14 @@ export default function Contact() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Public contact details are admin-editable via Site Settings (kf_site_settings);
+  // fall back to the defaults so the page never renders blank.
+  const site = (() => { try { return JSON.parse(localStorage.getItem("kf_site_settings") || "{}"); } catch { return {}; } })();
+  const siteEmail   = site.email   || "kafaaleqaad@gmail.com";
+  const sitePhone   = site.phone   || "+252 61 502 4050";
+  const siteAddress = site.address || "Juma Tower, Room 403, Howl-wadaag, Mogadishu";
+  const siteWebsite = site.website || "kafaale.so";
+
   const [tab,       setTab]      = useState("report");
   const [form,      setForm]     = useState({ name: "", age: "", gender: P.gender_female, location: "", urgency: "Medium", desc: "", phone: "" });
   const [contact,   setContact]  = useState({ name: "", email: "", subject: "", message: "" });
@@ -52,7 +60,7 @@ export default function Contact() {
     e.preventDefault();
     const subject = encodeURIComponent(contact.subject || "Contact from Kafaala Qaad website");
     const body = encodeURIComponent(`Name: ${contact.name}\nEmail: ${contact.email}\n\n${contact.message}`);
-    window.open(`mailto:kafaaleqaad@gmail.com?subject=${subject}&body=${body}`, "_blank");
+    window.open(`mailto:${siteEmail}?subject=${subject}&body=${body}`, "_blank");
     setCSubmit(true);
   };
 
@@ -64,10 +72,10 @@ export default function Contact() {
   ];
 
   const CONTACT_INFO = [
-    { icon: "", label: lang==="so"?"Emailka":lang==="ar"?"البريد الإلكتروني":lang==="tr"?"E-posta":lang==="es"?"Correo":lang==="fr"?"E-mail":"Email",   val: "kafaaleqaad@gmail.com"  },
-    { icon: "", label: lang==="so"?"Taleefanka":lang==="ar"?"الهاتف":lang==="tr"?"Telefon":lang==="es"?"Teléfono":lang==="fr"?"Téléphone":"Phone",        val: "+252 61 502 4050"       },
-    { icon: "", label: lang==="so"?"Cinwaanka":lang==="ar"?"العنوان":lang==="tr"?"Adres":lang==="es"?"Dirección":lang==="fr"?"Adresse":"Address",          val: "Juma Tower, Room 403, Howl-wadaag, Mogadishu" },
-    { icon: "", label: lang==="so"?"Websaydka":lang==="ar"?"الموقع":lang==="tr"?"Web Sitesi":lang==="es"?"Sitio Web":lang==="fr"?"Site Web":"Website",     val: "kafaale.so"             },
+    { icon: "", label: lang==="so"?"Emailka":lang==="ar"?"البريد الإلكتروني":lang==="tr"?"E-posta":lang==="es"?"Correo":lang==="fr"?"E-mail":"Email",   val: siteEmail   },
+    { icon: "", label: lang==="so"?"Taleefanka":lang==="ar"?"الهاتف":lang==="tr"?"Telefon":lang==="es"?"Teléfono":lang==="fr"?"Téléphone":"Phone",        val: sitePhone   },
+    { icon: "", label: lang==="so"?"Cinwaanka":lang==="ar"?"العنوان":lang==="tr"?"Adres":lang==="es"?"Dirección":lang==="fr"?"Adresse":"Address",          val: siteAddress },
+    { icon: "", label: lang==="so"?"Websaydka":lang==="ar"?"الموقع":lang==="tr"?"Web Sitesi":lang==="es"?"Sitio Web":lang==="fr"?"Site Web":"Website",     val: siteWebsite },
     { icon: "", label: lang==="so"?"Saacadaha":lang==="ar"?"ساعات العمل":lang==="tr"?"Çalışma Saatleri":lang==="es"?"Horarios":lang==="fr"?"Horaires":"Hours", val: lang==="so"?"Isniin–Jimce, 8GH – 6GH EAT":lang==="ar"?"الإثنين–الجمعة، 8ص – 6م EAT":lang==="tr"?"Pzt–Cum, 08:00 – 18:00 EAT":lang==="es"?"Lun–Vie, 8am – 6pm EAT":lang==="fr"?"Lun–Ven, 8h – 18h EAT":"Mon–Fri, 8am – 6pm EAT" },
   ];
 

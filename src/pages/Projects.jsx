@@ -381,13 +381,6 @@ export default function Projects() {
     ? [...items].filter((p) => p.status !== "completed").sort((a, b) => fundedPct(b) - fundedPct(a))[0]
     : null;
 
-  const stats = useMemo(() => ({
-    total: items.length,
-    completed: items.filter((p) => p.status === "completed").length,
-    people: items.reduce((s, p) => s + (p.populationSize || 0), 0),
-    funded: items.reduce((s, p) => s + (p.totalRaised || 0), 0),
-    regions: regions.length,
-  }), [items, regions]);
 
   const dropdownStyle = { minWidth: 150, fontSize: 13, borderRadius: 8, padding: "10px 14px" };
 
@@ -410,24 +403,6 @@ export default function Projects() {
           <p style={{ fontSize: "clamp(15px, 1.9vw, 18px)", opacity: 0.9, lineHeight: 1.8, margin: 0 }}>
             Large-scale infrastructure and community projects that create lasting impact. From water systems to schools, we're rebuilding communities brick by brick.
           </p>
-        </div>
-      </section>
-
-      {/* 2 — Impact showcase */}
-      <section style={{ background: "#fff", padding: "40px 24px", borderBottom: `1px solid ${C.border}` }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fit, minmax(180px, 1fr))", gap: 20 }}>
-          {[
-            { icon: "📊", val: stats.total, unit: "", label: "Projects" },
-            { icon: "👥", val: stats.people.toLocaleString() + "+", unit: "", label: "People impacted" },
-            { icon: "💰", val: "$" + (stats.funded / 1e6 >= 1 ? (stats.funded / 1e6).toFixed(1) + "M" : Math.round(stats.funded / 1000) + "K"), unit: "", label: "Total invested" },
-            { icon: "🌍", val: stats.regions, unit: "", label: "Regions" },
-          ].map((s) => (
-            <div key={s.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: 20, background: C.bg, borderRadius: 12, border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 28, marginBottom: 10 }} aria-hidden="true">{s.icon}</div>
-              <div style={{ fontSize: 32, fontWeight: 900, color: C.blue, lineHeight: 1 }}>{s.val}</div>
-              <div style={{ fontSize: 13, color: C.text, fontWeight: 600, marginTop: 8 }}>{s.label}</div>
-            </div>
-          ))}
         </div>
       </section>
 

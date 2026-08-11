@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FilePen, SearchCheck, ClipboardCheck, HeartHandshake, PackageCheck } from "lucide-react";
+import { FilePen, SearchCheck, ClipboardCheck, HeartHandshake, PackageCheck, HandHeart } from "lucide-react";
 import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
 import { BRAND } from "../brand.js";
@@ -77,12 +77,6 @@ const VALUES = [
     svg: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> },
 ];
 
-const IMPACT_STATS = [
-  { val: "2,400+", label: "Cases Processed",   color: C.blue },
-  { val: "98.8%",  label: "Verification Rate", color: C.gold },
-  { val: "6",      label: "Regions Covered",   color: "#8B5CF6" },
-];
-
 // ── Team (admin-managed via localStorage) ─────────────────────────────────
 const TEAM_KEY     = "kf_team_data";
 const TEAM_VIS_KEY = "kf_team_visible";
@@ -144,31 +138,67 @@ export default function About() {
   return (
     <div style={{ color: C.text }}>
 
-      {/* ═══════════ 1 · HERO ═══════════ */}
-      <section style={{ position: "relative", overflow: "hidden", padding: "92px 24px 72px", textAlign: "center", color: "#fff", background: C.navy }}>
-        <div aria-hidden="true" style={bgLayer("/about-hero-bg.jpg", "center 35%")} />
-        <div aria-hidden="true" style={overlay("linear-gradient(to bottom, rgba(0,20,55,0.72) 0%, rgba(17,42,99,0.62) 50%, rgba(0,20,55,0.80) 100%)")} />
-        <div style={{ position: "relative", zIndex: 10, maxWidth: 760, margin: "0 auto" }}>
-          <span style={badge("rgba(255,255,255,0.14)", "#fff", { border: "1px solid rgba(255,255,255,0.28)", backdropFilter: "blur(6px)" })}>
-            {P.hero_badge}
-          </span>
-          <h1 style={{ fontSize: "clamp(30px, 5vw, 52px)", fontWeight: 900, margin: "20px 0 16px", lineHeight: 1.1, letterSpacing: -1, textShadow: "0 2px 24px rgba(0,0,0,0.5)" }}>
-            {P.hero_title} <span style={{ color: C.gold }}>{P.hero_title2}</span>
-          </h1>
-          <p style={{ fontSize: "clamp(15px, 1.9vw, 18px)", opacity: 0.9, lineHeight: 1.8, maxWidth: 600, margin: "0 auto", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>
-            {P.hero_sub}
-          </p>
-        </div>
-      </section>
+      {/* ═══════════ 1 · MISSION HERO ═══════════ */}
+      <section style={{ position: "relative", overflow: "hidden", background: "#F5F4EE" }}>
+        {/* faint Africa-dot texture, top-centre, like the reference */}
+        <div aria-hidden="true" style={{
+          position: "absolute", insetBlockStart: 40, insetInlineStart: "42%", inlineSize: 320, blockSize: 260,
+          backgroundImage: "radial-gradient(currentColor 1.1px, transparent 1.1px)", backgroundSize: "14px 14px",
+          color: "rgba(15,119,60,.10)", pointerEvents: "none", zIndex: 0,
+        }} />
 
-      {/* ═══════════ 2 · MISSION ═══════════ */}
-      <section style={{ ...section, background: "#fff" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
-          <span style={badge(C.gold, "#fff")}>{P.mission_badge}</span>
-          <h2 style={{ ...h2Style, margin: "18px 0 16px" }}>{P.mission_title}</h2>
-          <p style={{ ...subStyle, maxWidth: 760, fontSize: "clamp(15px, 1.8vw, 17px)" }}>{P.mission_p1}</p>
-          <p style={{ ...subStyle, maxWidth: 760, marginTop: 16 }}>{P.mission_p2}</p>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: isMobile ? "40px 20px 0" : "76px 40px 0", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.05fr 0.95fr", gap: isMobile ? 24 : 48, alignItems: "center" }}>
+
+            {/* Left — copy */}
+            <div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24 }}>
+                <HandHeart size={30} color="#0C4A2B" strokeWidth={1.7} aria-hidden="true" />
+                <div>
+                  <div style={{ fontFamily: "var(--kf-font-display)", fontSize: 15, fontWeight: 800, letterSpacing: 3, color: "#0C4A2B" }}>ABOUT US</div>
+                  <div style={{ inlineSize: 48, blockSize: 3, background: "var(--kf-gold-500)", marginBlockStart: 7, borderRadius: 2 }} />
+                </div>
+              </div>
+
+              <h1 style={{ fontFamily: "var(--kf-font-display)", fontSize: isMobile ? 40 : "clamp(46px, 5.4vw, 74px)", lineHeight: 1.02, fontWeight: 800, letterSpacing: "-.025em", margin: 0 }}>
+                <span style={{ color: "#0C4A2B", display: "block" }}>Our Mission:</span>
+                <span style={{ color: "#1E8A4C", display: "block" }}>Transparent Aid</span>
+              </h1>
+
+              <div aria-hidden="true" style={{ display: "flex", alignItems: "center", gap: 8, margin: isMobile ? "22px 0 20px" : "30px 0 26px", maxInlineSize: 440 }}>
+                <span style={{ flex: 1, blockSize: 2, background: "linear-gradient(90deg, var(--kf-gold-500), rgba(250,165,40,.2))" }} />
+                <span style={{ inlineSize: 9, blockSize: 9, borderRadius: "50%", background: "var(--kf-gold-500)" }} />
+              </div>
+
+              <p style={{ margin: "0 0 18px", fontSize: isMobile ? 17 : 20, lineHeight: 1.5, maxInlineSize: 540 }}>
+                <span style={{ color: "#0F773C", fontWeight: 800 }}>KAFAALA QAAD</span>
+                <span style={{ color: "#374151" }}> means </span>
+                <em style={{ color: "#0F773C", fontWeight: 800 }}>“The System That Brings Together”</em>
+                <span style={{ color: "#374151" }}> in Somali.</span>
+              </p>
+
+              <p style={{ margin: 0, fontSize: isMobile ? 16 : 19, lineHeight: 1.65, color: "#374151", maxInlineSize: 540 }}>
+                We exist to ensure that every dollar of humanitarian aid reaches the people who truly need it — <strong style={{ color: "#0C4A2B" }}>verified, tracked, and proven.</strong>
+              </p>
+            </div>
+
+            {/* Right — photo, fading into the cream */}
+            <div style={{ position: "relative", alignSelf: "stretch", minBlockSize: isMobile ? 300 : 540 }}>
+              <div className="kf-photo-tone" aria-hidden="true" style={{
+                position: "absolute", inset: 0, borderRadius: isMobile ? 18 : 0,
+                backgroundImage: "url('/assets/hero/field-delivery.jpg')", backgroundSize: "cover", backgroundPosition: "center right",
+              }} />
+              <div aria-hidden="true" style={{
+                position: "absolute", inset: 0, borderRadius: isMobile ? 18 : 0, pointerEvents: "none",
+                background: isMobile
+                  ? "linear-gradient(180deg, rgba(245,244,238,0) 58%, #F5F4EE 100%)"
+                  : "linear-gradient(90deg, #F5F4EE 0%, rgba(245,244,238,.45) 20%, rgba(245,244,238,0) 46%), linear-gradient(180deg, rgba(245,244,238,0) 80%, rgba(245,244,238,.6) 100%)",
+              }} />
+            </div>
+          </div>
         </div>
+
+        <div style={{ blockSize: isMobile ? 40 : 72 }} />
       </section>
 
       {/* ═══════════ 3 · THE VERIFICATION JOURNEY ═══════════ */}
@@ -199,27 +229,6 @@ export default function About() {
                 </div>
                 <h3 style={{ fontSize: 16, fontWeight: 900, color: C.text, margin: "0 0 8px" }}>{v.title}</h3>
                 <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, margin: 0 }}>{v.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════ 5 · IMPACT STATISTICS ═══════════ */}
-      <section style={{ position: "relative", overflow: "hidden", padding: "56px 24px", margin: "0 16px", borderRadius: 24, color: "#fff", background: C.navy, boxShadow: "0 12px 40px rgba(17,42,99,0.18)" }}>
-        <div aria-hidden="true" style={bgLayer("/impact-bg.jpg")} />
-        <div aria-hidden="true" style={overlay("linear-gradient(135deg, rgba(0,22,60,0.82) 0%, rgba(17,42,99,0.75) 60%, rgba(0,40,20,0.78) 100%)")} />
-        <div style={{ position: "relative", zIndex: 10, maxWidth: 1000, margin: "0 auto", textAlign: "center" }}>
-          <span style={badge("rgba(255,255,255,0.12)", "#fff", { border: "1px solid rgba(255,255,255,0.22)" })}>Our Impact</span>
-          <h2 style={{ ...h2Style, color: "#fff", margin: "16px 0 12px", textShadow: "0 2px 16px rgba(0,0,0,0.5)" }}>Aid That Moves at the Speed of Need</h2>
-          <p style={{ fontSize: 16, opacity: 0.82, maxWidth: 560, margin: "0 auto 44px", lineHeight: 1.7 }}>
-            Every number below represents a real person whose situation was verified, funded, and delivered with full transparency.
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2 }}>
-            {IMPACT_STATS.map((s, i) => (
-              <div key={s.label} style={{ padding: "34px 24px", borderRight: i < IMPACT_STATS.length - 1 ? "1px solid rgba(255,255,255,0.15)" : "none" }}>
-                <div style={{ fontSize: "clamp(36px, 5vw, 56px)", fontWeight: 900, lineHeight: 1, letterSpacing: -2, color: s.color === C.gold ? C.gold : "#fff" }}>{s.val}</div>
-                <div style={{ fontSize: 13, opacity: 0.7, marginTop: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>{s.label}</div>
               </div>
             ))}
           </div>

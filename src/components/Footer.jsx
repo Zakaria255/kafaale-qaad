@@ -11,6 +11,16 @@ function loadPageVis() {
   catch { return {}; }
 }
 
+// Public contact details, admin-editable via Site Settings (kf_site_settings).
+const SITE_DEFAULTS = {
+  email: "kafaaleqaad@gmail.com", phone: "+252 61 502 4050",
+  address: "Juma Tower, Room 403, Howl-wadaag, Mogadishu", website: "kafaale.so",
+};
+function loadSiteInfo() {
+  try { return { ...SITE_DEFAULTS, ...JSON.parse(localStorage.getItem("kf_site_settings") || "{}") }; }
+  catch { return { ...SITE_DEFAULTS }; }
+}
+
 const B = {
   navy:   C.navy,
   blue:   C.primary,
@@ -25,9 +35,10 @@ export default function Footer() {
   const { isMobile, isTablet } = useResponsive();
   const [logoHover, setLogoHover] = useState(false);
   const [pageVis, setPageVis] = useState(loadPageVis);
+  const [siteInfo, setSiteInfo] = useState(loadSiteInfo);
 
   useEffect(() => {
-    const fn = () => setPageVis(loadPageVis());
+    const fn = () => { setPageVis(loadPageVis()); setSiteInfo(loadSiteInfo()); };
     window.addEventListener("storage", fn);
     return () => window.removeEventListener("storage", fn);
   }, []);
@@ -118,10 +129,10 @@ export default function Footer() {
             </div>
             <div style={{ fontSize: 14, lineHeight: 2.4 }}>
               {[
-                ["", "kafaaleqaad@gmail.com"],
-                ["", "+252 61 502 4050"],
-                ["", "Juma Tower, Room 403, Howl-wadaag, Mogadishu"],
-                ["", "kafaale.so"],
+                ["", siteInfo.email],
+                ["", siteInfo.phone],
+                ["", siteInfo.address],
+                ["", siteInfo.website],
               ].map(([icon, text]) => (
                 <div key={text} style={{ display: "flex", alignItems: "center", gap: 8, opacity: 0.75 }}>
                   <span>{icon}</span>

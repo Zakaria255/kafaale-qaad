@@ -283,18 +283,6 @@ export default function ImpactPartners() {
         </div>
       </section>
 
-      {/* ── Stats bar ── */}
-      <div style={{ background:"#fff", borderBottom:`1px solid ${C.border}` }}>
-        <div style={{ maxWidth:1000, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)" }}>
-          {[["280+","Active Partners"],["14","Countries"],["5,200+","Aid Deliveries"],["98.8%","Verification Rate"]].map(([v,l]) => (
-            <div key={l} style={{ padding:"28px 20px", textAlign:"center", borderRight:`1px solid ${C.border}` }}>
-              <div style={{ fontSize:28, fontWeight:900, color:C.primary, lineHeight:1 }}>{v}</div>
-              <div style={{ fontSize:12, color:C.muted, marginTop:5, fontWeight:600 }}>{l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {tab === "partners" && (
         <section style={{ padding:"64px 24px 80px", background:C.bg }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>

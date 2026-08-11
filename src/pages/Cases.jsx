@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, Lock, BadgeCheck, MapPin, AlertTriangle, HeartHandshake, ArrowRight } from "lucide-react";
+import { ShieldCheck, Lock, BadgeCheck, MapPin, AlertTriangle, HeartHandshake, ArrowRight, UserCheck, FileCheck, HandHeart, Users } from "lucide-react";
 import { cases as casesApi } from "../api/client";
 import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
@@ -338,25 +338,50 @@ export default function Cases() {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
-      {/* Hero */}
-      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", minHeight: 500, overflow: "hidden" }}>
-        {/* Image side */}
-        <div style={{ flex: "0 0 45%", background: "#111", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-          <img src="/cases-hero.png" alt="Child holding HOPE sign"
-            style={{ width: "auto", height: "100%", maxWidth: "100%", objectFit: "contain", display: "block" }} />
-        </div>
-        {/* Text side */}
-        <div style={{ flex: 1, background: `linear-gradient(145deg, ${C.navy} 0%, ${C.primary} 55%, ${C.secondary} 100%)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "48px 28px" : "64px 56px" }}>
-          <div style={{ maxWidth: 480 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.12)", borderRadius: 100, padding: "5px 16px", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginBottom: 20 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
-              Verified Cases
+      {/* Hero — Verified Emergency Cases */}
+      <section style={{ position: "relative", overflow: "hidden", background: "#F5FAF6", padding: isMobile ? "48px 20px 36px" : "72px 24px 56px" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          {/* Shield */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: isMobile ? 18 : 24 }}>
+            <div style={{ width: 76, height: 76, borderRadius: 20, background: "rgba(15,119,60,.10)", display: "grid", placeItems: "center" }}>
+              <ShieldCheck size={40} color="#0F773C" strokeWidth={2} aria-hidden="true" />
             </div>
-            <h1 style={{ margin: "0 0 18px", fontSize: "clamp(26px,3vw,42px)", fontWeight: 900, lineHeight: 1.15, color: "#fff" }}>{P.hero_title}</h1>
-            <p style={{ margin: 0, opacity: 0.82, fontSize: 16, lineHeight: 1.8 }}>{P.hero_sub}</p>
+          </div>
+
+          {/* Heading */}
+          <h1 style={{ textAlign: "center", fontFamily: "var(--kf-font-display)", fontSize: isMobile ? 34 : "clamp(40px, 5.4vw, 64px)", lineHeight: 1.05, fontWeight: 800, letterSpacing: "-.02em", color: "#0C4A2B", margin: 0 }}>
+            Verified Emergency Cases
+          </h1>
+          <div aria-hidden="true" style={{ width: 84, height: 4, background: "#17924A", borderRadius: 3, margin: "18px auto 22px" }} />
+          <p style={{ textAlign: "center", maxWidth: 720, margin: "0 auto", fontSize: isMobile ? 16 : 19, lineHeight: 1.65, color: "#4B5563" }}>
+            Every case below has been physically verified by our field team and approved by our office. Your sponsorship goes directly to those in need.
+          </p>
+
+          {/* Pillar cards */}
+          <div style={{ marginTop: isMobile ? 28 : 44, display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: isMobile ? 14 : 24 }}>
+            {[
+              { icon: UserCheck, title: "Physically Verified", desc: "Our field team visits and verifies every case." },
+              { icon: FileCheck, title: "Carefully Reviewed",  desc: "Each case is reviewed and approved by our office." },
+              { icon: HandHeart, title: "Direct Support",      desc: "Your sponsorship goes directly to the beneficiary." },
+              { icon: Users,     title: "Real Impact",         desc: "You help real people and real families in critical need." },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} style={{ background: "#fff", borderRadius: 18, padding: isMobile ? "22px 16px" : "30px 22px", textAlign: "center", border: "1px solid rgba(15,119,60,.10)", boxShadow: "0 10px 30px -18px rgba(12,74,43,.28)" }}>
+                <div style={{ width: 66, height: 66, borderRadius: "50%", background: "rgba(15,119,60,.10)", display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+                  <Icon size={30} color="#0F773C" strokeWidth={1.9} aria-hidden="true" />
+                </div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#0C4A2B" }}>{title}</div>
+                <div aria-hidden="true" style={{ width: 26, height: 3, background: "#17924A", borderRadius: 2, margin: "8px auto 12px" }} />
+                <div style={{ fontSize: 14, color: "#4B5563", lineHeight: 1.55 }}>{desc}</div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+
+        {/* soft green wave at the base */}
+        <svg aria-hidden="true" viewBox="0 0 1440 120" preserveAspectRatio="none" style={{ position: "absolute", insetInline: 0, insetBlockEnd: -1, width: "100%", height: 70, display: "block" }}>
+          <path d="M0,60 C280,110 520,20 760,50 C1000,80 1220,120 1440,70 L1440,120 L0,120 Z" fill="rgba(15,119,60,.10)" />
+        </svg>
+      </section>
 
       {/* Featured — most urgent verified case */}
       {!loading && featured && (
