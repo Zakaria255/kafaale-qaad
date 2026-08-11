@@ -26,7 +26,7 @@ function logResult(success: boolean, message: string) {
 
 async function runChaosSimulation() {
   console.log(`\n${colors.bright}${colors.red}🧪 ====================================================`);
-  console.log(`📡 KAFAALE QAAD — MVP STABILITY & FAILURE INJECTION SUITE`);
+  console.log(`📡 KAFAALA QAAD — MVP STABILITY & FAILURE INJECTION SUITE`);
   console.log(`====================================================${colors.reset}\n`);
 
   try {

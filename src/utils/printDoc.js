@@ -2,7 +2,7 @@
  * Opens a new browser window with the given HTML and triggers the print dialog.
  * Falls back to a downloadable .html file if popups are blocked.
  */
-export function openPrintWindow(html, title = "Kafaale Qaad") {
+export function openPrintWindow(html, title = "Kafaala Qaad") {
   const win = window.open("", "_blank", "width=960,height=780,scrollbars=yes");
   if (!win) {
     // Popup blocked — offer download instead

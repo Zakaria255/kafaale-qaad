@@ -241,7 +241,7 @@ app.use('/api/chat',         chatRoutes);
 // bare /health falls through to the SPA's index.html and never reaches Express.
 const healthHandler: express.RequestHandler = (_req, res) => {
   res.json({
-    status: '✅ Kafaale Qaad API Online',
+    status: '✅ Kafaala Qaad API Online',
     timestamp: new Date().toISOString(),
     version: '2.0.0',
     env: IS_PROD ? 'production' : 'development',
@@ -266,7 +266,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 // On Railway/Node, start the HTTP server.
 if (!process.env.VERCEL) {
   server.listen(PORT, () => {
-    console.log(`🚀 Kafaale API running → http://localhost:${PORT}`);
+    console.log(`🚀 Kafaala API running → http://localhost:${PORT}`);
     console.log(`📡 Health check: http://localhost:${PORT}/health`);
     console.log(`🔒 CORS origins: ${[...ALLOWED_ORIGINS].join(', ')}`);
 

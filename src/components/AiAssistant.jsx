@@ -7,7 +7,7 @@ export default function AiAssistant({ caseId = null, context = 'general' }) {
   const [open, setOpen] = useState(false);
   const { isMobile } = useResponsive();
   const [messages, setMessages] = useState([
-    { role: 'assistant', text: 'Assalamu Alaykum! I\'m the Kafaale Qaad AI Assistant. I can help you understand our cases, guide you through the verification process, or answer any questions about our humanitarian platform. How can I assist you today? 🌍' }
+    { role: 'assistant', text: 'Assalamu Alaykum! I\'m the Kafaala Qaad AI Assistant. I can help you understand our cases, guide you through the verification process, or answer any questions about our humanitarian platform. How can I assist you today? 🌍' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -82,7 +82,7 @@ export default function AiAssistant({ caseId = null, context = 'general' }) {
           <div style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.green})`, color: '#fff', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}></div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 15 }}>Kafaale AI Assistant</div>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>Kafaala AI Assistant</div>
               <div style={{ fontSize: 12, opacity: 0.85 }}>● Online — Ask me anything</div>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function AiAssistant({ caseId = null, context = 'general' }) {
           <div style={{ padding: '12px 16px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: 8 }}>
             <input
               value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
-              placeholder="Ask anything about Kafaale Qaad..."
+              placeholder="Ask anything about Kafaala Qaad..."
               style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${C.border}`, fontSize: 14, outline: 'none', background: C.bg }}
             />
             <button onClick={send} disabled={!input.trim() || loading}

@@ -20,7 +20,7 @@ const DEFAULT_UPDATES = [
     title:"Severe Flooding Displaces 3,000+ Families in Beledweyne",
     date:"2026-06-15", location:"Beledweyne, Hiran Region",
     severity:"critical",
-    body:"Unprecedented flooding along the Shabelle River has displaced over 3,000 families in Beledweyne. Access roads are cut off. Emergency food, shelter, and clean water are urgently needed. Kafaale Qaad field teams are on the ground assessing and registering affected families.",
+    body:"Unprecedented flooding along the Shabelle River has displaced over 3,000 families in Beledweyne. Access roads are cut off. Emergency food, shelter, and clean water are urgently needed. Kafaala Qaad field teams are on the ground assessing and registering affected families.",
     img:"https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=700&q=75",
     needs:["Emergency Shelter Kits","Clean Water","Food Packages"],
   },
@@ -44,7 +44,7 @@ const DEFAULT_UPDATES = [
   },
   {
     id:"upd-4", type:"General", published:true,
-    title:"Kafaale Qaad Expands to Lower Jubba Region",
+    title:"Kafaala Qaad Expands to Lower Jubba Region",
     date:"2026-05-28", location:"Kismayo, Lower Jubba",
     severity:"info",
     body:"We are proud to announce our expansion into the Lower Jubba region. Local field agents have been trained and onboarded. Case submissions from Kismayo, Jamaame, and Jilib are now accepted through our platform.",

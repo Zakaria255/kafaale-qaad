@@ -38,7 +38,7 @@ export default function FeaturedCase({
     reassureTitle: "Your support can save a life",
     reassureSub: "Every contribution brings hope, healing, and a brighter future.",
     caseId: "CASE ID",
-    verifiedBy: "VERIFIED BY KAFAALE QAAD",
+    verifiedBy: "VERIFIED BY KAFAALA QAAD",
     verifiedTag: "Your trust. Their hope.",
     alert: "Critical — Immediate Support Needed",
     raised: "raised",

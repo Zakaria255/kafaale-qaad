@@ -12,7 +12,7 @@ const CAT_LABEL     = { food: "Food Security", medical: "Medical", shelter: "She
 
 const STEP_LABELS = [
   { key: "reported",   icon: "", label: "Case Reported",     sub: "Submitted by community reporter" },
-  { key: "reviewed",   icon: "", label: "Office Review",     sub: "Verified by Kafaale Qaad office" },
+  { key: "reviewed",   icon: "", label: "Office Review",     sub: "Verified by Kafaala Qaad office" },
   { key: "field",      icon: "", label: "Field Investigation", sub: "Physical visit by our field team" },
   { key: "verified",   icon: "", label: "Verified & Published", sub: "Confirmed real and safe to show donors" },
   { key: "sponsored",  icon: "", label: "Sponsorship",        sub: "Donor funds secured in escrow" },
@@ -154,7 +154,7 @@ export default function CaseDetail() {
             {/* Privacy notice */}
             <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "12px 16px", marginTop: 20, fontSize: 13, color: C.primary, display: "flex", gap: 10, alignItems: "flex-start" }}>
               <span style={{ fontSize: 16, flexShrink: 0 }}></span>
-              <span>All personally identifiable information (names, addresses, phone numbers, GPS) has been removed to protect the beneficiary's privacy. This story was AI-sanitized by Kafaale Qaad before publication.</span>
+              <span>All personally identifiable information (names, addresses, phone numbers, GPS) has been removed to protect the beneficiary's privacy. This story was AI-sanitized by Kafaala Qaad before publication.</span>
             </div>
           </div>
 
@@ -224,7 +224,7 @@ export default function CaseDetail() {
               )}
               <div style={{ marginTop: 16, background: "#D1FAE5", borderRadius: 12, padding: "12px 16px", fontSize: 13, color: "#065F46", display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 18 }}></span>
-                <strong>This case was physically verified by a Kafaale Qaad field agent who visited the location in person.</strong>
+                <strong>This case was physically verified by a Kafaala Qaad field agent who visited the location in person.</strong>
               </div>
             </div>
           )}

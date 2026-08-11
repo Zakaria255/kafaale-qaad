@@ -1,11 +1,11 @@
-// ─── Kafaale Qaad — Central API Client ───────────────────────────────────
+// ─── Kafaala Qaad — Central API Client ───────────────────────────────────
 // Host-agnostic: set VITE_API_URL at build time to your backend's /api URL.
 // Dev falls back to the local API; prod falls back to same-origin "/api"
 // (works behind a reverse proxy / same domain) — never a hardcoded host.
 const IS_DEV = import.meta.env.DEV;
 const API = import.meta.env.VITE_API_URL || (IS_DEV ? 'http://localhost:4000/api' : '/api');
 if (!IS_DEV && !import.meta.env.VITE_API_URL) {
-  console.warn('[Kafaale] VITE_API_URL is not set — falling back to same-origin "/api". Set it in your Vercel/host env to point at the backend.');
+  console.warn('[Kafaala] VITE_API_URL is not set — falling back to same-origin "/api". Set it in your Vercel/host env to point at the backend.');
 }
 
 // ── Auth helpers ─────────────────────────────────────────────────

@@ -44,7 +44,7 @@ function PostCard({ post, currentUser, onLike, onComment, onDelete }) {
           {(post.authorName || "K").charAt(0).toUpperCase()}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 800, fontSize: 15 }}>{post.authorName || "Kafaale Qaad"}</div>
+          <div style={{ fontWeight: 800, fontSize: 15 }}>{post.authorName || "Kafaala Qaad"}</div>
           <div style={{ fontSize: 12, color: C.muted }}>{new Date(post.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
         </div>
         {post.tag && (
@@ -236,7 +236,7 @@ export default function MediaFeed() {
     const newPost = {
       id:         Date.now().toString(),
       authorId:   user?.id || "anon",
-      authorName: user?.name || "Kafaale Qaad",
+      authorName: user?.name || "Kafaala Qaad",
       title:      form.title.trim(),
       body:       form.body.trim(),
       images,
@@ -299,7 +299,7 @@ export default function MediaFeed() {
         <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${C.primary}E6, ${C.secondary}CC)` }} />
         <div style={{ position: "relative", zIndex: 1 }}>
           <h1 style={{ color: "#fff", fontSize: 32, fontWeight: 900, margin: "0 0 8px", textShadow: "0 2px 16px rgba(0,0,0,0.5)" }}>Community Media</h1>
-          <p style={{ color: "rgba(255,255,255,0.9)", fontSize: 16, margin: 0, textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>Stories, updates, and moments from Kafaale Qaad Foundation</p>
+          <p style={{ color: "rgba(255,255,255,0.9)", fontSize: 16, margin: 0, textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>Stories, updates, and moments from Kafaala Qaad Foundation</p>
         </div>
       </div>
 
@@ -488,7 +488,7 @@ export default function MediaFeed() {
             <div style={{ fontSize: 48, marginBottom: 12 }}></div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>No posts yet</div>
             <div style={{ fontSize: 13, marginTop: 6 }}>
-              {isAdmin ? "Share the first update with your community" : "Check back soon for updates from Kafaale Qaad"}
+              {isAdmin ? "Share the first update with your community" : "Check back soon for updates from Kafaala Qaad"}
             </div>
           </div>
         ) : (

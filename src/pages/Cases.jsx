@@ -192,7 +192,7 @@ function FeaturedCase({ c, isMobile }) {
                 <ShieldCheck size={19} color={GREEN} />
               </div>
               <div style={{ lineHeight: 1.15 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: GREEN, letterSpacing: 0.3 }}>VERIFIED BY KAFAALE QAAD</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: GREEN, letterSpacing: 0.3 }}>VERIFIED BY KAFAALA QAAD</div>
                 <div style={{ fontSize: 11, color: C.muted }}>Your trust. Their hope.</div>
               </div>
             </div>

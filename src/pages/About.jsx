@@ -175,7 +175,7 @@ export default function About() {
       <section style={{ ...section, background: C.bg }}>
         <div style={wrap}>
           <div style={{ ...centerHead, marginBottom: 40 }}>
-            <SectionHeader align="center" overline="The verification journey" title="How Kafaale Qaad Works"
+            <SectionHeader align="center" overline="The verification journey" title="How Kafaala Qaad Works"
               lede="Every case follows a strict, transparent pipeline — from first report to verified delivery." />
           </div>
           <HowItWorks steps={JOURNEY_STEPS} isMobile={isMobile} />

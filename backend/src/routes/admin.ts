@@ -234,7 +234,7 @@ router.patch('/users/:id/approve', async (req: AuthRequest, res: Response) => {
         userId:  user.id,
         type:    'account_approved',
         title:   '✅ Account Approved',
-        message: `Your ${user.role.replace(/_/g,' ')} account has been approved. You can now sign in to Kafaale Qaad.`,
+        message: `Your ${user.role.replace(/_/g,' ')} account has been approved. You can now sign in to Kafaala Qaad.`,
       },
     }).catch(() => {});
     sysLog.info(`Admin ${req.user!.email} approved user ${user.email} [${user.role}]`);
@@ -383,7 +383,7 @@ router.patch('/cases/:id/complete', async (req: AuthRequest, res: Response) => {
           caseId:  kase.id,
           type:    'case_completed',
           title:   '🏁 Case Completed',
-          message: 'Your reported case has been fully completed. Aid was delivered and confirmed by admin. Thank you for helping Kafaale reach those in need.',
+          message: 'Your reported case has been fully completed. Aid was delivered and confirmed by admin. Thank you for helping Kafaala reach those in need.',
         },
       });
     }

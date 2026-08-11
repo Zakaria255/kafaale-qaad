@@ -2,7 +2,7 @@ import React from "react";
 
 /**
  * Animated "How it works" — scattered, gently-rotated step cards connected by a
- * flowing dashed path. Adapted to the Kafaale design system (navy/gold, display
+ * flowing dashed path. Adapted to the Kafaala design system (navy/gold, display
  * font, design tokens) from a Tailwind/motion reference; the path animation is
  * pure CSS (see .kf-dash-flow in global.css), so no motion library is needed.
  *

@@ -79,7 +79,7 @@ const CATEGORIES = [
     id:"coordinator", icon:"", color:"#EC4899", bg:"#FDF2F8",
     title:"District Coordinator",
     subtitle:"Lead a network of volunteers",
-    desc:"Coordinate reporters and agents in your district. Recruit new volunteers, hold local training sessions, and act as the local Kafaale Qaad point of contact.",
+    desc:"Coordinate reporters and agents in your district. Recruit new volunteers, hold local training sessions, and act as the local Kafaala Qaad point of contact.",
     requirements:["Community leadership experience","Trusted local contacts","Organizational ability","Smartphone & internet"],
     commitment:"10–15 hrs/week regular commitment",
     perks:["Leadership stipend","Training","Official coordinator title"],
@@ -167,7 +167,7 @@ export default function Volunteer() {
         <div style={{ position:"relative", zIndex:10, padding:"88px 24px 72px", width:"100%", textAlign:"center", color:"#fff" }}>
           <div style={{ maxWidth:720, margin:"0 auto" }}>
             <span style={{ display:"inline-block", background:"rgba(250,165,40,0.2)", border:"1px solid rgba(250,165,40,0.4)", color:C.accent, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>JOIN OUR TEAM</span>
-            <h1 style={{ fontSize:"clamp(28px,5vw,54px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.08, letterSpacing:-1, color:"#fff" }}>Volunteer With Kafaale Qaad</h1>
+            <h1 style={{ fontSize:"clamp(28px,5vw,54px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.08, letterSpacing:-1, color:"#fff" }}>Volunteer With Kafaala Qaad</h1>
             <p style={{ fontSize:17, opacity:0.85, lineHeight:1.75, maxWidth:540, margin:"0 auto" }}>Choose your role below. From field agents to tech volunteers — every skill matters in the fight against poverty.</p>
           </div>
         </div>

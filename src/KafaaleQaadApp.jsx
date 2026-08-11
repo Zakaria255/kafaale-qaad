@@ -2593,7 +2593,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
       th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 700; color: #5A6E8A; border-bottom: 1px solid #e2e8f0; }
       td { padding: 8px 12px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
       .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #9CA3AF; border-top: 1px solid #e2e8f0; padding-top: 16px; }
-      body::after { content: "Kafaale Qaad Foundation"; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-size: 60px; font-weight: 900; color: rgba(0,75,150,0.07); white-space: nowrap; pointer-events: none; z-index: 9999; letter-spacing: 4px; }
+      body::after { content: "Kafaala Qaad Foundation"; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-35deg); font-size: 60px; font-weight: 900; color: rgba(0,75,150,0.07); white-space: nowrap; pointer-events: none; z-index: 9999; letter-spacing: 4px; }
       @media print { body { padding: 0; } body::after { position: fixed; } }
     `;
 
@@ -2662,7 +2662,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
             fontSize: 52, fontWeight: 900, color: "rgba(0,75,150,0.06)",
             transform: "rotate(-35deg)", whiteSpace: "nowrap", letterSpacing: 4, userSelect: "none",
           }}>
-            Kafaale Qaad Foundation
+            Kafaala Qaad Foundation
           </div>
         </div>
         <div style={{ position: "relative", zIndex: 1 }}>
@@ -2670,7 +2670,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
         <div style={{ marginBottom: 24, borderBottom: `3px solid ${COLORS.primary}`, paddingBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: COLORS.primary }}>KAFAALE QAAD — Humanitarian Case Report</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: COLORS.primary }}>KAFAALA QAAD — Humanitarian Case Report</div>
               <div style={{ fontSize: 13, color: COLORS.muted, marginTop: 4 }}>Case ID: <strong>{data.id}</strong> · Generated: {fmt(new Date().toISOString())} · CONFIDENTIAL — Super Admin Only</div>
             </div>
             <div style={{ textAlign: "right" }}>
@@ -2873,7 +2873,7 @@ const CaseFullReportModal = ({ caseId, onClose }) => {
 
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 28, paddingTop: 16, borderTop: `1px solid ${COLORS.border}`, fontSize: 11, color: COLORS.muted }}>
-          <strong style={{ color: COLORS.primary }}>KAFAALE QAAD</strong> · Kafaale Qaad Foundation · Confidential Case Report · {fmt(new Date().toISOString())} · For Super Admin review only
+          <strong style={{ color: COLORS.primary }}>KAFAALA QAAD</strong> · Kafaala Qaad Foundation · Confidential Case Report · {fmt(new Date().toISOString())} · For Super Admin review only
         </div>
         </div>{/* end zIndex:1 wrapper */}
       </div>
@@ -3110,14 +3110,14 @@ const PublicUserDashboard = ({ cases, currentUser, onReport, onViewCase, onSpons
   const [loadingSpons,    setLoadingSpons]    = useState(true);
   const [invoiceEditMode, setInvoiceEditMode] = useState(false);
   const DEFAULT_INVOICE_SETTINGS = {
-    orgName:       "Kafaale Qaad",
+    orgName:       "Kafaala Qaad",
     orgSub:        "Humanitarian Relief Organization",
     orgCountry:    "Somalia · kafaaleqaad.org",
-    bankName:      "Kafaale Qaad",
+    bankName:      "Kafaala Qaad",
     bankIBAN:      "SO00 0000 0000 0000 0000",
     bankBIC:       "CAFGSO1X",
     mobileNumber:  "+252 61 502 4050",
-    mobileName:    "Kafaale Qaad",
+    mobileName:    "Kafaala Qaad",
     footerMsg:     "Thank you for your generous support. Please include the invoice number as your payment reference.",
     description:   "Monthly Sponsorship Support",
   };
@@ -4573,7 +4573,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
           <style>{`@media print { .no-print { display: none !important; } body * { visibility: hidden; } #impact-cert, #impact-cert * { visibility: visible; } #impact-cert { position: fixed; top: 0; left: 0; width: 100%; } }`}</style>
           <div id="impact-cert" style={{ background: `linear-gradient(145deg, ${COLORS.navy}, ${COLORS.primary})`, borderRadius: 20, padding: "36px 40px", color: "#fff", textAlign: "center", marginBottom: 20 }}>
             <div style={{ fontSize: 48, marginBottom: 8 }}></div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, opacity: 0.7, marginBottom: 4 }}>KAFAALE QAAD · HUMANITARIAN AID PLATFORM</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, opacity: 0.7, marginBottom: 4 }}>KAFAALA QAAD · HUMANITARIAN AID PLATFORM</div>
             <div style={{ fontSize: 28, fontWeight: 900, margin: "12px 0 6px" }}>Certificate of Impact</div>
             <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 24 }}>This certifies that the following contribution reached its beneficiary</div>
             <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 14, padding: "20px 28px", marginBottom: 20 }}>
@@ -4595,7 +4595,7 @@ const DonorDashboard = ({ cases, currentUser, onViewCase, onSponsor }) => {
             <div style={{ background: "#10B981", borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
               Aid Delivered & Confirmed — {certDonation.case?.completedAt ? new Date(certDonation.case.completedAt).toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" }) : "Completed"}
             </div>
-            <div style={{ fontSize: 11, opacity: 0.55 }}>Issued by Kafaale Qaad Foundation · kafaaleqaad.org</div>
+            <div style={{ fontSize: 11, opacity: 0.55 }}>Issued by Kafaala Qaad Foundation · kafaaleqaad.org</div>
           </div>
           <div className="no-print" style={{ display: "flex", gap: 10 }}>
             <Btn variant="ghost" onClick={() => setCertDonation(null)} style={{ flex: 1 }}>Close</Btn>
@@ -5307,10 +5307,10 @@ const NotebookPanel = ({ users = [], showToast }) => {
 
   return (
     <div>
-      {/* Branded header — carries the Kafaale Qaad logo + icon */}
+      {/* Branded header — carries the Kafaala Qaad logo + icon */}
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 20px", borderRadius: 16, marginBottom: 20,
         background: "linear-gradient(135deg,#112A63 0%,#204BA0 55%,#E28E12 140%)", color: "#fff" }}>
-        <img src="/assets/brand/kafaala-qaad-hope-icon-192.png" alt="Kafaale Qaad" width={48} height={48}
+        <img src="/assets/brand/kafaala-qaad-hope-icon-192.png" alt="Kafaala Qaad" width={48} height={48}
           style={{ borderRadius: 12, background: "#fff", padding: 4, flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -5493,7 +5493,7 @@ const DEFAULT_UPDATES_ADMIN = [
   { id:"upd-1", type:"Flood",    published:true,  title:"Severe Flooding Displaces 3,000+ Families in Beledweyne", date:"2026-06-15", location:"Beledweyne, Hiran Region",  severity:"critical", body:"Unprecedented flooding along the Shabelle River has displaced over 3,000 families in Beledweyne. Access roads are cut off. Emergency food, shelter, and clean water are urgently needed.", img:"https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=700&q=75", needs:["Emergency Shelter Kits","Clean Water","Food Packages"] },
   { id:"upd-2", type:"Drought",  published:true,  title:"Drought Alert: Bay Region Facing Critical Food Shortage",  date:"2026-06-10", location:"Baidoa, Bay Region",         severity:"high",     body:"Three consecutive failed rainy seasons have pushed Bay Region into a severe food crisis. Over 15,000 people face acute malnutrition.",  img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=75", needs:["Food Packages","Livestock Feed","Water Trucking"] },
   { id:"upd-3", type:"Emergency",published:true,  title:"IDP Camp Medical Emergency — Mogadishu North",            date:"2026-06-05", location:"Mogadishu, Benadir",         severity:"high",     body:"A disease outbreak in Mogadishu North IDP camp is affecting hundreds of families. Medical supplies are critically low.", img:"https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=700&q=75", needs:["Medicine","ORS Kits","Mobile Clinic"] },
-  { id:"upd-4", type:"General",  published:true,  title:"Kafaale Qaad Expands to Lower Jubba Region",              date:"2026-05-28", location:"Kismayo, Lower Jubba",       severity:"info",     body:"We are proud to announce our expansion into the Lower Jubba region. Local field agents have been trained and onboarded.", img:"https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=700&q=75", needs:[] },
+  { id:"upd-4", type:"General",  published:true,  title:"Kafaala Qaad Expands to Lower Jubba Region",              date:"2026-05-28", location:"Kismayo, Lower Jubba",       severity:"info",     body:"We are proud to announce our expansion into the Lower Jubba region. Local field agents have been trained and onboarded.", img:"https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=700&q=75", needs:[] },
 ];
 const loadTeamAdmin = () => {
   try {
@@ -9594,7 +9594,7 @@ export default function KafaaleQaadApp() {
 
       {/* ── Footer ── */}
       <div style={{ textAlign: "center", padding: "20px 24px", color: COLORS.muted, fontSize: 12, borderTop: `1px solid ${COLORS.border}`, background: "#fff", marginTop: 32 }}>
-        <strong style={{ color: COLORS.primary }}>KAFAALE QAAD</strong> · Humanitarian Aid Platform · React + Express + PostgreSQL · Claude AI
+        <strong style={{ color: COLORS.primary }}>KAFAALA QAAD</strong> · Humanitarian Aid Platform · React + Express + PostgreSQL · Claude AI
         <br />
         <span style={{ fontSize: 11, opacity: 0.7 }}>JWT Auth · Role-Based Access · AI Sanitization · Field Verification · Audit Trails · Real-Time Notifications</span>
       </div>

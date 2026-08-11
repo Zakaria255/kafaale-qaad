@@ -272,7 +272,7 @@ export default function ImpactPartners() {
         <div style={{ position:"relative", zIndex:10, padding:"80px 24px", width:"100%", textAlign:"center", color:"#fff" }}>
           <div style={{ maxWidth:760, margin:"0 auto" }}>
             <span style={{ display:"inline-block", background:"rgba(250,165,40,0.2)", border:"1px solid rgba(250,165,40,0.4)", color:C.accent, borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>IMPACT PARTNERS</span>
-            <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.1, letterSpacing:-1, color:"#fff" }}>Partner with Kafaale Qaad</h1>
+            <h1 style={{ fontSize:"clamp(28px,5vw,52px)", fontWeight:900, margin:"0 0 16px", lineHeight:1.1, letterSpacing:-1, color:"#fff" }}>Partner with Kafaala Qaad</h1>
             <p style={{ fontSize:17, opacity:0.85, lineHeight:1.7, maxWidth:540, margin:"0 auto 32px" }}>Join our network of verified NGOs, foundations, and agencies delivering impact across Somalia and East Africa.</p>
             <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
               <button onClick={() => setTab("partners")} style={{ padding:"12px 28px", borderRadius:12, fontWeight:800, fontSize:14, border:"none", cursor:"pointer", background: tab==="partners" ? C.accent : "rgba(255,255,255,0.15)", color:"#fff" }}>View Partners</button>
@@ -520,7 +520,7 @@ export default function ImpactPartners() {
                           <input type="checkbox" checked={form.acceptsTerms} onChange={e=>set("acceptsTerms",e.target.checked)}
                             style={{ marginTop:3, width:18, height:18, cursor:"pointer" }} />
                           <div style={{ fontSize:13, color:C.text, lineHeight:1.6 }}>
-                            I confirm that all information provided is accurate. I accept the <a href="#" onClick={e=>{e.preventDefault();setShowTerms(true);}} style={{ color:C.primary, fontWeight:700, textDecoration:"underline", cursor:"pointer" }}>Partner Terms & Conditions</a> and understand that Kafaale Qaad will review this application before granting access.
+                            I confirm that all information provided is accurate. I accept the <a href="#" onClick={e=>{e.preventDefault();setShowTerms(true);}} style={{ color:C.primary, fontWeight:700, textDecoration:"underline", cursor:"pointer" }}>Partner Terms & Conditions</a> and understand that Kafaala Qaad will review this application before granting access.
                           </div>
                         </label>
                         {errors.acceptsTerms && <div style={{ fontSize:11, color:C.danger, marginTop:6 }}>{errors.acceptsTerms}</div>}
@@ -768,7 +768,7 @@ export default function ImpactPartners() {
                 Connect to a Network That Delivers — Every Time
               </h2>
               <p style={{ fontSize:16, color:"rgba(255,255,255,0.82)", lineHeight:1.85, margin:"0 0 32px", maxWidth:440 }}>
-                When you partner with Kafaale Qaad, your organisation gains instant access to 14 verified regions, a fully auditable pipeline, and GPS-confirmed proof of every delivery. Your impact is real, measurable, and publicly recognised.
+                When you partner with Kafaala Qaad, your organisation gains instant access to 14 verified regions, a fully auditable pipeline, and GPS-confirmed proof of every delivery. Your impact is real, measurable, and publicly recognised.
               </p>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, maxWidth:440 }}>
                 {[
@@ -802,7 +802,7 @@ export default function ImpactPartners() {
             <div style={{ background:`linear-gradient(135deg, ${C.navy}, ${C.primary})`, color:"#fff", padding:"28px 32px", borderRadius:"20px 20px 0 0", position:"sticky", top:0, zIndex:1 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <div>
-                  <div style={{ fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase", opacity:0.7, marginBottom:4 }}>Kafaale Qaad Foundation</div>
+                  <div style={{ fontSize:11, fontWeight:800, letterSpacing:2, textTransform:"uppercase", opacity:0.7, marginBottom:4 }}>Kafaala Qaad Foundation</div>
                   <div style={{ fontSize:22, fontWeight:900 }}>Partner Terms & Conditions</div>
                   <div style={{ fontSize:12, opacity:0.7, marginTop:4 }}>Effective Date: January 1, 2025 · Version 2.1</div>
                 </div>
@@ -814,31 +814,31 @@ export default function ImpactPartners() {
               {[
                 {
                   title:"1. Definitions",
-                  body:`"Kafaale Qaad" refers to Kafaale Qaad Foundation, a registered humanitarian organisation based in Mogadishu, Somalia. "Partner" refers to any organisation accepted into the Kafaale Qaad partner network. "Platform" refers to the Kafaale Qaad digital platform and case management system. "Beneficiary" refers to individuals or families receiving aid through the Platform.`
+                  body:`"Kafaala Qaad" refers to Kafaala Qaad Foundation, a registered humanitarian organisation based in Mogadishu, Somalia. "Partner" refers to any organisation accepted into the Kafaala Qaad partner network. "Platform" refers to the Kafaala Qaad digital platform and case management system. "Beneficiary" refers to individuals or families receiving aid through the Platform.`
                 },
                 {
                   title:"2. Eligibility & Admission",
-                  body:`2.1 Applicants must be a registered legal entity (NGO, foundation, government body, or recognised institution) in their country of operation.\n2.2 Partners must not appear on any international sanctions lists (UN, EU, OFAC).\n2.3 Kafaale Qaad reserves the right to approve, reject, or conditionally accept any application without providing reasons.\n2.4 Approval is not guaranteed and is subject to due-diligence verification including field visits and document checks.`
+                  body:`2.1 Applicants must be a registered legal entity (NGO, foundation, government body, or recognised institution) in their country of operation.\n2.2 Partners must not appear on any international sanctions lists (UN, EU, OFAC).\n2.3 Kafaala Qaad reserves the right to approve, reject, or conditionally accept any application without providing reasons.\n2.4 Approval is not guaranteed and is subject to due-diligence verification including field visits and document checks.`
                 },
                 {
                   title:"3. Partner Obligations",
-                  body:`3.1 Partners must conduct all humanitarian activities in accordance with the Core Humanitarian Standard (CHS) and Do No Harm principles.\n3.2 Partners must submit monthly delivery reports including GPS-confirmed delivery photographs within 7 days of each aid delivery.\n3.3 Partners must maintain accurate beneficiary records and make them available to Kafaale Qaad upon request with 48 hours notice.\n3.4 Partners must not use Kafaale Qaad funds for administrative overhead exceeding 10% of any disbursement.\n3.5 Partners must report any security incident, fraud suspicion, or programme disruption to Kafaale Qaad within 24 hours.\n3.6 Partners must not sub-grant funds to third parties without prior written approval from Kafaale Qaad.`
+                  body:`3.1 Partners must conduct all humanitarian activities in accordance with the Core Humanitarian Standard (CHS) and Do No Harm principles.\n3.2 Partners must submit monthly delivery reports including GPS-confirmed delivery photographs within 7 days of each aid delivery.\n3.3 Partners must maintain accurate beneficiary records and make them available to Kafaala Qaad upon request with 48 hours notice.\n3.4 Partners must not use Kafaala Qaad funds for administrative overhead exceeding 10% of any disbursement.\n3.5 Partners must report any security incident, fraud suspicion, or programme disruption to Kafaala Qaad within 24 hours.\n3.6 Partners must not sub-grant funds to third parties without prior written approval from Kafaala Qaad.`
                 },
                 {
                   title:"4. Financial & Accountability Standards",
-                  body:`4.1 All funds received through the Platform must be used exclusively for the approved case or programme they were designated for.\n4.2 Partners must maintain a separate bank account or fund ledger for Kafaale Qaad disbursements.\n4.3 Partners consent to independent financial audits by Kafaale Qaad or a third-party auditor, with 14 days notice.\n4.4 Unexpended funds at programme closure must be returned within 30 days or reallocated with written approval.\n4.5 Partners must issue official receipts for all aid deliveries and provide copies to Kafaale Qaad.`
+                  body:`4.1 All funds received through the Platform must be used exclusively for the approved case or programme they were designated for.\n4.2 Partners must maintain a separate bank account or fund ledger for Kafaala Qaad disbursements.\n4.3 Partners consent to independent financial audits by Kafaala Qaad or a third-party auditor, with 14 days notice.\n4.4 Unexpended funds at programme closure must be returned within 30 days or reallocated with written approval.\n4.5 Partners must issue official receipts for all aid deliveries and provide copies to Kafaala Qaad.`
                 },
                 {
                   title:"5. Data Protection & Beneficiary Privacy",
-                  body:`5.1 Partners must comply with applicable data protection laws in their jurisdiction.\n5.2 Beneficiary personal information (names, photos, medical data) must not be shared with any third party, media, or social media without explicit written consent from the beneficiary or their legal guardian.\n5.3 Partners must implement reasonable security measures to protect beneficiary data from unauthorised access.\n5.4 Data breaches affecting beneficiary information must be reported to Kafaale Qaad within 72 hours.`
+                  body:`5.1 Partners must comply with applicable data protection laws in their jurisdiction.\n5.2 Beneficiary personal information (names, photos, medical data) must not be shared with any third party, media, or social media without explicit written consent from the beneficiary or their legal guardian.\n5.3 Partners must implement reasonable security measures to protect beneficiary data from unauthorised access.\n5.4 Data breaches affecting beneficiary information must be reported to Kafaala Qaad within 72 hours.`
                 },
                 {
                   title:"6. Branding & Communications",
-                  body:`6.1 Partners may use the "Kafaale Qaad Verified Partner" badge in communications related to joint programmes only.\n6.2 Partners must not misrepresent their relationship with Kafaale Qaad or imply endorsement beyond the scope of the partnership.\n6.3 All public communications referencing joint activities require review and approval from Kafaale Qaad's communications team with 5 business days lead time.\n6.4 Kafaale Qaad may feature the Partner's name, logo, and impact statistics on the Platform and in public reports.`
+                  body:`6.1 Partners may use the "Kafaala Qaad Verified Partner" badge in communications related to joint programmes only.\n6.2 Partners must not misrepresent their relationship with Kafaala Qaad or imply endorsement beyond the scope of the partnership.\n6.3 All public communications referencing joint activities require review and approval from Kafaala Qaad's communications team with 5 business days lead time.\n6.4 Kafaala Qaad may feature the Partner's name, logo, and impact statistics on the Platform and in public reports.`
                 },
                 {
                   title:"7. Suspension & Termination",
-                  body:`7.1 Kafaale Qaad may immediately suspend a partner account if there is evidence of fraud, fund misuse, beneficiary harm, or violation of these Terms.\n7.2 Either party may terminate the partnership with 60 days written notice.\n7.3 Upon termination, the Partner must: (a) complete or properly hand over all active cases, (b) submit a final financial report, (c) return all unexpended funds, and (d) cease use of Kafaale Qaad branding.\n7.4 Termination does not affect obligations arising from activities conducted during the partnership period.`
+                  body:`7.1 Kafaala Qaad may immediately suspend a partner account if there is evidence of fraud, fund misuse, beneficiary harm, or violation of these Terms.\n7.2 Either party may terminate the partnership with 60 days written notice.\n7.3 Upon termination, the Partner must: (a) complete or properly hand over all active cases, (b) submit a final financial report, (c) return all unexpended funds, and (d) cease use of Kafaala Qaad branding.\n7.4 Termination does not affect obligations arising from activities conducted during the partnership period.`
                 },
                 {
                   title:"8. Conflict of Interest",
@@ -854,11 +854,11 @@ export default function ImpactPartners() {
                 },
                 {
                   title:"11. Amendments",
-                  body:`Kafaale Qaad reserves the right to amend these Terms at any time. Partners will be notified of material changes via email at least 30 days before they take effect. Continued participation after the effective date constitutes acceptance of the amended Terms.`
+                  body:`Kafaala Qaad reserves the right to amend these Terms at any time. Partners will be notified of material changes via email at least 30 days before they take effect. Continued participation after the effective date constitutes acceptance of the amended Terms.`
                 },
                 {
                   title:"12. Contact",
-                  body:`For questions regarding these Terms, contact: kafaaleqaad@gmail.com · Kafaale Qaad Foundation, Juma Tower, Room 403, Howl-wadaag, Mogadishu.`
+                  body:`For questions regarding these Terms, contact: kafaaleqaad@gmail.com · Kafaala Qaad Foundation, Juma Tower, Room 403, Howl-wadaag, Mogadishu.`
                 },
               ].map(({ title, body }) => (
                 <div key={title} style={{ marginBottom:24, paddingBottom:24, borderBottom:`1px solid ${C.border}` }}>

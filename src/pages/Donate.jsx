@@ -521,7 +521,7 @@ export default function Donate() {
       {/* Trust indicators */}
       <section style={{ padding: "60px 24px", background: "#fff", textAlign: "center" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 32 }}>Why Donors Trust Kafaale Qaad</h3>
+          <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 32 }}>Why Donors Trust Kafaala Qaad</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 20 }}>
             {[
               { icon: "", title: "Verified Cases",    desc: "Every case is field-investigated before you see it" },

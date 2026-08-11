@@ -40,7 +40,7 @@ function contractBody(type, data, ref, date) {
   if (type === "child_sponsorship") return (
     <>
       <Section title="Parties">
-        <Row label="Organisation" value="Kafaale Qaad Foundation · Mogadishu, Somalia" />
+        <Row label="Organisation" value="Kafaala Qaad Foundation · Mogadishu, Somalia" />
         <Row label="Sponsor" value={data.sponsorName || "—"} />
         <Row label="Contact" value={data.sponsorEmail || "—"} />
       </Section>
@@ -57,10 +57,10 @@ function contractBody(type, data, ref, date) {
       </Section>
       <Section title="Terms & Obligations">
         <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, margin: 0 }}>
-          1. <strong>Kafaale Qaad</strong> agrees to allocate the sponsored child/family to this sponsor exclusively for the duration stated above, provide monthly progress reports, and ensure 100% of the committed monthly amount reaches the beneficiary.<br />
-          2. <strong>The Sponsor</strong> agrees to pay the committed monthly amount on the agreed schedule, notify Kafaale Qaad at least 30 days in advance if unable to continue, and not disclose the beneficiary's personal details to third parties.<br />
+          1. <strong>Kafaala Qaad</strong> agrees to allocate the sponsored child/family to this sponsor exclusively for the duration stated above, provide monthly progress reports, and ensure 100% of the committed monthly amount reaches the beneficiary.<br />
+          2. <strong>The Sponsor</strong> agrees to pay the committed monthly amount on the agreed schedule, notify Kafaala Qaad at least 30 days in advance if unable to continue, and not disclose the beneficiary's personal details to third parties.<br />
           3. <strong>Early termination</strong> by the sponsor requires 30 days written notice. Any pre-paid amounts for remaining months will be refunded within 14 business days.<br />
-          4. <strong>Kafaale Qaad</strong> reserves the right to reassign the beneficiary if the sponsor fails to make payments for 2 consecutive months after written notice.<br />
+          4. <strong>Kafaala Qaad</strong> reserves the right to reassign the beneficiary if the sponsor fails to make payments for 2 consecutive months after written notice.<br />
           5. This agreement is governed by the laws of the Federal Republic of Somalia and internationally recognized humanitarian aid principles.
         </p>
       </Section>
@@ -70,7 +70,7 @@ function contractBody(type, data, ref, date) {
   if (type === "project_funding") return (
     <>
       <Section title="Parties">
-        <Row label="Organisation" value="Kafaale Qaad Foundation · Mogadishu, Somalia" />
+        <Row label="Organisation" value="Kafaala Qaad Foundation · Mogadishu, Somalia" />
         <Row label="Contributor" value={data.contributorName || "—"} />
         <Row label="Contact" value={data.contributorEmail || "—"} />
       </Section>
@@ -84,9 +84,9 @@ function contractBody(type, data, ref, date) {
       </Section>
       <Section title="Terms & Obligations">
         <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, margin: 0 }}>
-          1. <strong>Kafaale Qaad</strong> agrees to deploy this contribution exclusively to the named project, provide a completion report with photographic evidence and GPS data, and return any undisbursed funds if the project is cancelled.<br />
-          2. <strong>The Contributor</strong> agrees that funds are non-refundable once disbursed for project activities, and authorises Kafaale Qaad to publish co-branded impact reports using this contribution.<br />
-          3. <strong>Reporting</strong>: Kafaale Qaad will provide progress updates at project milestones and a final impact report within 30 days of project completion.<br />
+          1. <strong>Kafaala Qaad</strong> agrees to deploy this contribution exclusively to the named project, provide a completion report with photographic evidence and GPS data, and return any undisbursed funds if the project is cancelled.<br />
+          2. <strong>The Contributor</strong> agrees that funds are non-refundable once disbursed for project activities, and authorises Kafaala Qaad to publish co-branded impact reports using this contribution.<br />
+          3. <strong>Reporting</strong>: Kafaala Qaad will provide progress updates at project milestones and a final impact report within 30 days of project completion.<br />
           4. This agreement is governed by the laws of the Federal Republic of Somalia and internationally recognized humanitarian aid principles.
         </p>
       </Section>
@@ -96,7 +96,7 @@ function contractBody(type, data, ref, date) {
   if (type === "partner_agreement") return (
     <>
       <Section title="Parties">
-        <Row label="Platform" value="Kafaale Qaad Foundation · Mogadishu, Somalia" />
+        <Row label="Platform" value="Kafaala Qaad Foundation · Mogadishu, Somalia" />
         <Row label="Partner Org" value={data.orgName || "—"} />
         <Row label="Type" value={data.orgType || "—"} />
         <Row label="Country" value={data.country || "—"} />
@@ -110,8 +110,8 @@ function contractBody(type, data, ref, date) {
       </Section>
       <Section title="Terms & Obligations">
         <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, margin: 0 }}>
-          1. <strong>The Partner</strong> agrees to operate within Kafaale Qaad's verified aid framework, submit to field verification visits, maintain accurate beneficiary records, and share monthly delivery reports.<br />
-          2. <strong>Kafaale Qaad</strong> agrees to co-brand the partner's contributions, provide donor-matched case referrals, grant access to the secure partner dashboard, and publicly recognise the partner's impact.<br />
+          1. <strong>The Partner</strong> agrees to operate within Kafaala Qaad's verified aid framework, submit to field verification visits, maintain accurate beneficiary records, and share monthly delivery reports.<br />
+          2. <strong>Kafaala Qaad</strong> agrees to co-brand the partner's contributions, provide donor-matched case referrals, grant access to the secure partner dashboard, and publicly recognise the partner's impact.<br />
           3. <strong>Confidentiality</strong>: Both parties agree not to disclose beneficiary personal data to third parties without written consent.<br />
           4. <strong>Termination</strong>: Either party may terminate with 60 days written notice. Active cases must be transferred or completed before termination.<br />
           5. This agreement is governed by the laws of the Federal Republic of Somalia and internationally recognized humanitarian aid principles.
@@ -123,7 +123,7 @@ function contractBody(type, data, ref, date) {
   if (type === "case_sponsorship") return (
     <>
       <Section title="Parties">
-        <Row label="Organisation" value="Kafaale Qaad Foundation · Mogadishu, Somalia" />
+        <Row label="Organisation" value="Kafaala Qaad Foundation · Mogadishu, Somalia" />
         <Row label="Donor" value={data.donorName || "—"} />
         <Row label="Contact" value={data.donorEmail || "—"} />
       </Section>
@@ -137,8 +137,8 @@ function contractBody(type, data, ref, date) {
       </Section>
       <Section title="Terms & Obligations">
         <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.8, margin: 0 }}>
-          1. <strong>Kafaale Qaad</strong> guarantees that 100% of donated funds are directed to the named case, provides GPS-confirmed delivery proof within 14 days of aid delivery, and issues a tax-compliant receipt.<br />
-          2. <strong>The Donor</strong> confirms that funds are donated in good faith and authorises Kafaale Qaad to publish anonymised impact data related to this case.<br />
+          1. <strong>Kafaala Qaad</strong> guarantees that 100% of donated funds are directed to the named case, provides GPS-confirmed delivery proof within 14 days of aid delivery, and issues a tax-compliant receipt.<br />
+          2. <strong>The Donor</strong> confirms that funds are donated in good faith and authorises Kafaala Qaad to publish anonymised impact data related to this case.<br />
           3. <strong>Refund policy</strong>: If a case cannot be fulfilled, the donor will be offered an alternative case or full refund within 14 business days.<br />
           4. This agreement is governed by the laws of the Federal Republic of Somalia and internationally recognized humanitarian aid principles.
         </p>
@@ -198,10 +198,10 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
     };
 
     const terms = {
-      child_sponsorship: `1. Kafaale Qaad will allocate the sponsored beneficiary exclusively to this sponsor for the stated duration and provide monthly progress reports.\n2. The Sponsor commits to monthly payments on schedule and will give 30 days notice before termination.\n3. Early termination: 30 days written notice required. Pre-paid amounts for remaining months refunded within 14 business days.\n4. Kafaale Qaad may reassign the beneficiary if sponsor fails to pay for 2 consecutive months after notice.\n5. Governed by the laws of the Federal Republic of Somalia.`,
-      project_funding:   `1. Kafaale Qaad will deploy this contribution exclusively to the named project and provide a completion report with GPS data.\n2. Funds are non-refundable once disbursed for project activities.\n3. Reporting: progress updates at milestones + final impact report within 30 days of completion.\n4. Governed by the laws of the Federal Republic of Somalia.`,
-      partner_agreement: `1. The Partner will operate within Kafaale Qaad's verified aid framework, submit to field verification visits, and share monthly delivery reports.\n2. Kafaale Qaad will co-brand the partner's contributions and provide donor-matched case referrals.\n3. Both parties agree not to disclose beneficiary data to third parties without written consent.\n4. Either party may terminate with 60 days written notice. Active cases must be completed before termination.\n5. Governed by the laws of the Federal Republic of Somalia.`,
-      case_sponsorship:  `1. Kafaale Qaad guarantees 100% of funds go to the named case and provides GPS-confirmed delivery proof within 14 days.\n2. The Donor authorises Kafaale Qaad to publish anonymised impact data related to this case.\n3. If a case cannot be fulfilled, donor will be offered an alternative or full refund within 14 business days.\n4. Governed by the laws of the Federal Republic of Somalia.`,
+      child_sponsorship: `1. Kafaala Qaad will allocate the sponsored beneficiary exclusively to this sponsor for the stated duration and provide monthly progress reports.\n2. The Sponsor commits to monthly payments on schedule and will give 30 days notice before termination.\n3. Early termination: 30 days written notice required. Pre-paid amounts for remaining months refunded within 14 business days.\n4. Kafaala Qaad may reassign the beneficiary if sponsor fails to pay for 2 consecutive months after notice.\n5. Governed by the laws of the Federal Republic of Somalia.`,
+      project_funding:   `1. Kafaala Qaad will deploy this contribution exclusively to the named project and provide a completion report with GPS data.\n2. Funds are non-refundable once disbursed for project activities.\n3. Reporting: progress updates at milestones + final impact report within 30 days of completion.\n4. Governed by the laws of the Federal Republic of Somalia.`,
+      partner_agreement: `1. The Partner will operate within Kafaala Qaad's verified aid framework, submit to field verification visits, and share monthly delivery reports.\n2. Kafaala Qaad will co-brand the partner's contributions and provide donor-matched case referrals.\n3. Both parties agree not to disclose beneficiary data to third parties without written consent.\n4. Either party may terminate with 60 days written notice. Active cases must be completed before termination.\n5. Governed by the laws of the Federal Republic of Somalia.`,
+      case_sponsorship:  `1. Kafaala Qaad guarantees 100% of funds go to the named case and provides GPS-confirmed delivery proof within 14 days.\n2. The Donor authorises Kafaala Qaad to publish anonymised impact data related to this case.\n3. If a case cannot be fulfilled, donor will be offered an alternative or full refund within 14 business days.\n4. Governed by the laws of the Federal Republic of Somalia.`,
     };
 
     const html = `<!DOCTYPE html>
@@ -230,10 +230,10 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
 </style>
 </head>
 <body>
-  <div class="watermark">KAFAALE QAAD</div>
+  <div class="watermark">KAFAALA QAAD</div>
 
   <div class="header">
-    <div class="org-label">Kafaale Qaad Foundation</div>
+    <div class="org-label">Kafaala Qaad Foundation</div>
     <div class="title">${sections[type] || "Agreement"}</div>
     <div class="meta">
       <span>Ref: <strong>${contractRef}</strong></span>
@@ -244,7 +244,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
   <div class="section">
     <div class="section-head">Parties</div>
     <table>
-      <tr><td class="lbl">Organisation</td><td>Kafaale Qaad Foundation · Mogadishu, Somalia</td></tr>
+      <tr><td class="lbl">Organisation</td><td>Kafaala Qaad Foundation · Mogadishu, Somalia</td></tr>
       <tr><td class="lbl">${type === "partner_agreement" ? "Partner" : type === "child_sponsorship" ? "Sponsor" : "Contributor"}</td><td>${signerName}</td></tr>
     </table>
   </div>
@@ -271,7 +271,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
   </div>
 
   <div class="footer">
-    Kafaale Qaad Foundation · Mogadishu, Somalia · kafaale.so<br>
+    Kafaala Qaad Foundation · Mogadishu, Somalia · kafaale.so<br>
     This document is legally binding once signed.
   </div>
 </body></html>`;
@@ -310,7 +310,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
           <div style={{ background: `linear-gradient(135deg, ${C.navy}, ${C.primary})`, color: "#fff", padding: "28px 32px", borderRadius: "20px 20px 0 0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", opacity: 0.7, marginBottom: 6 }}>Kafaale Qaad Foundation</div>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: "uppercase", opacity: 0.7, marginBottom: 6 }}>Kafaala Qaad Foundation</div>
                 <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1.2 }}>{TYPE_TITLES[type] || "Agreement"}</div>
               </div>
               <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 8, width: 36, height: 36, cursor: "pointer", fontSize: 18, color: "#fff", flexShrink: 0 }}>×</button>
@@ -348,7 +348,7 @@ export default function ContractModal({ type, data, onClose, onAccept }) {
               <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", marginBottom: 18 }}>
                 <input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} style={{ marginTop: 2, width: 18, height: 18, cursor: "pointer", flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "#374151", lineHeight: 1.6 }}>
-                  I have read and understood this agreement. I confirm that all information I have provided is accurate and I agree to all terms stated above. I understand this constitutes a binding commitment between myself and Kafaale Qaad Foundation.
+                  I have read and understood this agreement. I confirm that all information I have provided is accurate and I agree to all terms stated above. I understand this constitutes a binding commitment between myself and Kafaala Qaad Foundation.
                 </span>
               </label>
 

@@ -1,4 +1,4 @@
-// ─── Kafaale Qaad — i18n translations ────────────────────────────────────────
+// ─── Kafaala Qaad — i18n translations ────────────────────────────────────────
 // Languages: en · so · ar · tr · es · fr
 
 export const LANGUAGES = [
@@ -13,8 +13,8 @@ export const LANGUAGES = [
 export const T = {
   // ── App ───────────────────────────────────────────────────────────────────
   appName: {
-    en: "Kafaale Qaad", so: "Kafaale Qaad", ar: "كفاله قاد",
-    tr: "Kafaale Qaad", es: "Kafaale Qaad", fr: "Kafaale Qaad",
+    en: "Kafaala Qaad", so: "Kafaala Qaad", ar: "كفاله قاد",
+    tr: "Kafaala Qaad", es: "Kafaala Qaad", fr: "Kafaala Qaad",
   },
   appTagline: {
     en: "Humanitarian Aid Platform",

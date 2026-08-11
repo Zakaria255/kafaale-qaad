@@ -263,7 +263,7 @@ router.post('/forgot-password', dbRateLimit('pwreset', 5, 60 * 60 * 1000), async
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await prisma.otpRecord.create({ data: { email, code, expiresAt } });
-    await sendEmail(email, 'Kafaale Qaad — Password Reset Code', `Your password reset code is: ${code}\n\nThis code expires in 15 minutes. Do not share it with anyone.`);
+    await sendEmail(email, 'Kafaala Qaad — Password Reset Code', `Your password reset code is: ${code}\n\nThis code expires in 15 minutes. Do not share it with anyone.`);
 
     sysLog.info(`OTP generated for ${email}`);
     res.json({ message: 'If that email exists, a code has been sent.' });
@@ -284,7 +284,7 @@ router.post('/resend-otp', async (req: Request, res: Response) => {
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await prisma.otpRecord.create({ data: { email, code, expiresAt } });
-    await sendEmail(email, 'Kafaale Qaad — New Verification Code', `Your new code is: ${code}\n\nExpires in 15 minutes.`);
+    await sendEmail(email, 'Kafaala Qaad — New Verification Code', `Your new code is: ${code}\n\nExpires in 15 minutes.`);
 
     res.json({ message: 'If that email exists, a new code has been sent.' });
   } catch { res.status(500).json({ error: 'Failed to resend OTP' }); }

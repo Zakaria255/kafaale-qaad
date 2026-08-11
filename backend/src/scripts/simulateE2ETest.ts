@@ -26,7 +26,7 @@ function logFailure(message: string) {
 
 async function runMVPSimulation() {
   console.log(`\n${colors.bright}${colors.yellow}====================================================`);
-  console.log(`🧪 KAFAALE QAAD — MVP STABILIZATION TEST RUNNER`);
+  console.log(`🧪 KAFAALA QAAD — MVP STABILIZATION TEST RUNNER`);
   console.log(`====================================================${colors.reset}\n`);
 
   try {

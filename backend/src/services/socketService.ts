@@ -44,7 +44,7 @@ class SocketService {
         });
       });
 
-      sysLog.info('🚀 Kafaale Qaad WebSocket Gateway Initialized successfully');
+      sysLog.info('🚀 Kafaala Qaad WebSocket Gateway Initialized successfully');
     } catch (err: any) {
       sysLog.error('❌ Failed to initialize WebSocket Gateway', err);
     }

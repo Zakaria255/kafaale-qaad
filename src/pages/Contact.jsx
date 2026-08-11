@@ -50,7 +50,7 @@ export default function Contact() {
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent(contact.subject || "Contact from Kafaale Qaad website");
+    const subject = encodeURIComponent(contact.subject || "Contact from Kafaala Qaad website");
     const body = encodeURIComponent(`Name: ${contact.name}\nEmail: ${contact.email}\n\n${contact.message}`);
     window.open(`mailto:kafaaleqaad@gmail.com?subject=${subject}&body=${body}`, "_blank");
     setCSubmit(true);
