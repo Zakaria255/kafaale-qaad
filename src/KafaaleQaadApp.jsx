@@ -5461,9 +5461,9 @@ const PAGE_DEFAULTS = {
 const SITE_INFO_DEFAULTS = {
   orgName:    "Kafaala Qaad HOPE",
   tagline:    "Connecting Verified Need with Compassionate Support",
-  email:      "kafaaleqaad@gmail.com",
+  email:      "info@kafaala.org",
   phone:      "+252 61 502 4050",
-  address:    "Juma Tower, Room 403, Howl-wadaag, Mogadishu",
+  address:    "Taleex, Hodon, Mogadishu",
   website:    "kafaala.org",
   facebook:   "https://facebook.com/kafaaleqaad",
   twitter:    "https://twitter.com/kafaaleqaad",

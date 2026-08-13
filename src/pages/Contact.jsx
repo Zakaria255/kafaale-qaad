@@ -16,9 +16,9 @@ export default function Contact() {
   // Public contact details are admin-editable via Site Settings (kf_site_settings);
   // fall back to the defaults so the page never renders blank.
   const site = (() => { try { return JSON.parse(localStorage.getItem("kf_site_settings") || "{}"); } catch { return {}; } })();
-  const siteEmail   = site.email   || "kafaaleqaad@gmail.com";
+  const siteEmail   = site.email   || "info@kafaala.org";
   const sitePhone   = site.phone   || "+252 61 502 4050";
-  const siteAddress = site.address || "Juma Tower, Room 403, Howl-wadaag, Mogadishu";
+  const siteAddress = site.address || "Taleex, Hodon, Mogadishu";
   const siteWebsite = site.website || "kafaala.org";
 
   const [tab,       setTab]      = useState("report");

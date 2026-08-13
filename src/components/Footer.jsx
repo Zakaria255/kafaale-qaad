@@ -13,8 +13,8 @@ function loadPageVis() {
 
 // Public contact details, admin-editable via Site Settings (kf_site_settings).
 const SITE_DEFAULTS = {
-  email: "kafaaleqaad@gmail.com", phone: "+252 61 502 4050",
-  address: "Juma Tower, Room 403, Howl-wadaag, Mogadishu", website: "kafaala.org",
+  email: "info@kafaala.org", phone: "+252 61 502 4050",
+  address: "Taleex, Hodon, Mogadishu", website: "kafaala.org",
 };
 function loadSiteInfo() {
   try { return { ...SITE_DEFAULTS, ...JSON.parse(localStorage.getItem("kf_site_settings") || "{}") }; }

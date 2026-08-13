@@ -846,7 +846,7 @@ export default function ImpactPartners() {
                 },
                 {
                   title:"12. Contact",
-                  body:`For questions regarding these Terms, contact: kafaaleqaad@gmail.com · Kafaala Qaad Foundation, Juma Tower, Room 403, Howl-wadaag, Mogadishu.`
+                  body:`For questions regarding these Terms, contact: info@kafaala.org · Kafaala Qaad Foundation, Taleex, Hodon, Mogadishu.`
                 },
               ].map(({ title, body }) => (
                 <div key={title} style={{ marginBottom:24, paddingBottom:24, borderBottom:`1px solid ${C.border}` }}>
