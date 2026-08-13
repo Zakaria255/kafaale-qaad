@@ -30,6 +30,19 @@ export default defineConfig({
         clientsClaim: true,
         runtimeCaching: [
           {
+            // Page loads: always try the network first so a fresh deploy shows
+            // immediately. Fall back to cache only when offline. This removes the
+            // "old shell flashes, then jumps to the new version" behaviour.
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'kq-html',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 20 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // App images (hero art, brand, same-origin media).
             urlPattern: ({ request }) => request.destination === 'image',
             handler: 'CacheFirst',
