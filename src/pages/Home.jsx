@@ -127,8 +127,8 @@ export default function Home() {
   const heroPhoto = {
     position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
     backgroundImage: "var(--kf-img-grade), url('/assets/hero/field-delivery.jpg')",
-    backgroundSize: "cover",
-    backgroundPosition: isMobile ? "center" : "center right",
+    backgroundSize: isMobile ? "cover" : "contain",
+    backgroundPosition: "center",
     backgroundRepeat: "no-repeat",
   };
   const heroScrim = {

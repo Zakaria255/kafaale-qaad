@@ -77,8 +77,9 @@ export default function Navbar() {
         show("partners") && { to: "/partners", label: "Partners", icon: "", desc: "Join as an NGO partner" },
       ].filter(Boolean),
     },
-    // Everything else (Stories, Volunteer, FAQ, Updates, Media, Contact) lives in
-    // the footer to keep the top bar focused on About / Operations / Give.
+    show("stories") && { id: "stories", label: "Stories", to: "/stories", direct: true },
+    { id: "media", label: "Media", to: "/media", direct: true },
+    // Volunteer, FAQ, Updates, and Contact remain in the footer.
   ].filter(Boolean).filter(item => !item.items || item.items.length > 0);
 
   // Mobile flat list
