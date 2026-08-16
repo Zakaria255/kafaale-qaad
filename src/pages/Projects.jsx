@@ -382,7 +382,8 @@ export default function Projects() {
     : null;
 
 
-  const dropdownStyle = { minWidth: 150, fontSize: 13, borderRadius: 8, padding: "10px 14px" };
+  const dropdownStyle = { fontSize: 13, borderRadius: 8, padding: "10px 14px" };
+  const filterItemStyle = { flex: "0 1 170px", minWidth: 140 };
 
   return (
     <div style={{ color: C.text }}>
@@ -452,19 +453,27 @@ export default function Projects() {
                 style={{ width: "100%", boxSizing: "border-box", padding: "12px 16px 12px 38px", border: `1px solid ${C.border}`, borderRadius: 12, fontSize: 14, background: "#fff" }}
               />
             </div>
-            <FixedSelect value={category} onChange={(e) => setCategory(e.target.value)} style={dropdownStyle}>
-              {categoryOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </FixedSelect>
-            <FixedSelect value={status} onChange={(e) => setStatus(e.target.value)} style={dropdownStyle}>
-              {statusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </FixedSelect>
-            <FixedSelect value={region} onChange={(e) => setRegion(e.target.value)} style={dropdownStyle}>
-              <option value="">All regions</option>
-              {regions.map((r) => <option key={r} value={r}>{r}</option>)}
-            </FixedSelect>
-            <FixedSelect value={budget} onChange={(e) => setBudget(e.target.value)} style={dropdownStyle}>
-              {BUDGET_BUCKETS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </FixedSelect>
+            <div style={filterItemStyle}>
+              <FixedSelect value={category} onChange={(e) => setCategory(e.target.value)} style={dropdownStyle}>
+                {categoryOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </FixedSelect>
+            </div>
+            <div style={filterItemStyle}>
+              <FixedSelect value={status} onChange={(e) => setStatus(e.target.value)} style={dropdownStyle}>
+                {statusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </FixedSelect>
+            </div>
+            <div style={filterItemStyle}>
+              <FixedSelect value={region} onChange={(e) => setRegion(e.target.value)} style={dropdownStyle}>
+                <option value="">All regions</option>
+                {regions.map((r) => <option key={r} value={r}>{r}</option>)}
+              </FixedSelect>
+            </div>
+            <div style={filterItemStyle}>
+              <FixedSelect value={budget} onChange={(e) => setBudget(e.target.value)} style={dropdownStyle}>
+                {BUDGET_BUCKETS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </FixedSelect>
+            </div>
           </div>
 
           {activeFilters.length > 0 && (
