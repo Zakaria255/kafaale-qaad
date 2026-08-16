@@ -86,7 +86,7 @@ export default function Updates() {
         padding: "80px 24px 64px", textAlign: "center", color: "#fff",
         position: "relative", overflow: "hidden", background: "#0a1628",
       }}>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"var(--kf-img-grade), url('/updates-hero-img0.png')", backgroundSize:"cover", backgroundPosition:"center" }} />
+        <div style={{ position:"absolute", inset:0, backgroundImage:"var(--kf-img-grade), url('/updates-hero-img0.jpg')", backgroundSize:"cover", backgroundPosition:"center" }} />
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, rgba(10,22,40,0.88) 0%, rgba(26,58,110,0.78) 55%, rgba(80,20,100,0.65) 100%)" }} />
         <div style={{ position:"relative", maxWidth:700, margin:"0 auto" }}>
           <span style={{ display:"inline-block", background:"rgba(250,165,40,0.18)", border:"1px solid rgba(250,165,40,0.4)", color:"#FEC43F", borderRadius:20, padding:"6px 18px", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", marginBottom:20 }}>

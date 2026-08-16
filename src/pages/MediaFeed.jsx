@@ -294,7 +294,7 @@ export default function MediaFeed() {
       {/* Hero */}
       <div style={{ position: "relative", overflow: "hidden", padding: "48px 24px 40px", textAlign: "center" }}>
         {/* Background photo */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `var(--kf-img-grade), url("/media-hero.png")`, backgroundSize: "cover", backgroundPosition: "center center" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `var(--kf-img-grade), url("/media-hero.jpg")`, backgroundSize: "cover", backgroundPosition: "center center" }} />
         {/* Brand gradient overlay for text readability */}
         <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${C.primary}E6, ${C.secondary}CC)` }} />
         <div style={{ position: "relative", zIndex: 1 }}>

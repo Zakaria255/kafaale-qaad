@@ -162,7 +162,7 @@ export default function Volunteer() {
 
       {/* ── Hero ── */}
       <section style={{ position:"relative", overflow:"hidden", minHeight:380, display:"flex", alignItems:"center", background:"#8B0000" }}>
-        <div style={{ position:"absolute", inset:0, backgroundImage:"var(--kf-img-grade), url('/volunteer-hero.png')", backgroundSize:"cover", backgroundPosition:"center" }} />
+        <div style={{ position:"absolute", inset:0, backgroundImage:"var(--kf-img-grade), url('/volunteer-hero.jpg')", backgroundSize:"cover", backgroundPosition:"center" }} />
         <div style={{ position:"absolute", inset:0, zIndex:5, background:"linear-gradient(135deg, rgba(17,42,99,0.82) 0%, rgba(0,75,150,0.65) 60%, rgba(139,0,0,0.45) 100%)" }} />
         <div style={{ position:"relative", zIndex:10, padding:"88px 24px 72px", width:"100%", textAlign:"center", color:"#fff" }}>
           <div style={{ maxWidth:720, margin:"0 auto" }}>

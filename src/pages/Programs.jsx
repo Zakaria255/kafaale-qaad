@@ -621,7 +621,7 @@ export default function Programs() {
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
       {/* Hero */}
-      <div style={{ backgroundImage: `var(--kf-img-grade), url('/programs-hero.png')`, backgroundSize: "cover", backgroundPosition: "center", position: "relative", color: "#fff", padding: isMobile ? "60px 20px 48px" : "90px 32px 72px", textAlign: "center" }}>
+      <div style={{ backgroundImage: `var(--kf-img-grade), url('/programs-hero.jpg')`, backgroundSize: "cover", backgroundPosition: "center", position: "relative", color: "#fff", padding: isMobile ? "60px 20px 48px" : "90px 32px 72px", textAlign: "center" }}>
         <div style={{ position: "absolute", inset: 0, background: "rgba(0,20,60,0.62)" }} />
         <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.12)", borderRadius: 100, padding: "6px 18px", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginBottom: 20 }}>
