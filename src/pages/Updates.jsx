@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { C } from "../theme.js";
+import { updates as updatesApi } from "../api/client.js";
 
 const UPDATES_KEY = "kf_updates";
 
@@ -68,10 +69,13 @@ export default function Updates() {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
+    // Local copy shows instantly; the server (shared across all visitors) then
+    // overrides it once it answers. Falls back to the local copy if the API
+    // is unreachable, so the page still works offline/demo-mode.
     setItems(getUpdates().filter(u => u.published));
-    const fn = () => setItems(getUpdates().filter(u => u.published));
-    window.addEventListener("storage", fn);
-    return () => window.removeEventListener("storage", fn);
+    updatesApi.list()
+      .then(({ updates }) => { if (Array.isArray(updates)) setItems(updates.filter(u => u.published)); })
+      .catch(() => {});
   }, []);
 
   const types = ["All", ...Array.from(new Set(items.map(u => u.type)))];

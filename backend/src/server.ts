@@ -51,6 +51,7 @@ import vaultRoutes from './routes/vault';
 import settingsRoutes from './routes/settings';
 import notesRoutes from './routes/notes';
 import chatRoutes from './routes/chat';
+import updatesRoutes from './routes/updates';
 import { getSettings } from './routes/settings';
 import cron from 'node-cron';
 import { sysLog } from './services/logger';
@@ -237,6 +238,7 @@ app.use('/api/vault',         vaultRoutes);
 app.use('/api/settings',     settingsRoutes);
 app.use('/api/notes',        notesRoutes);
 app.use('/api/chat',         chatRoutes);
+app.use('/api/updates',      updatesRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 // Served under /api too: on Vercel only /api/* is routed to the function, so a

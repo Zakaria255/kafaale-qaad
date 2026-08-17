@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import ImageCropper from "./components/ImageCropper.jsx";
@@ -5523,10 +5523,17 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
   const [editMember,  setEditMember]  = useState(null); // null | member object
   const [memberForm,  setMemberForm]  = useState(BLANK_MEMBER);
 
-  // Updates management
+  // Updates management — server copy is shared across all visitors/admins;
+  // the local copy shows instantly and is a fallback if the API is unreachable.
   const [updatesData,  setUpdatesData]  = useState(loadUpdatesAdmin);
   const [editUpdate,   setEditUpdate]   = useState(null);
   const [updateForm,   setUpdateForm]   = useState(BLANK_UPDATE);
+
+  useEffect(() => {
+    updatesApi.list()
+      .then(({ updates }) => { if (Array.isArray(updates)) setUpdatesData(updates); })
+      .catch(() => {});
+  }, []);
 
   const isSuperAdmin = currentUser?.role === "super_admin";
 
@@ -5592,7 +5599,9 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
   const saveUpdates = (list) => {
     localStorage.setItem(UPDATES_ADMIN_KEY, JSON.stringify(list));
     window.dispatchEvent(new Event("storage"));
-    showToast("Updates saved");
+    updatesApi.save(list)
+      .then(() => showToast("Updates saved"))
+      .catch(() => showToast("Saved locally only — could not reach the server", "error"));
   };
   const openNewUpdate  = () => { setUpdateForm({ ...BLANK_UPDATE, id: "upd-" + Date.now() }); setEditUpdate("new"); };
   const openEditUpdate = (u) => { setUpdateForm({ ...u }); setEditUpdate(u.id); };

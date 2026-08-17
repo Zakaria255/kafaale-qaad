@@ -227,6 +227,12 @@ export const settings = {
   reset:  (key)    => req(`/settings/${encodeURIComponent(key)}`, { method: 'DELETE' }),
 };
 
+// ── Field updates / disaster alerts (public /updates page + admin CMS) ────
+export const updates = {
+  list: ()          => req('/updates'),
+  save: (updates)   => req('/updates', { method: 'PUT', body: JSON.stringify({ updates }) }),
+};
+
 // ── Community Projects endpoints ──────────────────────────────────
 export const projects = {
   list:        (params = {})  => req('/projects?' + new URLSearchParams(params)),
