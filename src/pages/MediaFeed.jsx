@@ -62,21 +62,28 @@ function PostCard({ post, currentUser, onLike, onComment, onDelete }) {
 
       {/* Image grid */}
       {post.images?.length > 0 && (
-        <div style={{
-          display: "grid", gap: 2,
-          gridTemplateColumns: post.images.length === 1 ? "1fr" : post.images.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr",
-          marginBottom: post.videoUrl ? 0 : 0,
-        }}>
-          {post.images.slice(0, 3).map((src, i) => (
-            <div key={i} style={{ position: "relative", paddingBottom: post.images.length === 1 ? "56%" : "100%", cursor: "pointer" }}
-              onClick={() => setLightbox(src)}>
-              <img src={src} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-              {i === 2 && post.images.length > 3 && (
-                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 900 }}>+{post.images.length - 3}</div>
-              )}
-            </div>
-          ))}
-        </div>
+        post.images.length === 1 ? (
+          /* Single image: never crop — show the full picture, letterboxed if needed */
+          <div style={{ background: "#F1F5F9", maxHeight: 480, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+            onClick={() => setLightbox(post.images[0])}>
+            <img src={post.images[0]} alt="" style={{ maxWidth: "100%", maxHeight: 480, objectFit: "contain", display: "block" }} />
+          </div>
+        ) : (
+          <div style={{
+            display: "grid", gap: 2,
+            gridTemplateColumns: post.images.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr",
+          }}>
+            {post.images.slice(0, 3).map((src, i) => (
+              <div key={i} style={{ position: "relative", paddingBottom: "100%", cursor: "pointer" }}
+                onClick={() => setLightbox(src)}>
+                <img src={src} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                {i === 2 && post.images.length > 3 && (
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 900 }}>+{post.images.length - 3}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Video */}
