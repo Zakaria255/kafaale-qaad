@@ -698,3 +698,34 @@ model Note {
   @@index([assigneeId])
   @@index([status])
 }
+
+// Community Media feed (/media page): social-style posts with photos/video.
+// Files are relayed through the API (multer → Supabase Storage, see
+// middleware/upload.ts) — no app-level size cap beyond the platform's own
+// request-body ceiling.
+model MediaPost {
+  id         String   @id @default(cuid())
+  authorId   String
+  authorName String
+  title      String   @default("")
+  body       String   @default("")
+  tag        String   @default("")
+  videoUrl   String?
+  likes      String   @default("[]") // JSON array of liking userIds
+  comments   String   @default("[]") // JSON array of { authorId, authorName, body, createdAt }
+  createdAt  DateTime @default(now())
+
+  images MediaPostImage[]
+
+  @@index([createdAt])
+}
+
+model MediaPostImage {
+  id     String    @id @default(cuid())
+  postId String
+  post   MediaPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  url    String
+  order  Int       @default(0)
+
+  @@index([postId])
+}

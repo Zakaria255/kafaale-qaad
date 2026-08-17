@@ -1,10 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { media as mediaApi } from '../api/client.js';
 import { C } from "../theme.js";
-
-const STORE_KEY = "kf_media_posts";
-const loadPosts = () => { try { return JSON.parse(localStorage.getItem(STORE_KEY) || "[]"); } catch { return []; } };
-const savePosts = (posts) => { try { localStorage.setItem(STORE_KEY, JSON.stringify(posts)); } catch {} };
 
 // ─── Post card ────────────────────────────────────────────────────────────────
 function PostCard({ post, currentUser, onLike, onComment, onDelete }) {
@@ -162,15 +159,15 @@ const saveTags = (tags) => { try { localStorage.setItem(TAGS_KEY, JSON.stringify
 // ─── Main feed ────────────────────────────────────────────────────────────────
 export default function MediaFeed() {
   const { user } = useAuth();
-  const [posts,        setPosts]       = useState(loadPosts);
+  const [posts,        setPosts]       = useState([]);
   const [showForm,     setShowForm]    = useState(false);
   const [form,         setForm]        = useState({ title: "", body: "", tag: "" });
-  const [images,       setImages]      = useState([]);    // base64 strings
-  const [videoSrc,     setVideoSrc]    = useState(null);  // base64 or YouTube URL
-  const [videoName,    setVideoName]   = useState("");
+  const [images,       setImages]      = useState([]);    // File objects — uploaded as-is, any size
+  const [videoFile,    setVideoFile]   = useState(null);  // File object (from-device tab)
   const [videoTab,     setVideoTab]    = useState("file"); // "file" | "youtube"
   const [ytUrl,        setYtUrl]       = useState("");
-  const [videoLoading, setVideoLoading] = useState(false);
+  const [posting,      setPosting]     = useState(false);
+  const [postError,    setPostError]   = useState("");
   const [filter,       setFilter]      = useState("all");
   const [tags,         setTags]        = useState(loadTags);
   const [newTag,       setNewTag]      = useState("");
@@ -179,6 +176,18 @@ export default function MediaFeed() {
 
   const isAdmin = ['admin','super_admin','verification_office'].includes(user?.role);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // Every visitor loads the same shared feed from the database.
+  useEffect(() => {
+    mediaApi.list().then(({ posts }) => setPosts(posts || [])).catch(() => {});
+  }, []);
+
+  // Local preview URLs for not-yet-uploaded files — revoked whenever the
+  // underlying file list changes so we don't leak blob URLs.
+  const imagePreviews = useMemo(() => images.map(f => URL.createObjectURL(f)), [images]);
+  useEffect(() => () => imagePreviews.forEach(u => URL.revokeObjectURL(u)), [imagePreviews]);
+  const videoPreview = useMemo(() => videoFile ? URL.createObjectURL(videoFile) : null, [videoFile]);
+  useEffect(() => () => { if (videoPreview) URL.revokeObjectURL(videoPreview); }, [videoPreview]);
 
   // ── Category management ───────────────────────────────────────────────────────
   const addTag = () => {
@@ -198,100 +207,72 @@ export default function MediaFeed() {
   // ── Image picker ────────────────────────────────────────────────────────────
   const handleImages = (e) => {
     const files = Array.from(e.target.files || []);
-    files.forEach(f => {
-      const reader = new FileReader();
-      reader.onload = ev => setImages(p => [...p, ev.target.result]);
-      reader.readAsDataURL(f);
-    });
+    setImages(p => [...p, ...files]);
     e.target.value = "";
   };
 
-  // ── Video file picker ───────────────────────────────────────────────────────
+  // ── Video file picker — no size cap; large files just take longer to upload ─
   const handleVideoFile = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
     e.target.value = "";
-
-    // Warn if very large (> 50 MB — base64 will be ~67 MB in memory)
-    if (file.size > 50 * 1024 * 1024) {
-      alert("Video is too large (max 50 MB). Please trim it or use a YouTube link instead.");
-      return;
-    }
-
-    setVideoLoading(true);
-    setVideoName(file.name);
-    const reader = new FileReader();
-    reader.onload = ev => {
-      setVideoSrc(ev.target.result);
-      setVideoLoading(false);
-    };
-    reader.onerror = () => {
-      setVideoLoading(false);
-      alert("Could not read video file. Try a different format.");
-    };
-    reader.readAsDataURL(file);
+    if (file) setVideoFile(file);
   };
 
-  const removeVideo = () => { setVideoSrc(null); setVideoName(""); setYtUrl(""); };
+  const removeVideo = () => { setVideoFile(null); setYtUrl(""); };
 
   // ── Submit post ─────────────────────────────────────────────────────────────
-  const finalVideoUrl = videoTab === "youtube" ? ytUrl.trim() : videoSrc;
-  const canPost = form.body.trim() || images.length > 0 || finalVideoUrl;
+  const canPost = form.body.trim() || images.length > 0 || videoFile || (videoTab === "youtube" && ytUrl.trim());
 
-  const submit = () => {
-    if (!canPost) return;
-    const newPost = {
-      id:         Date.now().toString(),
-      authorId:   user?.id || "anon",
-      authorName: user?.name || "Kafaala Qaad",
-      title:      form.title.trim(),
-      body:       form.body.trim(),
-      images,
-      videoUrl:   finalVideoUrl || "",
-      tag:        form.tag,
-      likes:      [],
-      comments:   [],
-      createdAt:  new Date().toISOString(),
-    };
-    const updated = [newPost, ...posts];
-    setPosts(updated);
-    savePosts(updated);
-    resetForm();
+  const submit = async () => {
+    if (!canPost || posting) return;
+    setPosting(true);
+    setPostError("");
+    try {
+      const fd = new FormData();
+      fd.append("title", form.title.trim());
+      fd.append("body", form.body.trim());
+      fd.append("tag", form.tag);
+      images.forEach(f => fd.append("images", f));
+      if (videoTab === "file" && videoFile) fd.append("video", videoFile);
+      if (videoTab === "youtube" && ytUrl.trim()) fd.append("videoUrl", ytUrl.trim());
+      const { post } = await mediaApi.create(fd);
+      setPosts(p => [post, ...p]);
+      resetForm();
+    } catch (e) {
+      setPostError(e.message || "Failed to post — please try again.");
+    } finally {
+      setPosting(false);
+    }
   };
 
   const resetForm = () => {
     setForm({ title: "", body: "", tag: "" });
     setImages([]);
-    setVideoSrc(null);
-    setVideoName("");
+    setVideoFile(null);
     setYtUrl("");
     setShowForm(false);
+    setPostError("");
   };
 
   // ── Like / comment / delete ─────────────────────────────────────────────────
   const handleLike = (postId) => {
     if (!user) return;
-    const updated = posts.map(p => {
-      if (p.id !== postId) return p;
-      const liked = p.likes?.includes(user.id);
-      return { ...p, likes: liked ? p.likes.filter(id => id !== user.id) : [...(p.likes || []), user.id] };
-    });
-    setPosts(updated); savePosts(updated);
+    mediaApi.like(postId)
+      .then(({ likes }) => setPosts(p => p.map(post => post.id === postId ? { ...post, likes } : post)))
+      .catch(() => {});
   };
 
   const handleComment = (postId, body) => {
     if (!user) return;
-    const updated = posts.map(p => {
-      if (p.id !== postId) return p;
-      const cm = { authorId: user.id, authorName: user.name || "User", body, createdAt: new Date().toISOString() };
-      return { ...p, comments: [...(p.comments || []), cm] };
-    });
-    setPosts(updated); savePosts(updated);
+    mediaApi.comment(postId, body)
+      .then(({ comments }) => setPosts(p => p.map(post => post.id === postId ? { ...post, comments } : post)))
+      .catch(() => {});
   };
 
   const handleDelete = (postId) => {
-    const updated = posts.filter(p => p.id !== postId);
-    setPosts(updated); savePosts(updated);
+    mediaApi.remove(postId)
+      .then(() => setPosts(p => p.filter(post => post.id !== postId)))
+      .catch(() => {});
   };
 
   const filtered = filter === "all" ? posts : posts.filter(p => p.tag === filter);
@@ -346,7 +327,7 @@ export default function MediaFeed() {
             {/* Image previews */}
             {images.length > 0 && (
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-                {images.map((src, i) => (
+                {imagePreviews.map((src, i) => (
                   <div key={i} style={{ position: "relative" }}>
                     <img src={src} alt="" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 10, border: `2px solid ${C.border}` }} />
                     <button onClick={() => setImages(p => p.filter((_, idx) => idx !== i))}
@@ -372,12 +353,12 @@ export default function MediaFeed() {
 
               <div style={{ padding: 14 }}>
                 {videoTab === "file" ? (
-                  videoSrc ? (
+                  videoFile ? (
                     /* Video preview */
                     <div>
-                      <video src={videoSrc} controls style={{ width: "100%", maxHeight: 240, borderRadius: 8, background: "#000", display: "block" }} />
+                      <video src={videoPreview} controls style={{ width: "100%", maxHeight: 240, borderRadius: 8, background: "#000", display: "block" }} />
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                        <span style={{ fontSize: 12, color: C.muted, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{videoName}</span>
+                        <span style={{ fontSize: 12, color: C.muted, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{videoFile.name}</span>
                         <button onClick={removeVideo} style={{ padding: "4px 12px", borderRadius: 8, background: "#FEE2E2", color: C.danger, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>Remove</button>
                       </div>
                     </div>
@@ -392,21 +373,12 @@ export default function MediaFeed() {
                         e.preventDefault();
                         e.currentTarget.style.borderColor = C.border;
                         const file = e.dataTransfer.files?.[0];
-                        if (file && file.type.startsWith("video/")) {
-                          const synth = { target: { files: [file], value: "" } };
-                          handleVideoFile(synth);
-                        }
+                        if (file && file.type.startsWith("video/")) setVideoFile(file);
                       }}
                     >
-                      {videoLoading ? (
-                        <div style={{ color: C.muted, fontSize: 14 }}>Loading video…</div>
-                      ) : (
-                        <>
-                          <div style={{ fontSize: 36, marginBottom: 6 }}></div>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Click to choose a video</div>
-                          <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>or drag and drop here · MP4, MOV, AVI, WebM · max 50 MB</div>
-                        </>
-                      )}
+                      <div style={{ fontSize: 36, marginBottom: 6 }}></div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>Click to choose a video</div>
+                      <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>or drag and drop here · MP4, MOV, AVI, WebM · any size</div>
                     </div>
                   )
                 ) : (
@@ -431,6 +403,10 @@ export default function MediaFeed() {
             <input ref={imgRef}   type="file" accept="image/*"  multiple style={{ display: "none" }} onChange={handleImages} />
             <input ref={videoRef} type="file" accept="video/*"           style={{ display: "none" }} onChange={handleVideoFile} />
 
+            {postError && (
+              <div style={{ background: "#FEF2F2", color: C.danger, borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginBottom: 12 }}>{postError}</div>
+            )}
+
             {/* Action buttons */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
               {images.length === 0 && (
@@ -439,11 +415,11 @@ export default function MediaFeed() {
                   Add Photos
                 </button>
               )}
-              <button onClick={submit} disabled={!canPost}
-                style={{ padding: "9px 28px", borderRadius: 10, background: C.primary, color: "#fff", border: "none", cursor: canPost ? "pointer" : "default", fontWeight: 800, fontSize: 14, opacity: canPost ? 1 : 0.45 }}>
-                Post
+              <button onClick={submit} disabled={!canPost || posting}
+                style={{ padding: "9px 28px", borderRadius: 10, background: C.primary, color: "#fff", border: "none", cursor: (canPost && !posting) ? "pointer" : "default", fontWeight: 800, fontSize: 14, opacity: (canPost && !posting) ? 1 : 0.45 }}>
+                {posting ? "Posting…" : "Post"}
               </button>
-              <button onClick={resetForm}
+              <button onClick={resetForm} disabled={posting}
                 style={{ padding: "9px 18px", borderRadius: 10, background: "#F3F4F6", color: C.muted, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13 }}>
                 Cancel
               </button>

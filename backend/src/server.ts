@@ -52,6 +52,7 @@ import settingsRoutes from './routes/settings';
 import notesRoutes from './routes/notes';
 import chatRoutes from './routes/chat';
 import updatesRoutes from './routes/updates';
+import mediaRoutes from './routes/media';
 import { getSettings } from './routes/settings';
 import cron from 'node-cron';
 import { sysLog } from './services/logger';
@@ -239,6 +240,9 @@ app.use('/api/settings',     settingsRoutes);
 app.use('/api/notes',        notesRoutes);
 app.use('/api/chat',         chatRoutes);
 app.use('/api/updates',      updatesRoutes);
+// No uploadLimiter here (unlike /api/field) — this route also serves the public
+// GET feed, and only admin-role users can hit the upload endpoints anyway.
+app.use('/api/media',        mediaRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 // Served under /api too: on Vercel only /api/* is routed to the function, so a

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import ImageCropper from "./components/ImageCropper.jsx";
@@ -5480,7 +5480,6 @@ const loadSiteInfo  = () => { try { return { ...SITE_INFO_DEFAULTS, ...JSON.pars
 const TEAM_KEY_ADMIN    = "kf_team_data";
 const TEAM_VIS_KEY_ADMIN = "kf_team_visible";
 const UPDATES_ADMIN_KEY = "kf_updates";
-const MEDIA_POSTS_KEY   = "kf_media_posts"; // shared with MediaFeed.jsx
 const MEDIA_TAGS_KEY    = "kf_media_tags";  // shared with MediaFeed.jsx
 const DEFAULT_MEDIA_TAGS = ["Update", "Success Story", "News", "Event", "Appeal", "Report", "Community"];
 
@@ -5509,7 +5508,6 @@ const loadTeamAdmin = () => {
   } catch { return DEFAULT_TEAM_ADMIN; }
 };
 const loadUpdatesAdmin = () => { try { return JSON.parse(localStorage.getItem(UPDATES_ADMIN_KEY)||"null")||DEFAULT_UPDATES_ADMIN; } catch { return DEFAULT_UPDATES_ADMIN; } };
-const loadMediaPosts   = () => { try { return JSON.parse(localStorage.getItem(MEDIA_POSTS_KEY)||"[]"); } catch { return []; } };
 const loadMediaTags    = () => { try { const t = JSON.parse(localStorage.getItem(MEDIA_TAGS_KEY)||"null"); return Array.isArray(t) && t.length ? t : DEFAULT_MEDIA_TAGS; } catch { return DEFAULT_MEDIA_TAGS; } };
 const BLANK_MEMBER = { id:"", name:"", role:"", bio:"", photo:"", linkedin:"", show:true };
 const BLANK_UPDATE = { id:"", type:"General", published:false, title:"", date:"", location:"", severity:"medium", body:"", img:"", needs:[] };
@@ -5540,13 +5538,18 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
       .catch(() => {});
   }, []);
 
-  // Media management (Community Media posts — /media page)
-  const [mediaPosts,    setMediaPosts]    = useState(loadMediaPosts);
+  // Media management (Community Media posts — /media page). The feed itself
+  // lives in Postgres (via /api/media); only the tag list stays local config.
+  const [mediaPosts,    setMediaPosts]    = useState([]);
   const [mediaTags]                       = useState(loadMediaTags);
   const [editMediaPost, setEditMediaPost] = useState(null); // null | "id"
   const [mediaPostForm, setMediaPostForm] = useState(null);
   const mediaImgRef   = useRef(null);
   const mediaVideoRef = useRef(null);
+
+  useEffect(() => {
+    mediaApi.list().then(({ posts }) => setMediaPosts(posts || [])).catch(() => {});
+  }, []);
 
   const isSuperAdmin = currentUser?.role === "super_admin";
 
@@ -5637,41 +5640,61 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
     saveUpdates(newList);
   };
 
-  // Media post helpers (kf_media_posts — same localStorage store as MediaFeed.jsx)
-  const saveMediaPosts = (list) => {
-    setMediaPosts(list);
-    localStorage.setItem(MEDIA_POSTS_KEY, JSON.stringify(list));
-    window.dispatchEvent(new Event("storage"));
-    showToast("Media updated");
+  // Media post helpers — backed by /api/media (Postgres + Supabase Storage),
+  // shared across every visitor. `mediaPostForm.images` mixes already-uploaded
+  // URLs ({kind:'existing'}) with freshly-picked files ({kind:'new'}) so the
+  // edit modal can show one unified grid; `originalImageUrls` is the untouched
+  // baseline used to work out which existing images were removed on save.
+  const openEditMediaPost = (p) => {
+    setMediaPostForm({
+      id: p.id, title: p.title, body: p.body, tag: p.tag,
+      images: (p.images || []).map(url => ({ kind: "existing", url })),
+      originalImageUrls: [...(p.images || [])],
+      video: p.videoUrl ? { kind: "existing", url: p.videoUrl } : null,
+    });
+    setEditMediaPost(p.id);
   };
-  const openEditMediaPost = (p) => { setMediaPostForm({ ...p, images: [...(p.images||[])] }); setEditMediaPost(p.id); };
   const closeEditMediaPost = () => { setEditMediaPost(null); setMediaPostForm(null); };
-  const saveMediaPost = () => {
-    if (!mediaPostForm.body.trim() && !mediaPostForm.images.length && !mediaPostForm.videoUrl) {
+  const saveMediaPost = async () => {
+    const f = mediaPostForm;
+    if (!f.body.trim() && !f.images.length && !f.video) {
       return showToast("Post needs text, an image, or a video", "error");
     }
-    saveMediaPosts(mediaPosts.map(p => p.id === mediaPostForm.id ? mediaPostForm : p));
-    closeEditMediaPost();
+    try {
+      const fd = new FormData();
+      fd.append("title", f.title || "");
+      fd.append("body", f.body || "");
+      fd.append("tag", f.tag || "");
+      f.images.filter(i => i.kind === "new").forEach(i => fd.append("images", i.file));
+      const keptUrls = f.images.filter(i => i.kind === "existing").map(i => i.url);
+      fd.append("removeImageUrls", JSON.stringify(f.originalImageUrls.filter(u => !keptUrls.includes(u))));
+      if (f.video?.kind === "new")   fd.append("video", f.video.file);
+      if (f.video?.kind === "url")   fd.append("videoUrl", f.video.url);
+      if (!f.video)                  fd.append("removeVideo", "true");
+      const { post } = await mediaApi.update(f.id, fd);
+      setMediaPosts(list => list.map(p => p.id === post.id ? post : p));
+      showToast("Media updated");
+      closeEditMediaPost();
+    } catch (e) {
+      showToast(e.message || "Failed to save post", "error");
+    }
   };
-  const deleteMediaPost = (id) => {
-    if (editMediaPost === id) closeEditMediaPost();
-    saveMediaPosts(mediaPosts.filter(p => p.id !== id));
+  const deleteMediaPost = async (id) => {
+    try {
+      await mediaApi.remove(id);
+      if (editMediaPost === id) closeEditMediaPost();
+      setMediaPosts(list => list.filter(p => p.id !== id));
+      showToast("Post deleted");
+    } catch (e) {
+      showToast(e.message || "Failed to delete post", "error");
+    }
   };
   const addMediaPostImages = (files) => {
-    Array.from(files || []).forEach(f => {
-      const reader = new FileReader();
-      reader.onload = ev => setMediaPostForm(f2 => ({ ...f2, images: [...f2.images, ev.target.result] }));
-      reader.readAsDataURL(f);
-    });
+    const picked = Array.from(files || []).map(file => ({ kind: "new", file }));
+    setMediaPostForm(f => ({ ...f, images: [...f.images, ...picked] }));
   };
   const removeMediaPostImage = (i) => setMediaPostForm(f => ({ ...f, images: f.images.filter((_, idx) => idx !== i) }));
-  const addMediaPostVideoFile = (file) => {
-    if (!file) return;
-    if (file.size > 50 * 1024 * 1024) return showToast("Video is too large (max 50 MB)", "error");
-    const reader = new FileReader();
-    reader.onload = ev => setMediaPostForm(f => ({ ...f, videoUrl: ev.target.result }));
-    reader.readAsDataURL(file);
-  };
+  const addMediaPostVideoFile = (file) => { if (file) setMediaPostForm(f => ({ ...f, video: { kind: "new", file } })); };
 
   const groups = [...new Set(Object.values(PAGE_DEFAULTS).map(p => p.group))];
 
@@ -6230,9 +6253,10 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                   <div>
                     <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Images</label>
                     <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                      {mediaPostForm.images.map((src, i) => (
+                      {mediaPostForm.images.map((img, i) => (
                         <div key={i} style={{ position:"relative" }}>
-                          <img src={src} alt="" style={{ width:76, height:76, objectFit:"cover", borderRadius:10, border:`2px solid ${C.border}` }} />
+                          <img src={img.kind === "existing" ? img.url : URL.createObjectURL(img.file)} alt=""
+                            style={{ width:76, height:76, objectFit:"cover", borderRadius:10, border:`2px solid ${C.border}` }} />
                           <button type="button" onClick={() => removeMediaPostImage(i)}
                             style={{ position:"absolute", top:-6, right:-6, width:22, height:22, borderRadius:"50%", background:"#EF4444", color:"#fff", border:"2px solid #fff", cursor:"pointer", fontSize:12, fontWeight:900, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
                         </div>
@@ -6245,15 +6269,18 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                   </div>
                   <div>
                     <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Video</label>
-                    {mediaPostForm.videoUrl ? (
+                    {mediaPostForm.video ? (
                       <div>
-                        {mediaPostForm.videoUrl.match(/youtube\.com|youtu\.be/) ? (
-                          <iframe src={mediaPostForm.videoUrl.replace("watch?v=","embed/").replace("youtu.be/","youtube.com/embed/")}
-                            style={{ width:"100%", height:200, border:"none", borderRadius:8 }} allowFullScreen title="video preview" />
-                        ) : (
-                          <video src={mediaPostForm.videoUrl} controls style={{ width:"100%", maxHeight:220, borderRadius:8, background:"#000", display:"block" }} />
-                        )}
-                        <button type="button" onClick={() => setMediaPostForm(f=>({...f,videoUrl:""}))}
+                        {(() => {
+                          const src = mediaPostForm.video.kind === "new" ? URL.createObjectURL(mediaPostForm.video.file) : mediaPostForm.video.url;
+                          return src.match(/youtube\.com|youtu\.be/) ? (
+                            <iframe src={src.replace("watch?v=","embed/").replace("youtu.be/","youtube.com/embed/")}
+                              style={{ width:"100%", height:200, border:"none", borderRadius:8 }} allowFullScreen title="video preview" />
+                          ) : (
+                            <video src={src} controls style={{ width:"100%", maxHeight:220, borderRadius:8, background:"#000", display:"block" }} />
+                          );
+                        })()}
+                        <button type="button" onClick={() => setMediaPostForm(f=>({...f,video:null}))}
                           style={{ marginTop:8, padding:"6px 14px", borderRadius:8, background:"#FEE2E2", color:COLORS.danger, border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Remove video</button>
                       </div>
                     ) : (
@@ -6261,7 +6288,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                         <button type="button" onClick={() => mediaVideoRef.current?.click()}
                           style={{ padding:"9px 16px", borderRadius:10, border:`1.5px solid ${C.border}`, background:"#fff", cursor:"pointer", fontWeight:700, fontSize:13, color:C.primary, whiteSpace:"nowrap" }}>Upload file</button>
                         <input value="" placeholder="…or paste a YouTube / video URL"
-                          onChange={e => setMediaPostForm(f=>({...f,videoUrl:e.target.value}))}
+                          onChange={e => setMediaPostForm(f=>({...f, video: e.target.value ? { kind:"url", url:e.target.value } : null }))}
                           style={{ flex:1, padding:"9px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:13, fontFamily:"inherit", boxSizing:"border-box" }} />
                         <input ref={mediaVideoRef} type="file" accept="video/*" style={{ display:"none" }}
                           onChange={e => { addMediaPostVideoFile(e.target.files?.[0]); e.target.value = ""; }} />

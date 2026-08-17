@@ -233,6 +233,18 @@ export const updates = {
   save: (updates)   => req('/updates', { method: 'PUT', body: JSON.stringify({ updates }) }),
 };
 
+// ── Community Media feed (/media page + admin CMS) ─────────────────────────
+// create/update take a FormData (title, body, tag, images[], video, videoUrl) —
+// files go straight through to Supabase Storage server-side, no size limit set here.
+export const media = {
+  list:    ()            => req('/media'),
+  create:  (formData)    => req('/media', { method: 'POST', body: formData }),
+  update:  (id, formData)=> req(`/media/${id}`, { method: 'PATCH', body: formData }),
+  remove:  (id)           => req(`/media/${id}`, { method: 'DELETE' }),
+  like:    (id)           => req(`/media/${id}/like`, { method: 'POST' }),
+  comment: (id, body)     => req(`/media/${id}/comment`, { method: 'POST', body: JSON.stringify({ body }) }),
+};
+
 // ── Community Projects endpoints ──────────────────────────────────
 export const projects = {
   list:        (params = {})  => req('/projects?' + new URLSearchParams(params)),

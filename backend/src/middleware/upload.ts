@@ -53,11 +53,16 @@ const fileFilter = (_req: Request, file: any, cb: multer.FileFilterCallback) => 
 };
 
 const limits = { fileSize: 50 * 1024 * 1024, files: 15 };
+// Media posts (/media feed) intentionally allow much larger files (long-form
+// video) than the other upload routes — Vercel's own request-body ceiling is
+// the real limit past this point, not this app.
+const mediaLimits = { fileSize: 500 * 1024 * 1024, files: 15 };
 
 export const uploadCases    = multer({ storage: multer.memoryStorage(), fileFilter, limits });
 export const uploadField    = multer({ storage: multer.memoryStorage(), fileFilter, limits });
 export const uploadDelivery = multer({ storage: multer.memoryStorage(), fileFilter, limits });
 export const uploadProfiles = multer({ storage: multer.memoryStorage(), fileFilter, limits });
+export const uploadMedia    = multer({ storage: multer.memoryStorage(), fileFilter, limits: mediaLimits });
 
 /** Process in-memory multer files → upload to storage → attach URLs to req */
 export async function processUploads(folder: string, fields: string[], req: Request, _res: Response, next: NextFunction) {
