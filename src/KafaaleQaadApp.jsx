@@ -5480,6 +5480,9 @@ const loadSiteInfo  = () => { try { return { ...SITE_INFO_DEFAULTS, ...JSON.pars
 const TEAM_KEY_ADMIN    = "kf_team_data";
 const TEAM_VIS_KEY_ADMIN = "kf_team_visible";
 const UPDATES_ADMIN_KEY = "kf_updates";
+const MEDIA_POSTS_KEY   = "kf_media_posts"; // shared with MediaFeed.jsx
+const MEDIA_TAGS_KEY    = "kf_media_tags";  // shared with MediaFeed.jsx
+const DEFAULT_MEDIA_TAGS = ["Update", "Success Story", "News", "Event", "Appeal", "Report", "Community"];
 
 const DEFAULT_TEAM_ADMIN = [
   { id:"t1", name:"Abdimalik Hassan", role:"Project Lead & CEO",       bio:"Humanitarian sector leader with 10+ years in crisis response across the Horn of Africa.", photo:"https://randomuser.me/api/portraits/men/32.jpg",  linkedin:"", show:true },
@@ -5506,6 +5509,8 @@ const loadTeamAdmin = () => {
   } catch { return DEFAULT_TEAM_ADMIN; }
 };
 const loadUpdatesAdmin = () => { try { return JSON.parse(localStorage.getItem(UPDATES_ADMIN_KEY)||"null")||DEFAULT_UPDATES_ADMIN; } catch { return DEFAULT_UPDATES_ADMIN; } };
+const loadMediaPosts   = () => { try { return JSON.parse(localStorage.getItem(MEDIA_POSTS_KEY)||"[]"); } catch { return []; } };
+const loadMediaTags    = () => { try { const t = JSON.parse(localStorage.getItem(MEDIA_TAGS_KEY)||"null"); return Array.isArray(t) && t.length ? t : DEFAULT_MEDIA_TAGS; } catch { return DEFAULT_MEDIA_TAGS; } };
 const BLANK_MEMBER = { id:"", name:"", role:"", bio:"", photo:"", linkedin:"", show:true };
 const BLANK_UPDATE = { id:"", type:"General", published:false, title:"", date:"", location:"", severity:"medium", body:"", img:"", needs:[] };
 const UPDATE_TYPES = getCat("updates");
@@ -5534,6 +5539,14 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
       .then(({ updates }) => { if (Array.isArray(updates)) setUpdatesData(updates); })
       .catch(() => {});
   }, []);
+
+  // Media management (Community Media posts — /media page)
+  const [mediaPosts,    setMediaPosts]    = useState(loadMediaPosts);
+  const [mediaTags]                       = useState(loadMediaTags);
+  const [editMediaPost, setEditMediaPost] = useState(null); // null | "id"
+  const [mediaPostForm, setMediaPostForm] = useState(null);
+  const mediaImgRef   = useRef(null);
+  const mediaVideoRef = useRef(null);
 
   const isSuperAdmin = currentUser?.role === "super_admin";
 
@@ -5624,6 +5637,42 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
     saveUpdates(newList);
   };
 
+  // Media post helpers (kf_media_posts — same localStorage store as MediaFeed.jsx)
+  const saveMediaPosts = (list) => {
+    setMediaPosts(list);
+    localStorage.setItem(MEDIA_POSTS_KEY, JSON.stringify(list));
+    window.dispatchEvent(new Event("storage"));
+    showToast("Media updated");
+  };
+  const openEditMediaPost = (p) => { setMediaPostForm({ ...p, images: [...(p.images||[])] }); setEditMediaPost(p.id); };
+  const closeEditMediaPost = () => { setEditMediaPost(null); setMediaPostForm(null); };
+  const saveMediaPost = () => {
+    if (!mediaPostForm.body.trim() && !mediaPostForm.images.length && !mediaPostForm.videoUrl) {
+      return showToast("Post needs text, an image, or a video", "error");
+    }
+    saveMediaPosts(mediaPosts.map(p => p.id === mediaPostForm.id ? mediaPostForm : p));
+    closeEditMediaPost();
+  };
+  const deleteMediaPost = (id) => {
+    if (editMediaPost === id) closeEditMediaPost();
+    saveMediaPosts(mediaPosts.filter(p => p.id !== id));
+  };
+  const addMediaPostImages = (files) => {
+    Array.from(files || []).forEach(f => {
+      const reader = new FileReader();
+      reader.onload = ev => setMediaPostForm(f2 => ({ ...f2, images: [...f2.images, ev.target.result] }));
+      reader.readAsDataURL(f);
+    });
+  };
+  const removeMediaPostImage = (i) => setMediaPostForm(f => ({ ...f, images: f.images.filter((_, idx) => idx !== i) }));
+  const addMediaPostVideoFile = (file) => {
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) return showToast("Video is too large (max 50 MB)", "error");
+    const reader = new FileReader();
+    reader.onload = ev => setMediaPostForm(f => ({ ...f, videoUrl: ev.target.result }));
+    reader.readAsDataURL(file);
+  };
+
   const groups = [...new Set(Object.values(PAGE_DEFAULTS).map(p => p.group))];
 
   const STABS = [
@@ -5634,6 +5683,7 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
     { id: "social",     label: "Social & Contact" },
     { id: "team",       label: "Meet the Team" },
     { id: "updates_mgr",label: "🚨 Updates" },
+    { id: "media_mgr",  label: "🖼️ Media" },
     { id: "categories", label: "Categories" },
   ];
 
@@ -6099,6 +6149,131 @@ const SiteSettingsPanel = ({ showToast, currentUser, defaultTab }) => {
                     {editUpdate==="new" ? "Create Update" : "Save Changes"}
                   </button>
                   <button onClick={() => setEditUpdate(null)} style={{ padding:"11px 20px", background:C.bg, border:`1px solid ${C.border}`, borderRadius:10, cursor:"pointer", fontWeight:700, fontSize:14 }}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── MEDIA MANAGEMENT ── */}
+      {settingsTab === "media_mgr" && (
+        <div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+            <div>
+              <div style={{ fontSize:15, fontWeight:700 }}>{mediaPosts.length} posts total</div>
+              <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>Edit or remove any post from the Community Media feed (/media) — photos, videos, text and tag.</div>
+            </div>
+          </div>
+
+          {mediaPosts.length === 0 ? (
+            <div style={{ textAlign:"center", padding:"48px 24px", color:C.muted, background:"#fff", border:`1px solid ${C.border}`, borderRadius:12 }}>
+              No posts yet — create one from the Community Media page.
+            </div>
+          ) : (
+            <div style={{ display:"grid", gap:10, marginBottom:24 }}>
+              {mediaPosts.map((p) => (
+                <div key={p.id} style={{ background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:"14px 16px", display:"flex", alignItems:"flex-start", gap:14 }}>
+                  {p.images?.[0] ? (
+                    <img src={p.images[0]} alt="" style={{ width:60, height:50, objectFit:"cover", borderRadius:8, flexShrink:0, background:"#F1F5F9" }} />
+                  ) : (
+                    <div style={{ width:60, height:50, borderRadius:8, flexShrink:0, background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, color:C.muted, textAlign:"center" }}>
+                      {p.videoUrl ? "Video" : "No image"}
+                    </div>
+                  )}
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:4, flexWrap:"wrap" }}>
+                      {p.tag && <span style={{ background:C.primary+"18", color:C.primary, borderRadius:20, padding:"2px 10px", fontSize:10, fontWeight:800 }}>{p.tag}</span>}
+                      <span style={{ fontSize:11, color:C.muted }}>{p.authorName || "Kafaala Qaad"}</span>
+                      <span style={{ fontSize:11, color:C.muted }}>{new Date(p.createdAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})}</span>
+                    </div>
+                    <div style={{ fontSize:14, fontWeight:700, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {p.title || p.body || <em style={{color:C.muted}}>Untitled</em>}
+                    </div>
+                  </div>
+                  <div style={{ display:"flex", gap:8, flexShrink:0, alignItems:"center" }}>
+                    <button onClick={() => openEditMediaPost(p)} style={{ padding:"6px 14px", background:C.bg, border:`1px solid ${C.border}`, borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }}>Edit</button>
+                    <button onClick={() => { if (confirm("Delete this post permanently?")) deleteMediaPost(p.id); }} style={{ padding:"6px 12px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700, color:COLORS.danger }}>✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Edit post modal */}
+          {editMediaPost && mediaPostForm && (
+            <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:900, display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"40px 16px", overflowY:"auto" }}>
+              <div style={{ background:"#fff", borderRadius:20, padding:28, maxWidth:580, width:"100%", maxHeight:"90vh", overflowY:"auto" }}>
+                <h3 style={{ margin:"0 0 20px", fontSize:18, fontWeight:800 }}>Edit Post</h3>
+                <div style={{ display:"grid", gap:14 }}>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Title (optional)</label>
+                    <input value={mediaPostForm.title} onChange={e=>setMediaPostForm(f=>({...f,title:e.target.value}))}
+                      style={{ width:"100%", padding:"10px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:14, fontFamily:"inherit", boxSizing:"border-box" }} />
+                  </div>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Body</label>
+                    <textarea rows={4} value={mediaPostForm.body} onChange={e=>setMediaPostForm(f=>({...f,body:e.target.value}))}
+                      style={{ width:"100%", padding:"10px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:14, fontFamily:"inherit", boxSizing:"border-box", resize:"vertical", lineHeight:1.6 }} />
+                  </div>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Tag</label>
+                    <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                      {mediaTags.map(t => (
+                        <button key={t} type="button" onClick={() => setMediaPostForm(f=>({...f, tag: f.tag===t ? "" : t}))}
+                          style={{ padding:"5px 14px", borderRadius:20, fontSize:12, fontWeight:700, border:`2px solid ${mediaPostForm.tag===t ? C.primary : C.border}`, background: mediaPostForm.tag===t ? C.primary : "#fff", color: mediaPostForm.tag===t ? "#fff" : C.muted, cursor:"pointer" }}>
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Images</label>
+                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                      {mediaPostForm.images.map((src, i) => (
+                        <div key={i} style={{ position:"relative" }}>
+                          <img src={src} alt="" style={{ width:76, height:76, objectFit:"cover", borderRadius:10, border:`2px solid ${C.border}` }} />
+                          <button type="button" onClick={() => removeMediaPostImage(i)}
+                            style={{ position:"absolute", top:-6, right:-6, width:22, height:22, borderRadius:"50%", background:"#EF4444", color:"#fff", border:"2px solid #fff", cursor:"pointer", fontSize:12, fontWeight:900, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => mediaImgRef.current?.click()}
+                        style={{ width:76, height:76, borderRadius:10, border:`2px dashed ${C.border}`, background:"#F8FAFC", cursor:"pointer", fontSize:22, color:C.muted, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                      <input ref={mediaImgRef} type="file" accept="image/*" multiple style={{ display:"none" }}
+                        onChange={e => { addMediaPostImages(e.target.files); e.target.value = ""; }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Video</label>
+                    {mediaPostForm.videoUrl ? (
+                      <div>
+                        {mediaPostForm.videoUrl.match(/youtube\.com|youtu\.be/) ? (
+                          <iframe src={mediaPostForm.videoUrl.replace("watch?v=","embed/").replace("youtu.be/","youtube.com/embed/")}
+                            style={{ width:"100%", height:200, border:"none", borderRadius:8 }} allowFullScreen title="video preview" />
+                        ) : (
+                          <video src={mediaPostForm.videoUrl} controls style={{ width:"100%", maxHeight:220, borderRadius:8, background:"#000", display:"block" }} />
+                        )}
+                        <button type="button" onClick={() => setMediaPostForm(f=>({...f,videoUrl:""}))}
+                          style={{ marginTop:8, padding:"6px 14px", borderRadius:8, background:"#FEE2E2", color:COLORS.danger, border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Remove video</button>
+                      </div>
+                    ) : (
+                      <div style={{ display:"flex", gap:8 }}>
+                        <button type="button" onClick={() => mediaVideoRef.current?.click()}
+                          style={{ padding:"9px 16px", borderRadius:10, border:`1.5px solid ${C.border}`, background:"#fff", cursor:"pointer", fontWeight:700, fontSize:13, color:C.primary, whiteSpace:"nowrap" }}>Upload file</button>
+                        <input value="" placeholder="…or paste a YouTube / video URL"
+                          onChange={e => setMediaPostForm(f=>({...f,videoUrl:e.target.value}))}
+                          style={{ flex:1, padding:"9px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:13, fontFamily:"inherit", boxSizing:"border-box" }} />
+                        <input ref={mediaVideoRef} type="file" accept="video/*" style={{ display:"none" }}
+                          onChange={e => { addMediaPostVideoFile(e.target.files?.[0]); e.target.value = ""; }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:12, marginTop:22 }}>
+                  <button onClick={saveMediaPost} style={{ flex:1, padding:"11px", background:C.primary, color:"#fff", border:"none", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14 }}>Save Changes</button>
+                  <button onClick={closeEditMediaPost} style={{ padding:"11px 20px", background:C.bg, border:`1px solid ${C.border}`, borderRadius:10, cursor:"pointer", fontWeight:700, fontSize:14 }}>Cancel</button>
+                  <button onClick={() => { if (confirm("Delete this post permanently?")) deleteMediaPost(mediaPostForm.id); }}
+                    style={{ padding:"11px 16px", background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, cursor:"pointer", fontWeight:700, fontSize:14, color:COLORS.danger }}>Delete</button>
                 </div>
               </div>
             </div>
@@ -7089,6 +7264,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"volunteers", icon:"", label:"Volunteers",      sub:`${volApps.filter(a=>a.status==="pending").length} pending`,    color:"#9333EA", g:"linear-gradient(135deg,#9333EA,#C026D3)", badge: volApps.filter(a=>a.status==="pending").length },
     { id:"impact_stories", icon:"", label:"Stories",    sub:"Impact content",                 color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: 0 },
     { id:"updates",    icon:"🚨", label:"Updates",         sub:"Alerts & news",                  color:"#D97706", g:"linear-gradient(135deg,#D97706,#F59E0B)", badge: 0 },
+    { id:"media_mgr",  icon:"🖼️", label:"Media",           sub:"Community posts",                color:"#0369A1", g:"linear-gradient(135deg,#0369A1,#0EA5E9)", badge: 0 },
     { id:"completed",  icon:"", label:"Completed Ops",   sub:`${completedCases.length} operations`, color:"#065F46", g:"linear-gradient(135deg,#065F46,#10B981)", badge: 0 },
     { id:"history",    icon:"📚", label:"History",         sub:"Records & archive",              color:"#0F766E", g:"linear-gradient(135deg,#0F766E,#14B8A6)", badge: 0 },
     { id:"chat",       icon:"", label:"Communication",   sub:"Team channels & messages",       color:"#0284C7", g:"linear-gradient(135deg,#0284C7,#0EA5E9)", badge: 0 },
@@ -7555,6 +7731,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           {activeModule === "chat"           && <CommCenterPanel currentUser={currentUser} showToast={showToast||(() => {})} />}
           {activeModule === "notebook"       && <NotebookPanel users={users} showToast={showToast||(() => {})} />}
           {activeModule === "updates"        && <div style={{ padding:"8px 0" }}><SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} defaultTab="updates_mgr" /></div>}
+          {activeModule === "media_mgr"      && <div style={{ padding:"8px 0" }}><SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} defaultTab="media_mgr" /></div>}
           {activeModule === "settings"       && isSuperAdmin && <SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} />}
         </div>
       )}
