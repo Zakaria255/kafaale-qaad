@@ -41,7 +41,11 @@ const STATUS_MAP = {
   "Proof Submitted":      { color: "#10B981", bg: "#D1FAE5", icon: "" },
   "Completed":            { color: COLORS.muted, bg: "#F3F4F6", icon: "" },
   "Archived":             { color: "#374151", bg: "#E5E7EB", icon: "" },
+  "Removed":              { color: "#991B1B", bg: "#FEE2E2", icon: "🗑" },
 };
+
+// Statuses visible on the donor portal — anything here can be "Edited" or "Removed" from an admin case row.
+const PUBLISHED_STATUSES = ["Waiting Sponsor", "Sponsored", "Delivering", "Aid Delivered", "Proof Submitted", "Completed"];
 
 const URGENCY = { Low: "#10B981", Medium: "#F59E0B", High: "#EF4444", Critical: "#7C3AED" };
 
@@ -1946,17 +1950,21 @@ const RejectCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
 
 // ─── PUBLISH CASE MODAL ─────────────────────────────────────────────────────
 const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
+  const isEdit = !!caseItem.__editMode;
   const raw = caseItem._raw || {};
   const ai  = raw.aiPublicData  || {};
   const savedImgs = (() => { try { return JSON.parse(localStorage.getItem("kf_case_cover_imgs") || "{}"); } catch { return {}; } })();
   const [form, setForm] = useState({
-    publicTitle: ai.generatedTitle || caseItem.victim_name || "",
-    publicStory: ai.generatedStory || caseItem.description || "",
-    publicCity:  ai.generatedCity  || caseItem.location    || "",
+    // Already-published fields (raw.public*) win first — that's what's live now.
+    // Falls back to the AI draft / private data only for a case that's never been published.
+    publicTitle: raw.publicTitle || ai.generatedTitle || caseItem.victim_name || "",
+    publicStory: raw.publicStory || ai.generatedStory || caseItem.description || "",
+    publicCity:  raw.publicCity  || ai.generatedCity  || caseItem.location    || "",
     targetGoal:  raw.targetGoal > 0 ? String(raw.targetGoal) : (raw.fieldInvestigation?.estimatedAmountNeeded > 0 ? String(raw.fieldInvestigation.estimatedAmountNeeded) : ""),
   });
   const [coverDataUrl,  setCoverDataUrl]  = useState(savedImgs[caseItem.id] || null);
   const [coverFileName, setCoverFileName] = useState("");
+  const [cropFile, setCropFile] = useState(null); // File awaiting crop/adjust before becoming the cover
   const [loading, setLoading] = useState(false);
   const imgInputRef = useRef(null);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -1965,17 +1973,33 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { showToast("Image must be under 5 MB", "error"); return; }
-    setCoverFileName(file.name);
+    setCropFile(file);
+  };
+
+  // Re-open the crop tool on the already-picked cover image (dataURL → File).
+  const adjustCover = async () => {
+    if (!coverDataUrl) return;
+    const blob = await (await fetch(coverDataUrl)).blob();
+    setCropFile(new File([blob], coverFileName || "cover.jpg", { type: blob.type || "image/jpeg" }));
+  };
+
+  const applyCrop = (croppedFile) => {
+    setCropFile(null);
+    setCoverFileName(croppedFile.name);
     const reader = new FileReader();
     reader.onload = (ev) => setCoverDataUrl(ev.target.result);
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(croppedFile);
   };
 
   const handle = async () => {
     if (!form.publicTitle || !form.publicStory || !form.targetGoal) return;
     setLoading(true);
     try {
-      await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal), coverImageUrl: coverDataUrl || "" });
+      if (isEdit) {
+        await adminApi.updatePublicInfo(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal) });
+      } else {
+        await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal), coverImageUrl: coverDataUrl || "" });
+      }
       if (coverDataUrl) {
         try {
           const imgs = JSON.parse(localStorage.getItem("kf_case_cover_imgs") || "{}");
@@ -1983,20 +2007,20 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
           localStorage.setItem("kf_case_cover_imgs", JSON.stringify(imgs));
         } catch {}
       }
-      showToast(`Case ${caseItem.ref || caseItem.id} published to donor portal!`);
-      onDone(caseItem.id, "Waiting Sponsor");
+      showToast(isEdit ? `Case ${caseItem.ref || caseItem.id} updated.` : `Case ${caseItem.ref || caseItem.id} published to donor portal!`);
+      onDone(caseItem.id, isEdit ? caseItem.status : "Waiting Sponsor");
       onClose();
-    } catch (e) { showToast(e.message || "Failed to publish", "error"); }
+    } catch (e) { showToast(e.message || (isEdit ? "Failed to save changes" : "Failed to publish"), "error"); }
     finally { setLoading(false); }
   };
 
   return (
-    <Modal title={`Publish to Donor Portal — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
+    <Modal title={isEdit ? `Edit Published Case — ${caseItem.ref || caseItem.id}` : `Publish to Donor Portal — ${caseItem.ref || caseItem.id}`} onClose={onClose} wide>
       <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "12px 16px", marginBottom: 20, border: "1px solid #BBF7D0", fontSize: 13, color: "#065F46" }}>
         Victim's private data (name, phone, GPS) will <strong>never</strong> be shown publicly.
       </div>
 
-      {ai.generatedTitle && (
+      {!isEdit && ai.generatedTitle && (
         <div style={{ background: "#EDE9FE", borderRadius: 10, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: COLORS.purple }}>
           AI-generated content loaded. Review and edit before publishing.
         </div>
@@ -2024,6 +2048,8 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
             <div style={{ position: "absolute", inset: 0, borderRadius: 12, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, opacity: 0, transition: "opacity 0.2s" }}
               onMouseEnter={e => e.currentTarget.style.opacity = 1}
               onMouseLeave={e => e.currentTarget.style.opacity = 0}>
+              <button onClick={adjustCover}
+                style={{ background: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✎ Adjust</button>
               <button onClick={() => imgInputRef.current?.click()}
                 style={{ background: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Change</button>
               <button onClick={() => { setCoverDataUrl(null); setCoverFileName(""); }}
@@ -2043,10 +2069,19 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
         )}
       </div>
 
+      {cropFile && (
+        <ImageCropper
+          file={cropFile}
+          aspect={16 / 10}
+          onConfirm={applyCrop}
+          onCancel={() => setCropFile(null)}
+        />
+      )}
+
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>
         <Btn variant="success" onClick={handle} disabled={!form.publicTitle || !form.publicStory || !form.targetGoal || loading} style={{ flex: 2 }}>
-          {loading ? "Publishing…" : "Publish to Donors"}
+          {isEdit ? (loading ? "Saving…" : "Save Changes") : (loading ? "Publishing…" : "Publish to Donors")}
         </Btn>
       </div>
     </Modal>
@@ -2992,7 +3027,7 @@ const AnalyticsDashboard = ({ cases, donations }) => {
 };
 
 // ─── CASE TABLE ─────────────────────────────────────────────────────────────
-const CaseTable = ({ cases, onView, compact, onReport, onPublish }) => (
+const CaseTable = ({ cases, onView, compact, onReport, onPublish, onEdit, onArchive, onRestore }) => (
   <div className="kf-table-wrap">
     {cases.length === 0 ? (
       <div style={{ padding: 32, textAlign: "center", color: COLORS.muted, fontSize: 14 }}>No cases found</div>
@@ -3022,6 +3057,15 @@ const CaseTable = ({ cases, onView, compact, onReport, onPublish }) => (
                   <Btn variant="ghost" size="sm" onClick={() => onView(c)}>View →</Btn>
                   {onPublish && ["Awaiting Approval","Pending Verification"].includes(c.status) && (
                     <Btn variant="success" size="sm" onClick={() => onPublish(c)}>Publish</Btn>
+                  )}
+                  {onEdit && PUBLISHED_STATUSES.includes(c.status) && (
+                    <Btn variant="ghost" size="sm" onClick={() => onEdit(c)}>✎ Edit</Btn>
+                  )}
+                  {onArchive && PUBLISHED_STATUSES.includes(c.status) && (
+                    <Btn variant="danger" size="sm" onClick={() => onArchive(c)}>🗑 Remove</Btn>
+                  )}
+                  {onRestore && c.status === "Removed" && (
+                    <Btn variant="success" size="sm" onClick={() => onRestore(c)}>↺ Restore</Btn>
                   )}
                   {onReport && c.status === "Completed" && (
                     <Btn variant="primary" size="sm" onClick={() => onReport(c.id)}>Report</Btn>
@@ -7255,7 +7299,7 @@ const HistoryPanel = ({ showToast }) => {
 };
 
 // ─── ADMIN DASHBOARD — app-launcher grid ─────────────────────────────────────
-const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, onAssign, onPublish, onReject, onRequestInfo, onEnroll, isSuperAdmin, currentUser, showToast }) => {
+const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, onAssign, onPublish, onEdit, onArchive, onRestore, onReject, onRequestInfo, onEnroll, isSuperAdmin, currentUser, showToast }) => {
   const [activeModule, setActiveModule] = useState("workflow");
   const [donFilter, setDonFilter] = useState("all");
   const { t } = useLang();
@@ -7630,7 +7674,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           )}
 
           {activeModule === "cases" && (
-            <CaseTable cases={cases} onView={onViewCase} onPublish={onPublish} onReport={isSuperAdmin ? onFullReport : undefined} />
+            <CaseTable cases={cases} onView={onViewCase} onPublish={onPublish} onEdit={onEdit} onArchive={onArchive} onRestore={onRestore} onReport={isSuperAdmin ? onFullReport : undefined} />
           )}
 
           {activeModule === "donations" && (
@@ -9210,6 +9254,7 @@ export default function KafaaleQaadApp() {
     proof_uploaded:          "Proof Submitted",
     completed:               "Completed",
     rejected:                "Archived",
+    archived:                "Removed",
   };
 
   const mapCase = (c, role) => ({
@@ -9424,6 +9469,27 @@ export default function KafaaleQaadApp() {
     setShowNotifs(false);
   };
 
+  const handleArchiveCase = async (c) => {
+    if (!window.confirm(`Remove case ${c.ref} from the donor portal?\n\nDonors will no longer see it. This can be undone later with Restore.`)) return;
+    try {
+      await adminApi.archiveCase(c.id);
+      handleCaseStatusUpdate(c.id, "Removed");
+      showToast(`Case ${c.ref} removed from the donor portal.`, "success");
+    } catch (e) {
+      showToast("Failed to remove case: " + e.message, "error");
+    }
+  };
+
+  const handleRestoreCase = async (c) => {
+    try {
+      await adminApi.restoreCase(c.id);
+      handleCaseStatusUpdate(c.id, "Waiting Sponsor");
+      showToast(`Case ${c.ref} restored to the donor portal.`, "success");
+    } catch (e) {
+      showToast("Failed to restore case: " + e.message, "error");
+    }
+  };
+
   const handleDeleteUser = async (u) => {
     if (!window.confirm(`Delete user "${u.name || u.fullname}"?\nEmail: ${u.email}\nRole: ${u.role}\n\nThis cannot be undone.`)) return;
     try {
@@ -9538,6 +9604,10 @@ export default function KafaaleQaadApp() {
     onStartDelivery: setDeliveryAssign, onFullReport: setFullReportId,
     // workflow actions (assign, publish, reject, request-info)
     onAssign: setAssignCase, onPublish: setPublishCase,
+    onEdit: c => setPublishCase({ ...c, __editMode: true }),
+    // Archive/restore hit an admin/super_admin-only backend route — omit the
+    // handlers (rather than let the button 403) for other roles sharing this dashboard.
+    ...(['admin','super_admin'].includes(authUser?.role) && { onArchive: handleArchiveCase, onRestore: handleRestoreCase }),
     onReject: setRejectCase, onRequestInfo: setRequestInfoCase,
     onEnroll: setEnrollCase,
     currentUser, showToast,

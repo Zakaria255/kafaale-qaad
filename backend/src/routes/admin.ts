@@ -184,6 +184,65 @@ router.patch('/cases/:id/publish', async (req: AuthRequest, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to publish case' }); }
 });
 
+// PATCH /api/admin/cases/:id/public-info — Edit a published case's public fields
+// without touching its pipeline status (unlike /publish, which always forces
+// status back to 'waiting_for_sponsor' — wrong once a case has moved further,
+// e.g. sponsored/delivering/completed).
+router.patch('/cases/:id/public-info', async (req: AuthRequest, res: Response) => {
+  try {
+    const { publicTitle, publicStory, publicCity, targetGoal } = req.body;
+    const existing = await prisma.case.findUnique({ where: { id: req.params.id }, select: { id: true } });
+    if (!existing) return res.status(404).json({ error: 'Case not found' });
+
+    const data: any = {};
+    if (publicTitle !== undefined) data.publicTitle = publicTitle;
+    if (publicStory !== undefined) data.publicStory = publicStory;
+    if (publicCity  !== undefined) data.publicCity  = publicCity;
+    if (targetGoal  !== undefined) data.targetGoal  = parseFloat(targetGoal);
+
+    const kase = await prisma.case.update({ where: { id: existing.id }, data });
+    await prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: kase.id, action: 'edited_public_info', notes: 'Edited public case details' } });
+    sysLog.info(`Admin ${req.user!.email} edited public info of case ${kase.id}`);
+    res.json({ message: 'Case updated', caseId: kase.id });
+  } catch { res.status(500).json({ error: 'Failed to update case' }); }
+});
+
+// PATCH /api/admin/cases/:id/archive — Soft-delete: pull a case off the donor
+// portal without destroying it. Cases carry donations/audit logs/media, so a
+// hard delete would either fail on FK constraints or wipe financial records —
+// flipping status is the safe reversible equivalent (see /restore below).
+router.patch('/cases/:id/archive', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    const existing = await prisma.case.findUnique({ where: { id: req.params.id }, select: { id: true, status: true } });
+    if (!existing) return res.status(404).json({ error: 'Case not found' });
+    if (existing.status === 'archived') return res.status(400).json({ error: 'Case is already removed' });
+
+    await prisma.case.update({ where: { id: existing.id }, data: { status: 'archived' } });
+    // Take its photos out of the public gallery along with it.
+    await prisma.caseMedia.updateMany({ where: { caseId: existing.id }, data: { isPublic: false } });
+    await prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: existing.id, action: 'archived', notes: req.body?.reason || 'Case removed from donor portal' } });
+    sysLog.info(`Admin ${req.user!.email} archived case ${existing.id}`);
+    res.json({ message: 'Case archived', caseId: existing.id });
+  } catch { res.status(500).json({ error: 'Failed to archive case' }); }
+});
+
+// PATCH /api/admin/cases/:id/restore — Undo an archive, back into the donor queue.
+router.patch('/cases/:id/restore', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    const existing = await prisma.case.findUnique({ where: { id: req.params.id }, select: { id: true, status: true } });
+    if (!existing) return res.status(404).json({ error: 'Case not found' });
+    if (existing.status !== 'archived') return res.status(400).json({ error: 'Case is not archived' });
+
+    await prisma.case.update({ where: { id: existing.id }, data: { status: 'waiting_for_sponsor' } });
+    await prisma.caseMedia.updateMany({ where: { caseId: existing.id, type: 'image' }, data: { isPublic: true } });
+    await prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: existing.id, action: 'restored', notes: 'Case restored to donor portal' } });
+    sysLog.info(`Admin ${req.user!.email} restored case ${existing.id}`);
+    res.json({ message: 'Case restored', caseId: existing.id });
+  } catch { res.status(500).json({ error: 'Failed to restore case' }); }
+});
+
 // GET /api/admin/stats — Dashboard stats
 router.get('/stats', async (_req: AuthRequest, res: Response) => {
   try {
