@@ -9386,7 +9386,7 @@ export default function KafaaleQaadApp() {
         }
         if (donRes.status === "fulfilled" && donRes.value?.donations)
           setDonations(donRes.value.donations);
-      } else if (["reporter","donor","observer"].includes(authUser.role)) {
+      } else if (["reporter","donor","observer","user"].includes(authUser.role)) {
         // Public users (reporter OR donor) load both: their submitted cases + public sponsorable cases
         const [myData, publicData] = await Promise.allSettled([
           casesApi.my(),
