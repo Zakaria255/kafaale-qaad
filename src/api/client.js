@@ -116,6 +116,8 @@ export const admin = {
   updatePublicInfo: (id, data)                => req(`/admin/cases/${id}/public-info`, { method: 'PATCH', body: JSON.stringify(data) }),
   archiveCase:      (id, reason)              => req(`/admin/cases/${id}/archive`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
   restoreCase:      (id)                      => req(`/admin/cases/${id}/restore`, { method: 'PATCH' }),
+  uploadCover:      (id, file)                => { const fd = new FormData(); fd.append('cover', file); return req(`/admin/cases/${id}/cover`, { method: 'POST', body: fd }); },
+  removeCover:      (id)                      => req(`/admin/cases/${id}/cover`, { method: 'DELETE' }),
   users:            ()                        => req('/admin/users'),
   deleteUser:       (id)                      => req(`/admin/users/${id}`, { method: 'DELETE' }),
   changeRole:       (id, role)                => req(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),

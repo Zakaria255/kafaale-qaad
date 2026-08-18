@@ -6,6 +6,7 @@ import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 import { sysLog } from '../services/logger';
 import { safeError } from '../middleware/errors';
 import { fraudDetectionService } from '../services/fraudDetectionService';
+import { uploadCases, processUploads } from '../middleware/upload';
 
 const router = Router();
 router.use(authenticate, requireRole([
@@ -241,6 +242,53 @@ router.patch('/cases/:id/restore', async (req: AuthRequest, res: Response) => {
     sysLog.info(`Admin ${req.user!.email} restored case ${existing.id}`);
     res.json({ message: 'Case restored', caseId: existing.id });
   } catch { res.status(500).json({ error: 'Failed to restore case' }); }
+});
+
+// A cover photo is just a CaseMedia row, tagged by a filename prefix so it can be
+// found and replaced later — it's what the public feed/detail actually render
+// (mediaFiles isPublic:true), unlike the old approach of caching a data URL in the
+// admin's own browser localStorage, which meant nobody else ever saw it.
+const COVER_TAG = '__cover__';
+
+// POST /api/admin/cases/:id/cover — Upload/replace a case's public cover photo
+router.post('/cases/:id/cover',
+  uploadCases.fields([{ name: 'cover', maxCount: 1 }]),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const existing = await prisma.case.findUnique({ where: { id: req.params.id }, select: { id: true } });
+      if (!existing) return res.status(404).json({ error: 'Case not found' });
+
+      await new Promise<void>((resolve, reject) => {
+        processUploads('cases', ['cover'], req, res, (err) => err ? reject(err) : resolve());
+      });
+
+      const uploadedUrl = (req as any).uploadedByField?.cover?.[0];
+      if (!uploadedUrl) return res.status(400).json({ error: 'No cover photo uploaded' });
+      const file = ((req.files as any)?.cover || [])[0];
+
+      await prisma.caseMedia.deleteMany({ where: { caseId: existing.id, filename: { startsWith: COVER_TAG } } });
+      const media = await prisma.caseMedia.create({
+        data: {
+          caseId: existing.id, url: uploadedUrl, filename: `${COVER_TAG}${file?.originalname || 'cover.jpg'}`,
+          mimeType: file?.mimetype || 'image/jpeg', sizeBytes: file?.size,
+          type: 'image', isPublic: true, uploadedBy: req.user!.id,
+        },
+      });
+      sysLog.info(`Admin ${req.user!.email} set cover photo for case ${existing.id}`);
+      res.json({ message: 'Cover photo uploaded', url: media.url });
+    } catch (e: any) {
+      sysLog.error('Cover photo upload failed', { message: e.message });
+      res.status(500).json({ error: 'Failed to upload cover photo' });
+    }
+  }
+);
+
+// DELETE /api/admin/cases/:id/cover — Remove a case's public cover photo
+router.delete('/cases/:id/cover', async (req: AuthRequest, res: Response) => {
+  try {
+    await prisma.caseMedia.deleteMany({ where: { caseId: req.params.id, filename: { startsWith: COVER_TAG } } });
+    res.json({ message: 'Cover photo removed' });
+  } catch { res.status(500).json({ error: 'Failed to remove cover photo' }); }
 });
 
 // GET /api/admin/stats — Dashboard stats

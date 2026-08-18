@@ -1953,7 +1953,6 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
   const isEdit = !!caseItem.__editMode;
   const raw = caseItem._raw || {};
   const ai  = raw.aiPublicData  || {};
-  const savedImgs = (() => { try { return JSON.parse(localStorage.getItem("kf_case_cover_imgs") || "{}"); } catch { return {}; } })();
   const [form, setForm] = useState({
     // Already-published fields (raw.public*) win first — that's what's live now.
     // Falls back to the AI draft / private data only for a case that's never been published.
@@ -1962,12 +1961,50 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     publicCity:  raw.publicCity  || ai.generatedCity  || caseItem.location    || "",
     targetGoal:  raw.targetGoal > 0 ? String(raw.targetGoal) : (raw.fieldInvestigation?.estimatedAmountNeeded > 0 ? String(raw.fieldInvestigation.estimatedAmountNeeded) : ""),
   });
-  const [coverDataUrl,  setCoverDataUrl]  = useState(savedImgs[caseItem.id] || null);
-  const [coverFileName, setCoverFileName] = useState("");
+  // Cover photo now persists as real CaseMedia (Supabase-hosted) instead of a data
+  // URL cached in the admin's own browser localStorage — the old approach meant the
+  // photo only ever rendered on the one device that set it.
+  const [coverFile,       setCoverFile]       = useState(null);  // freshly cropped File, awaiting upload on Save
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState(null);  // blob: (new pick) or the real remote URL
+  const [coverFileName,   setCoverFileName]   = useState("");
+  const [coverRemoved,    setCoverRemoved]    = useState(false);
+  const [hadRemoteCover,  setHadRemoteCover]  = useState(false);
   const [cropFile, setCropFile] = useState(null); // File awaiting crop/adjust before becoming the cover
   const [loading, setLoading] = useState(false);
   const imgInputRef = useRef(null);
+  const blobUrlRef = useRef(null);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const findCoverMedia = (list) => (list || []).find(m => m.type === "image" && (m.filename || "").startsWith("__cover__"));
+
+  // Load whatever cover is actually live on the server. Rows opened from the case
+  // table only carry a media count, not the files, so fetch the full case once.
+  useEffect(() => {
+    let cancelled = false;
+    const already = findCoverMedia(raw.mediaFiles);
+    if (already) { setCoverPreviewUrl(already.url); setHadRemoteCover(true); return; }
+    (async () => {
+      try {
+        const full = await adminApi.getCase(caseItem.id);
+        if (cancelled) return;
+        const cover = findCoverMedia(full.mediaFiles);
+        if (cover) { setCoverPreviewUrl(cover.url); setHadRemoteCover(true); }
+      } catch { /* best-effort — leave the picker empty if this fails */ }
+    })();
+    return () => { cancelled = true; };
+  }, [caseItem.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => { if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current); }, []);
+
+  const setCoverBlob = (file) => {
+    if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    const url = URL.createObjectURL(file);
+    blobUrlRef.current = url;
+    setCoverFile(file);
+    setCoverFileName(file.name);
+    setCoverPreviewUrl(url);
+    setCoverRemoved(false);
+  };
 
   const handleImagePick = (e) => {
     const file = e.target.files?.[0];
@@ -1976,19 +2013,19 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     setCropFile(file);
   };
 
-  // Re-open the crop tool on the already-picked cover image (dataURL → File).
+  // Re-open the crop tool on the already-picked/live cover image.
   const adjustCover = async () => {
-    if (!coverDataUrl) return;
-    const blob = await (await fetch(coverDataUrl)).blob();
+    if (coverFile) { setCropFile(coverFile); return; }
+    if (!coverPreviewUrl) return;
+    const blob = await (await fetch(coverPreviewUrl)).blob();
     setCropFile(new File([blob], coverFileName || "cover.jpg", { type: blob.type || "image/jpeg" }));
   };
 
-  const applyCrop = (croppedFile) => {
-    setCropFile(null);
-    setCoverFileName(croppedFile.name);
-    const reader = new FileReader();
-    reader.onload = (ev) => setCoverDataUrl(ev.target.result);
-    reader.readAsDataURL(croppedFile);
+  const applyCrop = (croppedFile) => { setCropFile(null); setCoverBlob(croppedFile); };
+
+  const removeCover = () => {
+    if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
+    setCoverFile(null); setCoverPreviewUrl(null); setCoverFileName(""); setCoverRemoved(true);
   };
 
   const handle = async () => {
@@ -1998,14 +2035,12 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
       if (isEdit) {
         await adminApi.updatePublicInfo(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal) });
       } else {
-        await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal), coverImageUrl: coverDataUrl || "" });
+        await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal) });
       }
-      if (coverDataUrl) {
-        try {
-          const imgs = JSON.parse(localStorage.getItem("kf_case_cover_imgs") || "{}");
-          imgs[caseItem.id] = coverDataUrl;
-          localStorage.setItem("kf_case_cover_imgs", JSON.stringify(imgs));
-        } catch {}
+      if (coverFile) {
+        await adminApi.uploadCover(caseItem.id, coverFile);
+      } else if (coverRemoved && hadRemoteCover) {
+        await adminApi.removeCover(caseItem.id);
       }
       showToast(isEdit ? `Case ${caseItem.ref || caseItem.id} updated.` : `Case ${caseItem.ref || caseItem.id} published to donor portal!`);
       onDone(caseItem.id, isEdit ? caseItem.status : "Waiting Sponsor");
@@ -2041,9 +2076,9 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Cover Photo</div>
         <input ref={imgInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImagePick} />
-        {coverDataUrl ? (
+        {coverPreviewUrl ? (
           <div style={{ position: "relative" }}>
-            <img src={coverDataUrl} alt="cover preview"
+            <img src={coverPreviewUrl} alt="cover preview"
               style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 12, border: "2px solid #E5E7EB", display: "block" }} />
             <div style={{ position: "absolute", inset: 0, borderRadius: 12, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, opacity: 0, transition: "opacity 0.2s" }}
               onMouseEnter={e => e.currentTarget.style.opacity = 1}
@@ -2052,7 +2087,7 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
                 style={{ background: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✎ Adjust</button>
               <button onClick={() => imgInputRef.current?.click()}
                 style={{ background: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Change</button>
-              <button onClick={() => { setCoverDataUrl(null); setCoverFileName(""); }}
+              <button onClick={removeCover}
                 style={{ background: "#EF4444", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>✕ Remove</button>
             </div>
             <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>{coverFileName}</div>

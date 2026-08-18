@@ -56,7 +56,7 @@ router.get('/', async (req: Request, res: Response) => {
           id: true, publicTitle: true, publicStory: true, publicCity: true, publicCountry: true,
           category: true, emergencyLevel: true, status: true,
           targetGoal: true, totalRaised: true, adminPublishedAt: true,
-          mediaFiles: { where: { isPublic: true, type: 'image' }, take: 1, select: { url: true } },
+          mediaFiles: { where: { isPublic: true, type: 'image' }, orderBy: { uploadedAt: 'desc' }, take: 1, select: { url: true } },
           _count: { select: { donations: true } },
         },
       }),
