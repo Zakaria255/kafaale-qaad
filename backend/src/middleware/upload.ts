@@ -31,6 +31,13 @@ export async function uploadToStorage(buffer: Buffer, originalName: string, mime
     return sb.storage.from('kafaale-media').getPublicUrl(name).data.publicUrl;
   }
 
+  // On Vercel the filesystem is read-only outside /tmp, so the local-disk
+  // fallback below would silently crash every upload. Fail loudly instead —
+  // this only happens when SUPABASE_URL/SUPABASE_SERVICE_KEY weren't set.
+  if (process.env.VERCEL) {
+    throw new Error('Media storage is not configured: set SUPABASE_URL and SUPABASE_SERVICE_KEY in the Vercel Production environment.');
+  }
+
   // Fallback: local disk for development
   const localPath = path.join(process.cwd(), 'uploads', name);
   fs.mkdirSync(path.dirname(localPath), { recursive: true });
