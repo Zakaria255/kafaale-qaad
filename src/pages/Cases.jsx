@@ -30,6 +30,8 @@ const CAT_IMG = {
 };
 const CASE_IMGS_KEY = "kf_case_cover_imgs";
 function getCaseImg(c) {
+  // Real uploaded/cover photo, as actually returned by the API — check this first.
+  if (Array.isArray(c.mediaFiles) && c.mediaFiles[0]?.url) return c.mediaFiles[0].url;
   try {
     const saved = JSON.parse(localStorage.getItem(CASE_IMGS_KEY) || "{}");
     if (saved[c.id]) return saved[c.id];
