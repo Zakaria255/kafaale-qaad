@@ -397,7 +397,7 @@ export default function Cases() {
         <div style={{ background: "#fff", borderRadius: 12, padding: isMobile ? "10px" : "10px 12px", boxShadow: "0 1px 6px rgba(0,0,0,0.05)", border: `1px solid ${C.border}`, marginBottom: 20 }}>
           <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={P.search_ph}
-              style={{ flex: "1 1 200px", minWidth: 0, boxSizing: "border-box", padding: "8px 12px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13 }} />
+              style={{ flex: isMobile ? "0 0 auto" : "1 1 200px", width: isMobile ? "100%" : undefined, minWidth: 0, boxSizing: "border-box", padding: "8px 12px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13 }} />
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", width: isMobile ? "100%" : "auto" }}>
               {vis.showCategoryFilter && (
                 <FixedSelect value={catFilter} onChange={e => setCatFilter(e.target.value)}
