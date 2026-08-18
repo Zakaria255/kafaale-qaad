@@ -342,7 +342,7 @@ export default function Stories() {
             </p>
             {/* Search */}
             <div style={{ maxWidth:420, position:"relative" }}>
-              <input value={search} onChange={e=>setSearch(e.target.value)}
+              <input type="text" value={search} onChange={e=>setSearch(e.target.value)}
                 placeholder={lang==="so"?"Raadi xikaayo...":"Search stories…"}
                 style={{ width:"100%", padding:"14px 48px 14px 18px", borderRadius:50, border:"none", fontSize:14, boxSizing:"border-box", outline:"none", boxShadow:"0 6px 24px rgba(0,0,0,0.35)" }}
               />
