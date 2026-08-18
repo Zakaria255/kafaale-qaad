@@ -993,7 +993,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
     privateDescription:  "",
     privateNotes:        "",
     privateGuardianName: "",
-    category:            "child_support",
+    category:            "",
     emergencyLevel:      "medium",
     targetGoal:          "",
     needsChecklist:      [],
@@ -1023,6 +1023,7 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
 
   const handleSubmit = async () => {
     setError("");
+    if (!form.category) return setError("Please select a category");
     if (!isCommunity && !form.privateVictimName.trim()) return setError("Name is required");
     if (!form.privateDescription.trim() || form.privateDescription.trim().length < 10) return setError("Please describe the situation (min. 10 characters)");
     if (!isCommunity && !form.privateAddress.trim() && !form.privateDistrict.trim()) return setError("Location is required");
