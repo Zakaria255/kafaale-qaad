@@ -4004,7 +4004,7 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
       {tab === "all" && (
         <div>
           <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>All Cases</h3>
-          <CaseTable cases={cases} onView={onViewCase} />
+          <CaseTable cases={cases.filter(c => c.status !== "Removed")} onView={onViewCase} />
         </div>
       )}
 
@@ -7726,7 +7726,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           )}
 
           {activeModule === "cases" && (
-            <CaseTable cases={cases} onView={onViewCase} onPublish={onPublish} onEdit={onEdit} onArchive={onArchive} onRestore={onRestore} onReport={isSuperAdmin ? onFullReport : undefined} />
+            <CaseTable cases={cases.filter(c => c.status !== "Removed")} onView={onViewCase} onPublish={onPublish} onEdit={onEdit} onArchive={onArchive} onReport={isSuperAdmin ? onFullReport : undefined} />
           )}
 
           {activeModule === "deleted" && (
