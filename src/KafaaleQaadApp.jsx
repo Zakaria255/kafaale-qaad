@@ -8605,7 +8605,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
     setLoadingPay(true);
     programsApi.adminPayments()
       .then(d => setPendingPayments(Array.isArray(d) ? d : []))
-      .catch(() => {})
+      .catch(e => showToast("Couldn't load pending payments: " + (e.message || "unknown error"), "error"))
       .finally(() => setLoadingPay(false));
   };
 
@@ -8621,7 +8621,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
     setLoadingSpons2(true);
     programsApi.pendingSponsorships()
       .then(d => setPendingSponsorships(Array.isArray(d) ? d : []))
-      .catch(() => {})
+      .catch(e => showToast("Couldn't load pending sponsorships: " + (e.message || "unknown error"), "error"))
       .finally(() => setLoadingSpons2(false));
   };
 

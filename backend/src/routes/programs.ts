@@ -8,7 +8,11 @@ import { getSettings } from './settings';
 
 const router = Router();
 
-const isAdmin = (role: string) => ['admin','super_admin','program_manager','office_staff'].includes(role);
+// Includes verification_office to match the frontend's ProgramsDashboard admin check
+// (KafaaleQaadApp.jsx) and how that role is treated as admin-tier staff everywhere
+// else in the app (case workflow, duplicate review) — a mismatch here silently 403s
+// verification_office on every admin-gated programs route with no visible error.
+const isAdmin = (role: string) => ['admin','super_admin','program_manager','office_staff','verification_office'].includes(role);
 const isField = (role: string) => ['field_agent','program_manager','office_staff'].includes(role);
 
 // ── Programs ─────────────────────────────────────────────────────────────────
