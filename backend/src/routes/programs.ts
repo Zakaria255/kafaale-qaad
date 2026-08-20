@@ -430,9 +430,9 @@ router.get('/sponsorships/my', authenticate, async (req: AuthRequest, res: Respo
 });
 
 // POST /api/programs/sponsorships — Create sponsorship (donor self-service)
-// Creates a pending pledge — nothing activates until an admin confirms it via
-// PATCH /sponsorships/:id/confirm. The beneficiary is reserved (pending_confirmation)
-// so it drops off the public "Seeking Sponsor" list while the pledge is under review.
+// Creates a pending pledge only — nothing about the beneficiary changes (still fully
+// visible/sponsorable as "Seeking Sponsor") until an admin confirms it via
+// PATCH /sponsorships/:id/confirm.
 router.post('/sponsorships', authenticate, async (req: AuthRequest, res: Response) => {
   const schema = z.object({
     beneficiaryId:   z.string(),
@@ -464,11 +464,6 @@ router.post('/sponsorships', authenticate, async (req: AuthRequest, res: Respons
         status: 'pending',
         ...(endDate && { endDate }),
       },
-    });
-
-    await prisma.beneficiary.update({
-      where: { id: data.beneficiaryId },
-      data: { status: 'pending_confirmation' },
     });
 
     const staff = await prisma.user.findMany({ where: { role: { in: ['admin','super_admin','program_manager','office_staff'] }, isActive: true }, select: { id: true } });
@@ -541,13 +536,10 @@ router.patch('/sponsorships/:id/reject', authenticate, async (req: AuthRequest, 
     if (!sp) return res.status(404).json({ error: 'Sponsorship not found' });
     if (sp.status !== 'pending') return res.status(400).json({ error: `Sponsorship is not pending (status: ${sp.status})` });
 
-    // Revert the beneficiary the same way /end does: back to under_sponsor if another
-    // active sponsorship still exists, otherwise back to seeking_sponsor.
-    const remainingActive = await prisma.sponsorship.count({ where: { beneficiaryId: sp.beneficiaryId, status: 'active', id: { not: sp.id } } });
-
+    // The beneficiary was never touched when this pledge was created, so nothing to
+    // revert here either — just close out the sponsorship record itself.
     await prisma.$transaction([
       prisma.sponsorship.update({ where: { id: sp.id }, data: { status: 'rejected' } }),
-      prisma.beneficiary.update({ where: { id: sp.beneficiaryId }, data: { status: remainingActive > 0 ? 'under_sponsor' : 'seeking_sponsor' } }),
       prisma.adminAuditLog.create({ data: { adminId: req.user!.id, action: 'sponsorship_rejected', notes: `Declined sponsorship of ${sp.beneficiary.publicId}${reason ? `: ${reason}` : ''}` } }),
     ]);
     await prisma.notification.create({
