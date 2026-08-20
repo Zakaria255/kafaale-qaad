@@ -3829,6 +3829,7 @@ const ObserverDashboard = ({ cases, currentUser, onReport, onViewCase }) => {
 const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAssign, onReject, onPublish, onViewReport, onConfirmDonation, onComplete, onStartDelivery, onRequestInfo, onEnroll }) => {
   const [tab, setTab] = useState("workflow");
   const [donFilter, setDonFilter] = useState("all");
+  const [donAmountEdits, setDonAmountEdits] = useState({});
 
   // Workflow lanes
   const newReports     = cases.filter(c => c.status === "Pending Verification");
@@ -4042,7 +4043,16 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                       <div style={{ fontSize: 13, fontWeight: 700 }}>{d.isAnonymous ? "Anonymous" : (d.donor?.name || "—")}</div>
                       {!d.isAnonymous && <div style={{ fontSize: 11, color: COLORS.muted }}>{d.donor?.email || ""}</div>}
                     </td>
-                    <td style={{ padding: "10px 14px", fontSize: 15, fontWeight: 800, color: COLORS.secondary }}>${(d.amount||0).toLocaleString()}</td>
+                    <td style={{ padding: "10px 14px", fontSize: 15, fontWeight: 800, color: COLORS.secondary }}>
+                      {d.status==="pending"
+                        ? <span style={{ display:"flex", alignItems:"center", gap:2 }}>
+                            $<input type="number" min="0.01" step="0.01"
+                              value={donAmountEdits[d.id] ?? d.amount ?? ""}
+                              onChange={e => setDonAmountEdits(v => ({ ...v, [d.id]: e.target.value }))}
+                              style={{ width:76, padding:"4px 6px", borderRadius:6, border:`1.5px solid ${COLORS.border}`, fontSize:13, fontWeight:800, color:COLORS.secondary }} />
+                          </span>
+                        : `$${(d.amount||0).toLocaleString()}`}
+                    </td>
                     <td style={{ padding: "10px 14px" }}>
                       <div style={{ fontSize: 12, fontWeight: 700 }}>{d.case?.publicTitle || `Case #${(d.caseId||"").slice(-6)}`}</div>
                     </td>
@@ -4056,7 +4066,11 @@ const VerificationDashboard = ({ cases, agents, donations = [], onViewCase, onAs
                     <td style={{ padding: "10px 14px" }}>
                       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                         {d.status === "pending" && onConfirmDonation && (
-                          <button onClick={() => onConfirmDonation(d.id)}
+                          <button onClick={() => {
+                            const edited = Number(donAmountEdits[d.id]);
+                            const amt = donAmountEdits[d.id] !== undefined && Number.isFinite(edited) && edited > 0 ? edited : undefined;
+                            onConfirmDonation(d.id, amt);
+                          }}
                             style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#10B981", color: "#fff", border: "none", cursor: "pointer" }}>
                             ✓ Confirm
                           </button>
@@ -7337,6 +7351,7 @@ const HistoryPanel = ({ showToast }) => {
 const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, onAssign, onPublish, onEdit, onArchive, onRestore, onReject, onRequestInfo, onEnroll, isSuperAdmin, currentUser, showToast }) => {
   const [activeModule, setActiveModule] = useState("workflow");
   const [donFilter, setDonFilter] = useState("all");
+  const [donAmountEdits, setDonAmountEdits] = useState({});
   const { t } = useLang();
   const isMob = useIsMobile();
   const isDemoMode = currentUser?.id?.startsWith('demo-');
@@ -7745,7 +7760,16 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                           <div style={{ fontSize:13, fontWeight:700 }}>{d.isAnonymous?"Anonymous":(d.donor?.name||"—")}</div>
                           {!d.isAnonymous && <div style={{ fontSize:11, color:COLORS.muted }}>{d.donor?.email||""}</div>}
                         </td>
-                        <td style={{ padding:"12px 16px", fontSize:16, fontWeight:800, color:COLORS.secondary }}>${(d.amount||0).toLocaleString()}</td>
+                        <td style={{ padding:"12px 16px", fontSize:16, fontWeight:800, color:COLORS.secondary }}>
+                          {d.status==="pending"
+                            ? <span style={{ display:"flex", alignItems:"center", gap:2 }}>
+                                $<input type="number" min="0.01" step="0.01"
+                                  value={donAmountEdits[d.id] ?? d.amount ?? ""}
+                                  onChange={e => setDonAmountEdits(v => ({ ...v, [d.id]: e.target.value }))}
+                                  style={{ width:80, padding:"4px 6px", borderRadius:6, border:`1.5px solid ${COLORS.border}`, fontSize:14, fontWeight:800, color:COLORS.secondary }} />
+                              </span>
+                            : `$${(d.amount||0).toLocaleString()}`}
+                        </td>
                         <td style={{ padding:"12px 16px" }}>
                           <div style={{ fontSize:12, fontWeight:700 }}>{d.case?.publicTitle||`Case #${(d.caseId||"").slice(-6)}`}</div>
                           <div style={{ fontSize:11, color:COLORS.muted }}>{d.case?.publicCity||""}</div>
@@ -7758,7 +7782,13 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                           </span>
                         </td>
                         <td style={{ padding:"12px 16px" }}>
-                          {d.status==="pending" && onConfirmDonation && <button onClick={()=>onConfirmDonation(d.id)} style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:"#10B981", color:"#fff", border:"none", cursor:"pointer" }}>✓ Confirm</button>}
+                          {d.status==="pending" && onConfirmDonation && (
+                            <button onClick={() => {
+                              const edited = Number(donAmountEdits[d.id]);
+                              const amt = donAmountEdits[d.id] !== undefined && Number.isFinite(edited) && edited > 0 ? edited : undefined;
+                              onConfirmDonation(d.id, amt);
+                            }} style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:"#10B981", color:"#fff", border:"none", cursor:"pointer" }}>✓ Confirm</button>
+                          )}
                           {d.status==="confirmed" && ["sponsored","waiting_for_sponsor"].includes(d.case?.status) && onStartDelivery && (
                             <button onClick={()=>onStartDelivery({ id:d.caseId, victim_name:d.case?.publicTitle||`Case #${(d.caseId||"").slice(-6)}`, location:d.case?.publicCity||"", donation_amount:d.amount, _amount:d.amount, _caseTitle:d.case?.publicTitle, _caseCity:d.case?.publicCity, _caseId:d.caseId })}
                               style={{ padding:"5px 14px", borderRadius:8, fontSize:12, fontWeight:700, background:"#0891B2", color:"#fff", border:"none", cursor:"pointer", whiteSpace:"nowrap" }}>Start Delivery</button>
@@ -9546,9 +9576,9 @@ export default function KafaaleQaadApp() {
     }
   };
 
-  const handleConfirmDonation = async (donationId) => {
+  const handleConfirmDonation = async (donationId, amount) => {
     try {
-      await adminApi.confirmDonation(donationId);
+      await adminApi.confirmDonation(donationId, amount);
       showToast("Donation confirmed! Case totals updated.", "success");
       setTimeout(reloadCases, 800);
     } catch (e) {

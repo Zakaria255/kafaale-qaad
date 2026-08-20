@@ -401,29 +401,37 @@ router.patch('/donations/:id/confirm', async (req: AuthRequest, res: Response) =
     if (existing.status === 'confirmed') return res.status(400).json({ error: 'Donation already confirmed' });
     if (existing.status === 'refunded')  return res.status(400).json({ error: 'Donation was refunded — cannot confirm' });
 
+    const { amount } = req.body;
+    let confirmedAmount = existing.amount;
+    if (amount !== undefined) {
+      const parsed = Number(amount);
+      if (!Number.isFinite(parsed) || parsed <= 0) return res.status(400).json({ error: 'Amount must be a positive number' });
+      confirmedAmount = Math.round(parsed * 100) / 100;
+    }
+
     const kaseStatus     = existing.case?.status;
-    const newTotalRaised = (existing.case?.totalRaised || 0) + existing.amount;
+    const newTotalRaised = (existing.case?.totalRaised || 0) + confirmedAmount;
     const targetGoal     = existing.case?.targetGoal || 0;
     // Only move to sponsored when goal is fully reached (or no goal set)
     const isFullyFunded  = targetGoal > 0 ? newTotalRaised >= targetGoal : true;
     const wasWaiting     = kaseStatus === 'waiting_for_sponsor';
 
     await prisma.$transaction([
-      prisma.donation.update({ where: { id: req.params.id }, data: { status: 'confirmed', confirmedAt: new Date() } }),
+      prisma.donation.update({ where: { id: req.params.id }, data: { status: 'confirmed', confirmedAt: new Date(), amount: confirmedAmount } }),
       prisma.case.update({
         where: { id: existing.caseId },
         data: {
-          totalRaised: { increment: existing.amount },
+          totalRaised: { increment: confirmedAmount },
           // Only advance status when the goal is fully reached
           ...(wasWaiting && isFullyFunded  && { status: 'sponsored', sponsoredAt: new Date() }),
           // Partial payment — keep waiting_for_sponsor so more donors can contribute
         },
       }),
-      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: existing.caseId, action: 'donation_confirmed', notes: `Confirmed $${existing.amount} from donor ${existing.donorId}. Total now $${newTotalRaised}/${targetGoal}` } }),
+      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: existing.caseId, action: 'donation_confirmed', notes: `Confirmed $${confirmedAmount} from donor ${existing.donorId}${confirmedAmount !== existing.amount ? ` (adjusted from $${existing.amount})` : ''}. Total now $${newTotalRaised}/${targetGoal}` } }),
     ]);
     const msg = isFullyFunded
-      ? `Your donation of $${existing.amount} has been confirmed. Goal reached! The field team will deliver aid shortly.`
-      : `Your donation of $${existing.amount} has been confirmed. $${newTotalRaised} of $${targetGoal} raised so far — thank you!`;
+      ? `Your donation of $${confirmedAmount} has been confirmed. Goal reached! The field team will deliver aid shortly.`
+      : `Your donation of $${confirmedAmount} has been confirmed. $${newTotalRaised} of $${targetGoal} raised so far — thank you!`;
     await prisma.notification.create({ data: { userId: existing.donorId, caseId: existing.caseId, type: 'donation_confirmed', title: '✅ Donation Confirmed', message: msg } });
     res.json({ message: 'Donation confirmed', donationId: existing.id, totalRaised: newTotalRaised, isFullyFunded });
   } catch { res.status(500).json({ error: 'Failed to confirm donation' }); }
