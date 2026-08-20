@@ -7372,6 +7372,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   const pendingPayments = donations.filter(d => d.status === "pending");
   const deliveryCases   = cases.filter(c => c.status === "Sponsored");
   const completedCases  = cases.filter(c => c.status === "Completed");
+  const deletedCases    = cases.filter(c => c.status === "Removed");
   const workflowAlerts  = newReports.length + investigateDone.length + proofSubmitted.length + pendingPayments.length;
 
   const SUPER_MODULES = [
@@ -7379,6 +7380,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"overview",   icon:"", label:"Overview",        sub:`${cases.length} cases`,         color:COLORS.primary, g:"linear-gradient(135deg,#204BA0,#2E5EC0)", badge: pendingCases.length },
     { id:"users",      icon:"", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
     { id:"cases",      icon:"", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
+    { id:"deleted",    icon:"🗑️", label:"Deleted Cases",   sub:`${deletedCases.length} removed`, color:"#991B1B", g:"linear-gradient(135deg,#991B1B,#DC2626)", badge: deletedCases.length },
     { id:"donations",  icon:"", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:COLORS.secondary, g:"linear-gradient(135deg,#0F773C,#17924A)", badge: donations.filter(d=>d.status==="pending").length },
     { id:"analytics",  icon:"", label:"Analytics",       sub:"Charts & reports",               color:"#EA580C", g:"linear-gradient(135deg,#EA580C,#F97316)", badge: 0 },
     { id:"programs",   icon:"", label:"Programs",        sub:"Children enrolled",              color:"#059669", g:"linear-gradient(135deg,#059669,#10B981)", badge: 0 },
@@ -7725,6 +7727,22 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
 
           {activeModule === "cases" && (
             <CaseTable cases={cases} onView={onViewCase} onPublish={onPublish} onEdit={onEdit} onArchive={onArchive} onRestore={onRestore} onReport={isSuperAdmin ? onFullReport : undefined} />
+          )}
+
+          {activeModule === "deleted" && (
+            <div>
+              <div className="kf-stats-row" style={{ marginBottom: 16 }}>
+                <StatCard label="Deleted Cases" value={deletedCases.length} icon="🗑️" color="#991B1B" />
+              </div>
+              <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 12 }}>
+                Cases removed from the donor portal stay here — nothing is permanently deleted. Restore any of them back into the queue.
+              </div>
+              {deletedCases.length === 0 ? (
+                <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 32, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No deleted cases</div>
+              ) : (
+                <CaseTable cases={deletedCases} onView={onViewCase} onRestore={onRestore} onReport={isSuperAdmin ? onFullReport : undefined} />
+              )}
+            </div>
           )}
 
           {activeModule === "donations" && (
