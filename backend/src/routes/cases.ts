@@ -6,6 +6,9 @@ import { prisma } from '../prisma/client';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { uploadCases, processUploads, getMediaType } from '../middleware/upload';
 import { sysLog } from '../services/logger';
+import { sha256, perceptualHash } from '../services/imageHashService';
+import { duplicateDetectionService, MediaHashInput, CandidateCase } from '../services/duplicateDetectionService';
+import { fraudRiskService } from '../services/fraudRiskService';
 
 // Rate-limit only file-upload submissions (not public reads); disabled in dev
 const caseSubmitLimiter = rateLimit({
@@ -126,6 +129,70 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 
 const STAFF_ROLES_NO_REPORT = ['admin','super_admin','field_agent','verification_office','office_staff','program_manager','project_manager'];
 
+const CheckDuplicatesSchema = z.object({
+  privateVictimPhone: z.string().max(20).optional(),
+  privateGpsLat:       z.coerce.number().min(-90).max(90).optional(),
+  privateGpsLng:       z.coerce.number().min(-180).max(180).optional(),
+  privateFamilySize:   z.coerce.number().int().min(1).max(50).optional(),
+  privateDescription:  z.string().max(3000).optional(),
+  category:            z.string().optional(),
+});
+
+// POST /api/cases/check-duplicates — Optional early-warning check while the reporter is
+// still filling the form (no files yet, since nothing is uploaded until the real submit).
+// Runs the same structural + description scoring as the full submission minus image/document
+// signals. Returns only safe, non-identifying fields — never another reporter's private data.
+router.post('/check-duplicates', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const data = CheckDuplicatesSchema.parse(req.body);
+    if (!data.privateVictimPhone && data.privateGpsLat == null && !data.privateDescription) {
+      return res.json({ possibleMatch: null });
+    }
+    const draftCase: CandidateCase = {
+      id: '__draft__', caseRef: null, reporterId: req.user!.id,
+      category: data.category || 'other',
+      privateVictimPhone: data.privateVictimPhone || null,
+      privateGpsLat: data.privateGpsLat ?? null,
+      privateGpsLng: data.privateGpsLng ?? null,
+      privateFamilySize: data.privateFamilySize ?? null,
+      privateDescription: data.privateDescription || null,
+      createdAt: new Date(),
+      status: 'pending_review',
+      publicCity: null,
+    };
+    const { disclosure } = await duplicateDetectionService.previewOnly(draftCase);
+    res.json({ possibleMatch: disclosure });
+  } catch (err: any) {
+    if (err instanceof z.ZodError) return res.status(400).json({ error: 'Validation failed', details: err.issues });
+    res.status(500).json({ error: 'Failed to check for duplicates' });
+  }
+});
+
+// PATCH /api/cases/:id/duplicate-ack — Reporter acknowledges a possible-duplicate disclosure
+// shown right after submission. Does NOT dismiss the match — only records the reporter's own
+// claim so verification staff can weigh it; the case still goes through normal review either way.
+router.patch('/:id/duplicate-ack', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { sameOrDifferent } = req.body as { sameOrDifferent?: 'same' | 'different' };
+    if (!['same', 'different'].includes(sameOrDifferent || '')) return res.status(400).json({ error: 'sameOrDifferent must be "same" or "different"' });
+
+    const kase = await prisma.case.findFirst({ where: { id: req.params.id, reporterId: req.user!.id } });
+    if (!kase) return res.status(404).json({ error: 'Case not found' });
+
+    const topMatch = await prisma.duplicateCaseMatch.findFirst({
+      where: { newCaseId: kase.id, status: 'pending_review' },
+      orderBy: { similarityScore: 'desc' },
+    });
+    if (topMatch) {
+      await prisma.duplicateCaseMatch.update({
+        where: { id: topMatch.id },
+        data: { reporterOverride: sameOrDifferent === 'different' },
+      });
+    }
+    res.json({ message: 'Acknowledged — your report continues through normal verification.' });
+  } catch { res.status(500).json({ error: 'Failed to record acknowledgement' }); }
+});
+
 // POST /api/cases — Submit new case (multipart/form-data supported)
 router.post('/',
   authenticate,
@@ -176,26 +243,50 @@ router.post('/',
         }
       }
 
-      // Store uploaded file URLs in CaseMedia
+      // Store uploaded file URLs in CaseMedia, then fingerprint each file (sha256 always,
+      // perceptual hash for images) so duplicateDetectionService can match against it.
       const uploaded = (req as any).uploadedByField || {};
       const mediaUrls: string[] = [...(uploaded.media || []), ...(uploaded.documents || [])];
+      const mediaHashes: MediaHashInput[] = [];
       if (mediaUrls.length > 0) {
         const files = (req.files as any) || {};
         const allFiles: any[] = [
           ...(files.media || []),
           ...(files.documents || []),
         ];
-        await prisma.caseMedia.createMany({
-          data: mediaUrls.map((url, i) => ({
-            caseId:     kase.id,
-            url,
-            filename:   allFiles[i]?.originalname || 'upload',
-            mimeType:   allFiles[i]?.mimetype || 'application/octet-stream',
-            sizeBytes:  allFiles[i]?.size,
-            type:       getMediaType(allFiles[i]?.mimetype || ''),
-            uploadedBy: req.user!.id,
-          })),
-        });
+        for (let i = 0; i < mediaUrls.length; i++) {
+          const file = allFiles[i];
+          const type = getMediaType(file?.mimetype || '');
+          const created = await prisma.caseMedia.create({
+            data: {
+              caseId:     kase.id,
+              url:        mediaUrls[i],
+              filename:   file?.originalname || 'upload',
+              mimeType:   file?.mimetype || 'application/octet-stream',
+              sizeBytes:  file?.size,
+              type,
+              uploadedBy: req.user!.id,
+            },
+          });
+          if (file?.buffer) {
+            const hash = sha256(file.buffer);
+            const pHash = type === 'image' ? await perceptualHash(file.buffer) : null;
+            await prisma.mediaFingerprint.create({ data: { mediaId: created.id, sha256: hash, perceptualHash: pHash } });
+            mediaHashes.push({ caseMediaId: created.id, type, sha256: hash, perceptualHash: pHash });
+          }
+        }
+      }
+
+      // Duplicate & fraud-risk detection — synchronous, bounded candidate set (see
+      // duplicateDetectionService for why this is safe on a single serverless function).
+      // Never blocks or fails the submission: evidence is always saved either way.
+      let duplicateWarning: any = null;
+      try {
+        const { disclosure } = await duplicateDetectionService.detect(kase, mediaHashes);
+        duplicateWarning = disclosure;
+        await fraudRiskService.scoreCase(kase.id);
+      } catch (err: any) {
+        sysLog.warn(`Duplicate/fraud detection failed for case ${kase.id} — continuing without it: ${err.message}`);
       }
 
       // Notify office staff + admins
@@ -209,7 +300,7 @@ router.post('/',
         })),
       });
       sysLog.info(`📝 Case submitted: ${kase.id} by ${req.user!.id} — ${mediaUrls.length} files`);
-      res.status(201).json({ message: 'Case submitted successfully', caseId: kase.id, status: kase.status, filesUploaded: mediaUrls.length });
+      res.status(201).json({ message: 'Case submitted successfully', caseId: kase.id, status: kase.status, filesUploaded: mediaUrls.length, duplicateWarning });
     } catch (err: any) {
       if (err instanceof z.ZodError) return res.status(400).json({ error: 'Validation failed', details: err.issues });
       res.status(500).json({ error: 'Failed to submit case' });

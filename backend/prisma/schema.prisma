@@ -87,6 +87,13 @@ model Case {
   totalRaised     Float    @default(0)
   escrowReleased  Float    @default(0)
 
+  // ── Duplicate & fraud-risk detection (submission-stage signal — distinct
+  // from FieldInvestigation.fraudRiskScore, which is a later, field-verified signal) ──
+  duplicateScore  Int      @default(0)
+  fraudRiskScore  Int      @default(0)
+  fraudRiskLevel  String   @default("low")
+  mergedIntoId    String?
+
   // Public (sanitized) data — safe to show donors
   publicTitle      String?
   publicStory      String?
@@ -110,6 +117,8 @@ model Case {
   donations          Donation[]
   auditLogs          AdminAuditLog[]
   notifications      Notification[]
+  duplicateMatchesAsNew      DuplicateCaseMatch[] @relation("DuplicateAsNew")
+  duplicateMatchesAsExisting DuplicateCaseMatch[] @relation("DuplicateAsExisting")
 
   // ── Indexes for common query patterns ──
   @@index([status])                      // filter by status (most common)
@@ -118,6 +127,11 @@ model Case {
   @@index([emergencyLevel])              // sort/filter by urgency
   @@index([createdAt])                   // pagination (newest first)
   @@index([status, createdAt])           // status filter + date sort combined
+  @@index([category])                    // duplicate-detection candidate pre-filter
+  @@index([privateGpsLat, privateGpsLng])// duplicate-detection GPS pre-filter
+  @@index([privateVictimPhone])          // duplicate-detection phone pre-filter
+  @@index([duplicateScore])              // Duplicate & Risk Center sort/filter
+  @@index([fraudRiskScore])              // Duplicate & Risk Center sort/filter
 }
 
 model CaseMedia {
@@ -135,8 +149,57 @@ model CaseMedia {
   uploadedBy String?
   uploadedAt DateTime @default(now())
 
+  fingerprint MediaFingerprint?
+
   @@index([caseId])
   @@index([isPublic])
+}
+
+model MediaFingerprint {
+  id             String   @id @default(cuid())
+  mediaId        String   @unique
+  media          CaseMedia @relation(fields: [mediaId], references: [id])
+  sha256         String
+  perceptualHash String?  // dHash hex string; null for non-image files
+  createdAt      DateTime @default(now())
+
+  @@index([sha256])
+  @@index([perceptualHash])
+}
+
+model DuplicateCaseMatch {
+  id               String    @id @default(cuid())
+  newCaseId        String
+  newCase          Case      @relation("DuplicateAsNew", fields: [newCaseId], references: [id])
+  existingCaseId   String
+  existingCase     Case      @relation("DuplicateAsExisting", fields: [existingCaseId], references: [id])
+  similarityScore  Int       // 0-100, capped
+  matchReasons     String    // JSON-encoded array of { signal, points, detail }
+  status           String    @default("pending_review") // pending_review | confirmed_duplicate | not_duplicate | merged
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  reviewerReason   String?
+  reporterOverride Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+
+  @@index([newCaseId])
+  @@index([existingCaseId])
+  @@index([status])
+  @@index([similarityScore])
+}
+
+model CaseRelationship {
+  id               String   @id @default(cuid())
+  caseAId          String
+  caseBId          String
+  relationshipType String   // duplicate | related | same_beneficiary | same_household | same_incident | false_positive | merged
+  confidence       Float
+  createdBy        String
+  createdAt        DateTime @default(now())
+
+  @@index([caseAId])
+  @@index([caseBId])
+  @@index([relationshipType])
 }
 
 model FieldInvestigation {

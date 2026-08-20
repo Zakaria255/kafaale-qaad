@@ -103,6 +103,8 @@ export const cases = {
   my:     ()            => req('/cases/my'),
   // Accepts a plain object (JSON) or a FormData (multipart, for photo uploads).
   submit: (data)        => req('/cases', { method: 'POST', body: data instanceof FormData ? data : JSON.stringify(data) }),
+  checkDuplicates: (data) => req('/cases/check-duplicates', { method: 'POST', body: JSON.stringify(data) }),
+  duplicateAck:    (id, sameOrDifferent) => req(`/cases/${id}/duplicate-ack`, { method: 'PATCH', body: JSON.stringify({ sameOrDifferent }) }),
 };
 
 // ── Admin endpoints ───────────────────────────────────────────────
@@ -130,6 +132,16 @@ export const admin = {
   completeCase:     (id, notes)               => req(`/admin/cases/${id}/complete`,            { method: 'PATCH', body: JSON.stringify({ adminNotes: notes }) }),
   requestMoreInfo:  (id, message)             => req(`/admin/cases/${id}/request-info`,        { method: 'PATCH', body: JSON.stringify({ message }) }),
   enrollBeneficiary:(id, data)               => req(`/admin/cases/${id}/enroll-beneficiary`,  { method: 'POST',  body: JSON.stringify(data) }),
+  mergeCase:        (id, targetCaseId)        => req(`/admin/cases/${id}/merge`,                { method: 'POST',  body: JSON.stringify({ targetCaseId }) }),
+  relatedCases:     (id)                      => req(`/admin/cases/${id}/related`),
+  mediaMatches:     (id)                      => req(`/admin/cases/${id}/media-matches`),
+};
+
+// ── Duplicate & Risk Center endpoints ──────────────────────────────
+export const duplicates = {
+  list:   (params = {})           => req('/admin/duplicates?' + new URLSearchParams(params)),
+  get:    (id)                    => req(`/admin/duplicates/${id}`),
+  review: (id, decision, reason)  => req(`/admin/duplicates/${id}/review`, { method: 'PATCH', body: JSON.stringify({ decision, reason }) }),
 };
 
 // ── Donations endpoints ───────────────────────────────────────────

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi, duplicates as duplicatesApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import ImageCropper from "./components/ImageCropper.jsx";
@@ -473,7 +473,117 @@ const CaseTimeline = ({ c }) => {
 };
 
 // ─── CASE DETAIL MODAL ─────────────────────────────────────────────────────
-const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) => {
+const FRAUD_LEVEL_STYLE = {
+  low:      { emoji: "🟢", color: "#065F46", bg: "#D1FAE5" },
+  medium:   { emoji: "🟡", color: "#92400E", bg: "#FEF3C7" },
+  high:     { emoji: "🟠", color: "#9A3412", bg: "#FFEDD5" },
+  critical: { emoji: "🔴", color: "#991B1B", bg: "#FEE2E2" },
+};
+
+// One duplicate/related match, with staff review actions — shared between the
+// case-detail "Integrity & Similarity" tab and the admin Duplicate & Risk Center so the
+// evidence layout and review actions only exist in one place.
+const DuplicateMatchCard = ({ match, otherCase, direction, onReviewed, showToast }) => {
+  const [busy, setBusy] = useState(false);
+  const reasons = (() => { try { return JSON.parse(match.matchReasons); } catch { return []; } })();
+
+  const decide = async (decision) => {
+    const reason = window.prompt(decision === "confirmed_duplicate" ? "Reason for confirming as duplicate (optional):" : "Reason for marking as not a duplicate (optional):") || "";
+    setBusy(true);
+    try {
+      await duplicatesApi.review(match.id, decision, reason);
+      showToast?.(decision === "confirmed_duplicate" ? "Marked as confirmed duplicate." : "Marked as not a duplicate.", "success");
+      onReviewed?.();
+    } catch (e) { showToast?.("Failed to record review: " + e.message, "error"); }
+    setBusy(false);
+  };
+
+  const merge = async () => {
+    if (!window.confirm(`Merge this case into ${otherCase?.caseRef || "the other case"}? Both records are kept — nothing is deleted.`)) return;
+    setBusy(true);
+    try {
+      const sourceId = direction === "new" ? match.newCaseId : match.existingCaseId;
+      await adminApi.mergeCase(sourceId, otherCase.id);
+      showToast?.("Cases merged.", "success");
+      onReviewed?.();
+    } catch (e) { showToast?.("Failed to merge: " + e.message, "error"); }
+    setBusy(false);
+  };
+
+  const style = FRAUD_LEVEL_STYLE[match.similarityScore >= 75 ? "critical" : match.similarityScore >= 50 ? "high" : match.similarityScore >= 25 ? "medium" : "low"];
+
+  return (
+    <div style={{ background: "#fff", border: `1.5px solid ${COLORS.border}`, borderRadius: 14, padding: 16, marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ background: style.bg, color: style.color, borderRadius: 20, padding: "3px 12px", fontSize: 13, fontWeight: 800 }}>{match.similarityScore}% similarity</span>
+          <span style={{ fontSize: 12, color: COLORS.muted }}>vs. <strong>{otherCase?.caseRef || "—"}</strong> ({otherCase?.category}, {otherCase?.status?.replace(/_/g, " ")})</span>
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 700, color: match.status === "pending_review" ? "#92400E" : match.status === "confirmed_duplicate" ? "#065F46" : COLORS.muted }}>
+          {match.status.replace(/_/g, " ")}
+        </span>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+        {reasons.map((r, i) => (
+          <span key={i} style={{ fontSize: 11, background: "#F3F4F6", color: COLORS.text, borderRadius: 8, padding: "4px 8px" }}>✓ {r.detail}</span>
+        ))}
+      </div>
+      {match.status === "pending_review" && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button disabled={busy} onClick={() => decide("confirmed_duplicate")} style={{ padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#DC2626", color: "#fff", border: "none", cursor: "pointer" }}>Confirm Duplicate</button>
+          <button disabled={busy} onClick={() => decide("not_duplicate")} style={{ padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#fff", color: COLORS.text, border: `1.5px solid ${COLORS.border}`, cursor: "pointer" }}>Not a Duplicate</button>
+          {otherCase && (
+            <button disabled={busy} onClick={merge} style={{ padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "#7C3AED", color: "#fff", border: "none", cursor: "pointer" }}>Merge Cases</button>
+          )}
+        </div>
+      )}
+      {match.reviewerReason && <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 8, fontStyle: "italic" }}>Reviewer note: {match.reviewerReason}</div>}
+    </div>
+  );
+};
+
+// "Integrity & Similarity" tab content — staff-only (admin/super_admin/verification_office).
+const IntegrityPanel = ({ c, currentUser, showToast }) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => {
+    setLoading(true);
+    adminApi.relatedCases(c.id).then(setData).catch(() => setData(null)).finally(() => setLoading(false));
+  };
+  useEffect(load, [c.id]);
+
+  if (loading) return <div style={{ padding: 24, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>Loading similarity data…</div>;
+
+  const fraudStyle = FRAUD_LEVEL_STYLE[c.fraudRiskLevel] || FRAUD_LEVEL_STYLE.low;
+  const allMatches = [
+    ...(data?.matchesAsNew || []).map(m => ({ match: m, otherCase: m.existingCase, direction: "new" })),
+    ...(data?.matchesAsExisting || []).map(m => ({ match: m, otherCase: m.newCase, direction: "existing" })),
+  ];
+  const imageMatchCount = allMatches.filter(({ match }) => { try { return JSON.parse(match.matchReasons).some(r => r.signal === "image"); } catch { return false; } }).length;
+  const locationMatchCount = allMatches.filter(({ match }) => { try { return JSON.parse(match.matchReasons).some(r => r.signal === "gps"); } catch { return false; } }).length;
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10, marginBottom: 20 }}>
+        <StatCard label="Duplicate Score" value={`${c.duplicateScore}%`} icon="" color={c.duplicateScore >= 50 ? "#DC2626" : COLORS.muted} />
+        <StatCard label="Fraud Risk" value={`${fraudStyle.emoji} ${c.fraudRiskLevel} (${c.fraudRiskScore})`} icon="" color={fraudStyle.color} />
+        <StatCard label="Potential Matches" value={allMatches.length} icon="" color={COLORS.primary} />
+        <StatCard label="Image Matches" value={imageMatchCount} icon="" color="#0891B2" />
+        <StatCard label="Location Matches" value={locationMatchCount} icon="" color="#0891B2" />
+      </div>
+      {allMatches.length === 0 ? (
+        <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: 12, padding: 20, textAlign: "center", color: "#065F46", fontSize: 13 }}>
+          No duplicate or related-case evidence found for this report.
+        </div>
+      ) : allMatches.map(({ match, otherCase, direction }) => (
+        <DuplicateMatchCard key={match.id} match={match} otherCase={otherCase} direction={direction} onReviewed={load} showToast={showToast} />
+      ))}
+    </div>
+  );
+};
+
+const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor, showToast }) => {
   const [findings,      setFindings]      = useState(c.findings);
   const [activeTab,     setActiveTab]     = useState("details");
   // Evidence files (field investigation)
@@ -529,11 +639,13 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
   const totalMedia = c.media_files.length + evidencePhotos.length + evidenceVideos.length + evidenceDocs.length;
   const totalProof = c.proof_files.length + proofPhotos.length + proofVideos.length + proofReceipts.length;
 
+  const canSeeIntegrity = ["admin", "super_admin", "verification_office"].includes(currentUser.role);
   const tabs = [
     { id: "details",  label: "Details"  },
     { id: "timeline", label: "Timeline" },
     { id: "media",    label: `Media (${totalMedia})` },
     ...(totalProof > 0 ? [{ id: "proof", label: `Proof (${totalProof})` }] : []),
+    ...(canSeeIntegrity ? [{ id: "integrity", label: `Integrity${c.duplicateScore >= 25 ? ` (${c.duplicateScore}%)` : ""}` }] : []),
   ];
 
   return (
@@ -936,6 +1048,11 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor }) =
         </div>
       )}
 
+      {/* ── INTEGRITY & SIMILARITY TAB (staff-only) ── */}
+      {activeTab === "integrity" && canSeeIntegrity && (
+        <IntegrityPanel c={c} currentUser={currentUser} showToast={showToast} />
+      )}
+
       {/* ── ACTION BUTTONS ── */}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 24, paddingTop: 20, borderTop: `1px solid ${COLORS.border}` }}>
         {nextStatus && !isInvestigating && !isDelivering && (
@@ -1006,6 +1123,8 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState("");
+  const [duplicateDisclosure, setDuplicateDisclosure] = useState(null); // { caseId, score, category, approxArea, approxDate }
+  const [ackLoading, setAckLoading] = useState(false);
   const [photos,  setPhotos]  = useState([]);   // File[] — cropped case photos (optional)
   const [cropQueue, setCropQueue] = useState([]); // File[] — awaiting adjust/crop
   const photoInputRef = useRef(null);
@@ -1069,13 +1188,57 @@ const ReportCaseModal = ({ onClose, onSubmit, currentUser }) => {
       }
       const result = await casesApi.submit(submission);
       onSubmit(result);
-      onClose();
+      if (result?.duplicateWarning) {
+        setDuplicateDisclosure({ caseId: result.caseId, ...result.duplicateWarning });
+      } else {
+        onClose();
+      }
     } catch (e) {
       setError(e.message || "Submission failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  const ackDuplicate = async (sameOrDifferent) => {
+    setAckLoading(true);
+    try {
+      await casesApi.duplicateAck(duplicateDisclosure.caseId, sameOrDifferent);
+    } catch { /* best-effort — the report is already submitted either way */ }
+    setAckLoading(false);
+    onClose();
+  };
+
+  // ── Post-submit: possible-duplicate disclosure ────────────────────────────
+  if (duplicateDisclosure) return (
+    <Modal title="Report Submitted" onClose={() => onClose()}>
+      <div style={{ background: "#FFFBEB", border: "1.5px solid #FDE68A", borderRadius: 14, padding: 20, marginBottom: 18 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "#92400E", marginBottom: 8 }}>⚠️ Possible Existing Report</div>
+        <p style={{ fontSize: 13, color: "#78350F", lineHeight: 1.6, margin: "0 0 12px" }}>
+          Your report was submitted successfully. We also found an existing report that may describe the same situation:
+        </p>
+        <div style={{ background: "#fff", borderRadius: 10, padding: "12px 14px", display: "grid", gap: 6, fontSize: 13 }}>
+          <div><strong>Area:</strong> {duplicateDisclosure.approxArea}</div>
+          <div><strong>Category:</strong> {duplicateDisclosure.category}</div>
+          <div><strong>Approx. date:</strong> {duplicateDisclosure.approxDate}</div>
+          <div><strong>Status:</strong> {duplicateDisclosure.status?.replace(/_/g, " ")}</div>
+        </div>
+      </div>
+      <p style={{ fontSize: 13, color: COLORS.muted, marginBottom: 16 }}>
+        Is your report about the same situation, or a different one? Either way, your report continues through normal verification — this just helps our team review it faster.
+      </p>
+      <div style={{ display: "flex", gap: 10 }}>
+        <button disabled={ackLoading} onClick={() => ackDuplicate("same")}
+          style={{ flex: 1, padding: "12px", borderRadius: 10, background: "#fff", border: `1.5px solid ${COLORS.border}`, fontWeight: 700, cursor: "pointer" }}>
+          This is the same situation
+        </button>
+        <button disabled={ackLoading} onClick={() => ackDuplicate("different")}
+          style={{ flex: 1, padding: "12px", borderRadius: 10, background: COLORS.primary, color: "#fff", border: "none", fontWeight: 700, cursor: "pointer" }}>
+          This is a different situation
+        </button>
+      </div>
+    </Modal>
+  );
 
   // ── Step 0: Choose report mode ───────────────────────────────────────────
   if (!reportMode) return (
@@ -7348,6 +7511,70 @@ const HistoryPanel = ({ showToast }) => {
 };
 
 // ─── ADMIN DASHBOARD — app-launcher grid ─────────────────────────────────────
+// ─── DUPLICATE & RISK CENTER ─────────────────────────────────────────────────
+const DuplicateRiskCenter = ({ onViewCase, cases, showToast }) => {
+  const [filters, setFilters] = useState({ status: "", minScore: "", category: "" });
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => {
+    setLoading(true);
+    const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
+    duplicatesApi.list(params).then(setData).catch(() => setData(null)).finally(() => setLoading(false));
+  };
+  useEffect(load, [filters.status, filters.minScore, filters.category]);
+
+  const cards = data?.cards || {};
+  const caseById = (id) => cases.find(c => c.id === id);
+
+  return (
+    <div>
+      <div className="kf-stats-row" style={{ marginBottom: 16 }}>
+        <StatCard label="Awaiting Review"     value={cards.awaitingReview || 0}     icon="⏳" color="#F59E0B" />
+        <StatCard label="Potential Duplicates" value={cards.potentialDuplicates || 0} icon="⚠️" color="#B45309" />
+        <StatCard label="Confirmed Duplicates" value={cards.confirmedDuplicates || 0} icon="✓"  color="#DC2626" />
+        <StatCard label="Related Cases"       value={cards.relatedCases || 0}       icon="🔗" color="#7C3AED" />
+        <StatCard label="High Risk"           value={cards.highRisk || 0}           icon="🟠" color="#EA580C" />
+        <StatCard label="Critical Risk"       value={cards.criticalRisk || 0}       icon="🔴" color="#DC2626" />
+        <StatCard label="Image Matches"       value={cards.imageMatches || 0}       icon="🖼️" color="#0891B2" />
+        <StatCard label="Document Matches"    value={cards.documentMatches || 0}    icon="📄" color="#0891B2" />
+      </div>
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+        <Select value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))} wrapStyle={{ marginBottom: 0, minWidth: 160 }}>
+          <option value="">All statuses</option>
+          <option value="pending_review">Pending review</option>
+          <option value="confirmed_duplicate">Confirmed duplicate</option>
+          <option value="not_duplicate">Not a duplicate</option>
+        </Select>
+        <Select value={filters.minScore} onChange={e => setFilters(f => ({ ...f, minScore: e.target.value }))} wrapStyle={{ marginBottom: 0, minWidth: 160 }}>
+          <option value="">Any similarity</option>
+          <option value="75">75%+ (Critical)</option>
+          <option value="50">50%+ (High)</option>
+          <option value="25">25%+ (Medium)</option>
+        </Select>
+        <input placeholder="Filter by category…" value={filters.category} onChange={e => setFilters(f => ({ ...f, category: e.target.value }))}
+          style={{ padding: "10px 13px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 13, minWidth: 180 }} />
+      </div>
+
+      {loading ? (
+        <div style={{ padding: 32, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>Loading…</div>
+      ) : !data?.matches?.length ? (
+        <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 32, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No matches found for these filters</div>
+      ) : data.matches.map(m => (
+        <div key={m.id}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 4, fontSize: 11, color: COLORS.muted }}>
+            <button onClick={() => { const c = caseById(m.newCaseId); if (c) onViewCase(c); }} style={{ background: "none", border: "none", color: COLORS.primary, fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 11 }}>
+              View {m.newCase?.caseRef} →
+            </button>
+          </div>
+          <DuplicateMatchCard match={m} otherCase={m.existingCase} direction="new" onReviewed={load} showToast={showToast} />
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, onAssign, onPublish, onEdit, onArchive, onRestore, onReject, onRequestInfo, onEnroll, isSuperAdmin, currentUser, showToast }) => {
   const [activeModule, setActiveModule] = useState("workflow");
   const [donFilter, setDonFilter] = useState("all");
@@ -7373,6 +7600,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   const deliveryCases   = cases.filter(c => c.status === "Sponsored");
   const completedCases  = cases.filter(c => c.status === "Completed");
   const deletedCases    = cases.filter(c => c.status === "Removed");
+  const flaggedForReview = cases.filter(c => (c.duplicateScore || 0) >= 50 || ["high","critical"].includes(c.fraudRiskLevel));
   const workflowAlerts  = newReports.length + investigateDone.length + proofSubmitted.length + pendingPayments.length;
 
   const SUPER_MODULES = [
@@ -7381,6 +7609,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"users",      icon:"", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
     { id:"cases",      icon:"", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
     { id:"deleted",    icon:"🗑️", label:"Deleted Cases",   sub:`${deletedCases.length} removed`, color:"#991B1B", g:"linear-gradient(135deg,#991B1B,#DC2626)", badge: deletedCases.length },
+    { id:"duplicates", icon:"⚠️", label:"Duplicate & Risk", sub:`${flaggedForReview.length} flagged`, color:"#B45309", g:"linear-gradient(135deg,#B45309,#D97706)", badge: flaggedForReview.length },
     { id:"donations",  icon:"", label:"Donations",       sub:`$${totalDonated.toLocaleString()}`, color:COLORS.secondary, g:"linear-gradient(135deg,#0F773C,#17924A)", badge: donations.filter(d=>d.status==="pending").length },
     { id:"analytics",  icon:"", label:"Analytics",       sub:"Charts & reports",               color:"#EA580C", g:"linear-gradient(135deg,#EA580C,#F97316)", badge: 0 },
     { id:"programs",   icon:"", label:"Programs",        sub:"Children enrolled",              color:"#059669", g:"linear-gradient(135deg,#059669,#10B981)", badge: 0 },
@@ -7743,6 +7972,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
                 <CaseTable cases={deletedCases} onView={onViewCase} onRestore={onRestore} onReport={isSuperAdmin ? onFullReport : undefined} />
               )}
             </div>
+          )}
+
+          {activeModule === "duplicates" && (
+            <DuplicateRiskCenter onViewCase={onViewCase} cases={cases} showToast={showToast} />
           )}
 
           {activeModule === "donations" && (
@@ -9439,6 +9672,11 @@ export default function KafaaleQaadApp() {
       ];
     })(),
     fieldInvestigation: c.fieldInvestigation,
+    // Staff-only — never present on donor/public case payloads (backend only includes
+    // these on GET /api/admin/cases[/:id], which donor/public routes never call).
+    duplicateScore:   c.duplicateScore ?? 0,
+    fraudRiskScore:   c.fraudRiskScore ?? 0,
+    fraudRiskLevel:   c.fraudRiskLevel || "low",
     _raw: c,
   });
 
@@ -9957,7 +10195,7 @@ export default function KafaaleQaadApp() {
 
       {/* ── Modals ── */}
       {selectedCase && (
-        <CaseDetailModal c={selectedCase} currentUser={currentUser} onClose={() => setSelectedCase(null)} onUpdateCase={handleCaseStatusUpdate} onSponsor={setSponsorCase} />
+        <CaseDetailModal c={selectedCase} currentUser={currentUser} onClose={() => setSelectedCase(null)} onUpdateCase={handleCaseStatusUpdate} onSponsor={setSponsorCase} showToast={showToast} />
       )}
       {showReport && (
         <ReportCaseModal onClose={() => setShowReport(false)} currentUser={currentUser}

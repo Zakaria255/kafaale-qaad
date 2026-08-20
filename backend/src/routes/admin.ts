@@ -805,6 +805,75 @@ router.patch('/cases/:id/fraud-score', async (req: AuthRequest, res: Response) =
   } catch (e: any) { return safeError(res, 500, 'Fraud analysis failed', e); }
 });
 
+// ── Duplicate-case tooling scoped to admin/super_admin/verification_office only —
+// narrower than this router's general 6-role gate, matching how archive/restore already
+// carve out a tighter inline check above.
+const DUPLICATE_STAFF_ROLES = ['admin','super_admin','verification_office'];
+
+// POST /api/admin/cases/:id/merge — Merge a duplicate case into a canonical one.
+// Never deletes anything: both case rows, their reporters, evidence, and investigation
+// records stay intact. The source case is just marked 'merged' and linked to the target.
+router.post('/cases/:id/merge', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!DUPLICATE_STAFF_ROLES.includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    const { targetCaseId } = req.body as { targetCaseId?: string };
+    if (!targetCaseId) return res.status(400).json({ error: 'targetCaseId is required' });
+    if (targetCaseId === req.params.id) return res.status(400).json({ error: 'A case cannot be merged into itself' });
+
+    const [source, target] = await Promise.all([
+      prisma.case.findUnique({ where: { id: req.params.id }, select: { id: true, status: true, caseRef: true } }),
+      prisma.case.findUnique({ where: { id: targetCaseId }, select: { id: true, status: true, caseRef: true } }),
+    ]);
+    if (!source) return res.status(404).json({ error: 'Case not found' });
+    if (!target) return res.status(404).json({ error: 'Target case not found' });
+    if (source.status === 'merged') return res.status(400).json({ error: 'Case is already merged' });
+
+    await prisma.$transaction([
+      prisma.case.update({ where: { id: source.id }, data: { status: 'merged', mergedIntoId: target.id } }),
+      prisma.caseRelationship.create({ data: { caseAId: source.id, caseBId: target.id, relationshipType: 'merged', confidence: 1, createdBy: req.user!.id } }),
+      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: source.id, action: 'cases_merged', notes: `Merged ${source.caseRef || source.id} into ${target.caseRef || target.id}` } }),
+    ]);
+    res.json({ message: 'Cases merged', sourceCaseId: source.id, targetCaseId: target.id });
+  } catch (e: any) { return safeError(res, 500, 'Failed to merge cases', e); }
+});
+
+// GET /api/admin/cases/:id/related — Confirmed relationships + pending duplicate matches for a case
+router.get('/cases/:id/related', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!DUPLICATE_STAFF_ROLES.includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    const [relationships, matchesAsNew, matchesAsExisting] = await Promise.all([
+      prisma.caseRelationship.findMany({ where: { OR: [{ caseAId: req.params.id }, { caseBId: req.params.id }] }, orderBy: { createdAt: 'desc' } }),
+      prisma.duplicateCaseMatch.findMany({ where: { newCaseId: req.params.id }, include: { existingCase: { select: { id: true, caseRef: true, category: true, status: true, createdAt: true, publicCity: true } } }, orderBy: { similarityScore: 'desc' } }),
+      prisma.duplicateCaseMatch.findMany({ where: { existingCaseId: req.params.id }, include: { newCase: { select: { id: true, caseRef: true, category: true, status: true, createdAt: true, publicCity: true } } }, orderBy: { similarityScore: 'desc' } }),
+    ]);
+    res.json({ relationships, matchesAsNew, matchesAsExisting });
+  } catch (e: any) { return safeError(res, 500, 'Failed to load related cases', e); }
+});
+
+// GET /api/admin/cases/:id/media-matches — Fingerprint matches for this case's media
+router.get('/cases/:id/media-matches', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!DUPLICATE_STAFF_ROLES.includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    const myFingerprints = await prisma.mediaFingerprint.findMany({
+      where: { media: { caseId: req.params.id } },
+      select: { id: true, sha256: true, perceptualHash: true, media: { select: { id: true, url: true, type: true } } },
+    });
+    if (myFingerprints.length === 0) return res.json({ matches: [] });
+
+    const matches = await prisma.mediaFingerprint.findMany({
+      where: {
+        media: { caseId: { not: req.params.id } },
+        OR: [
+          { sha256: { in: myFingerprints.map(f => f.sha256) } },
+          { perceptualHash: { in: myFingerprints.map(f => f.perceptualHash).filter((h): h is string => !!h) } },
+        ],
+      },
+      select: { sha256: true, perceptualHash: true, media: { select: { id: true, url: true, type: true, case: { select: { id: true, caseRef: true, category: true, status: true } } } } },
+    });
+    res.json({ myFingerprints, matches });
+  } catch (e: any) { return safeError(res, 500, 'Failed to load media matches', e); }
+});
+
 // PATCH /api/admin/users/:id/suspend — Suspend/ban a user (blacklist)
 router.patch('/users/:id/suspend', async (req: AuthRequest, res: Response) => {
   try {
