@@ -22,6 +22,7 @@ model User {
   country           String?
   city              String?
   organization      String?
+  department        String?
   isActive          Boolean   @default(true)
   isApproved        Boolean   @default(true)
   expoPushToken     String?
@@ -46,11 +47,107 @@ model User {
   assignedNotes        Note[]                @relation("NoteAssignee")
   channelMemberships   ChannelMember[]       @relation("ChannelMembers")
   chatMessages         ChatMessage[]         @relation("ChatSender")
+  permissionGroups     UserPermissionGroup[]
+  userPermissions      UserPermission[]
 
   @@index([role])
   @@index([email])
   @@index([isActive])
   @@index([isApproved])
+  @@index([department])
+}
+
+// ── Granular permission system (see backend/src/services/permissionCatalog.ts
+// for the full catalog and backend/src/services/permissionService.ts for the
+// resolution engine) ──────────────────────────────────────────────────────
+model Permission {
+  id             String   @id @default(cuid())
+  key            String   @unique
+  module         String
+  label          String
+  level          String
+  sensitive      Boolean  @default(false)
+  superAdminOnly Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([module])
+}
+
+model RolePermission {
+  id            String @id @default(cuid())
+  role          String
+  permissionKey String
+  scope         String @default("global")
+
+  @@unique([role, permissionKey])
+  @@index([role])
+}
+
+model PermissionGroup {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions GroupPermission[]
+  members     UserPermissionGroup[]
+}
+
+model GroupPermission {
+  id            String          @id @default(cuid())
+  groupId       String
+  group         PermissionGroup @relation(fields: [groupId], references: [id])
+  permissionKey String
+  scope         String          @default("own")
+
+  @@unique([groupId, permissionKey])
+}
+
+model UserPermissionGroup {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id])
+  groupId    String
+  group      PermissionGroup @relation(fields: [groupId], references: [id])
+  assignedBy String
+  assignedAt DateTime        @default(now())
+
+  @@unique([userId, groupId])
+}
+
+model UserPermission {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  permissionKey String
+  type          String   // "grant" | "deny"
+  scope         String   @default("own")
+  assignedBy    String
+  reason        String?
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, permissionKey])
+  @@index([userId])
+}
+
+model PermissionAuditLog {
+  id            String   @id @default(cuid())
+  actorId       String
+  targetUserId  String
+  action        String   // grant | deny | revoke | group_assigned | group_removed
+  permissionKey String?
+  previousValue String?
+  newValue      String?
+  reason        String?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  @@index([targetUserId])
+  @@index([actorId])
+  @@index([createdAt])
 }
 
 model Case {

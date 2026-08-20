@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../prisma/client';
 import { authenticate, requireRole } from '../middleware/auth';
 import { safeError } from '../middleware/errors';
+import { requirePermission } from '../middleware/permissions';
 
 const router = Router();
 
@@ -62,7 +63,7 @@ router.get('/', authenticate, requireRole(['admin', 'super_admin']), async (_req
 });
 
 // PATCH /api/settings  — upsert one or many key/value pairs
-router.patch('/', authenticate, requireRole(['admin', 'super_admin']), async (req, res) => {
+router.patch('/', authenticate, requireRole(['admin', 'super_admin']), requirePermission('system.manage'), async (req, res) => {
   try {
     const updates: Record<string, string> = req.body;
     if (!updates || typeof updates !== 'object') return res.status(400).json({ error: 'Body must be { key: value }' });

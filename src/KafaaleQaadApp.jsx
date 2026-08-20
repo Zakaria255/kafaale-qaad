@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi, duplicates as duplicatesApi } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi, duplicates as duplicatesApi, permissions as permissionsApi } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import ImageCropper from "./components/ImageCropper.jsx";
@@ -7575,6 +7575,367 @@ const DuplicateRiskCenter = ({ onViewCase, cases, showToast }) => {
   );
 };
 
+// ─── PERMISSIONS MANAGEMENT PANEL ────────────────────────────────────────────
+const RISK_LEVEL_LABEL = { view: "VIEW", create: "CREATE", edit: "EDIT", delete: "DELETE", approve: "APPROVE", publish: "PUBLISH", export: "EXPORT", manage: "MANAGE" };
+const LEVEL_COLOR = { view: "#0891B2", create: "#059669", edit: "#2563EB", delete: "#DC2626", approve: "#7C3AED", publish: "#D97706", export: "#0D9488", manage: "#991B1B" };
+
+const SCOPE_OPTIONS = [
+  { value: "own", label: "Own — only things they created/are assigned to" },
+  { value: "team", label: "Team — their team's records" },
+  { value: "department", label: "Department — their whole department" },
+  { value: "organization", label: "Organization — org-wide" },
+  { value: "global", label: "Global — everything" },
+];
+
+// One permission row inside the edit-user picker — grant/deny buttons fire immediately
+// (each change is its own atomic, audited API call — there's no separate batch "Save").
+const PermissionPickerRow = ({ def, current, onChange, disabled }) => {
+  const [scope, setScope] = useState(current?.scope || "own");
+  const act = async (type) => {
+    if (def.sensitive) {
+      if (!window.confirm(`⚠️ This permission provides access to sensitive operations.\n\n${type === "deny" ? "Deny" : "Grant"} "${def.label}" (${scope}) — continue?`)) return;
+    }
+    const reason = window.prompt(`Reason for this change (optional):`) || undefined;
+    await onChange(def.key, type, scope, reason);
+  };
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 8, background: current ? (current.type === "deny" ? "#FEF2F2" : "#F0FDF4") : "transparent" }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+          {def.label}
+          <span style={{ fontSize: 9, fontWeight: 800, color: LEVEL_COLOR[def.level], background: `${LEVEL_COLOR[def.level]}15`, borderRadius: 6, padding: "1px 6px" }}>{RISK_LEVEL_LABEL[def.level]}</span>
+          {def.sensitive && <span title="Sensitive permission">🔴</span>}
+        </div>
+        <div style={{ fontSize: 10, color: COLORS.muted }}>{def.key}{current ? ` · currently ${current.type} (${current.scope})` : ""}</div>
+      </div>
+      {!current && (
+        <Select value={scope} onChange={e => setScope(e.target.value)} wrapStyle={{ marginBottom: 0, minWidth: 140 }}>
+          {SCOPE_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.value}</option>)}
+        </Select>
+      )}
+      {current ? (
+        <button disabled={disabled} onClick={() => onChange(def.key, "revoke")} style={{ padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, background: "#fff", border: `1.5px solid ${COLORS.border}`, cursor: "pointer" }}>Remove Override</button>
+      ) : (
+        <>
+          <button disabled={disabled} onClick={() => act("grant")} style={{ padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, background: "#10B981", color: "#fff", border: "none", cursor: "pointer" }}>Grant</button>
+          <button disabled={disabled} onClick={() => act("deny")} style={{ padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, background: "#fff", color: COLORS.danger, border: `1.5px solid ${COLORS.danger}`, cursor: "pointer" }}>Deny</button>
+        </>
+      )}
+    </div>
+  );
+};
+
+const EditUserPermissionsModal = ({ userId, catalog, onClose, showToast }) => {
+  const [detail, setDetail] = useState(null);
+  const [search, setSearch] = useState("");
+  const [moduleFilter, setModuleFilter] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const load = () => permissionsApi.user(userId).then(setDetail).catch(() => setDetail(null));
+  useEffect(() => { load(); }, [userId]);
+
+  const individualByKey = new Map((detail?.individual || []).map(p => [p.permissionKey, p]));
+
+  const filtered = (catalog?.permissions || []).filter(p =>
+    (!search || p.label.toLowerCase().includes(search.toLowerCase()) || p.key.includes(search.toLowerCase())) &&
+    (!moduleFilter || p.module === moduleFilter)
+  );
+  const grouped = filtered.reduce((acc, p) => { (acc[p.module] = acc[p.module] || []).push(p); return acc; }, {});
+
+  const handleChange = async (key, type, scope, reason) => {
+    setBusy(true);
+    try {
+      if (type === "revoke") await permissionsApi.revoke(userId, key);
+      else await permissionsApi.grant(userId, { permissionKey: key, type, scope, reason });
+      showToast?.("Permission updated.", "success");
+      load();
+    } catch (e) { showToast?.(e.message || "Failed to update permission", "error"); }
+    setBusy(false);
+  };
+
+  if (!detail) return <Modal title="Edit Permissions" onClose={onClose}><div style={{ padding: 24, textAlign: "center", color: COLORS.muted }}>Loading…</div></Modal>;
+
+  return (
+    <Modal title={`Edit Permissions — ${detail.user.name}`} onClose={onClose} wide>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 10, marginBottom: 18 }}>
+        <StatCard label="Inherited" value={detail.inheritedCount} icon="" color={COLORS.primary} />
+        <StatCard label="Additional" value={detail.additionalCount} icon="+" color="#10B981" />
+        <StatCard label="Denied" value={detail.deniedCount} icon="−" color={COLORS.danger} />
+        <StatCard label="Effective" value={detail.effectiveCount} icon="=" color="#7C3AED" />
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+        <input placeholder="Search permissions… (e.g. donation, case)" value={search} onChange={e => setSearch(e.target.value)}
+          style={{ flex: 1, minWidth: 200, padding: "9px 13px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 13 }} />
+        <Select value={moduleFilter} onChange={e => setModuleFilter(e.target.value)} wrapStyle={{ marginBottom: 0, minWidth: 180 }}>
+          <option value="">All modules</option>
+          {(catalog?.modules || []).map(m => <option key={m} value={m}>{m.replace(/_/g, " ")}</option>)}
+        </Select>
+      </div>
+      <div style={{ maxHeight: 420, overflowY: "auto", border: `1px solid ${COLORS.border}`, borderRadius: 10 }}>
+        {Object.entries(grouped).map(([mod, defs]) => (
+          <div key={mod}>
+            <div style={{ position: "sticky", top: 0, background: "#F8FAFC", padding: "6px 12px", fontSize: 11, fontWeight: 800, color: COLORS.muted, borderBottom: `1px solid ${COLORS.border}` }}>{mod.replace(/_/g, " ")}</div>
+            {defs.map(def => (
+              <PermissionPickerRow key={def.key} def={def} current={individualByKey.get(def.key)} onChange={handleChange} disabled={busy} />
+            ))}
+          </div>
+        ))}
+        {filtered.length === 0 && <div style={{ padding: 24, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No permissions match your search.</div>}
+      </div>
+      <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+        <Btn variant="muted" onClick={onClose}>Close</Btn>
+      </div>
+    </Modal>
+  );
+};
+
+const PermissionsPanel = ({ currentUser, showToast }) => {
+  const [tab, setTab] = useState("users");
+  const [stats, setStats] = useState(null);
+  const [catalog, setCatalog] = useState(null);
+  const [filters, setFilters] = useState({ search: "", role: "", department: "", active: "" });
+  const [userList, setUserList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editUserId, setEditUserId] = useState(null);
+  const [activityUserId, setActivityUserId] = useState(null);
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [matrixData, setMatrixData] = useState(null);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [copySourceFor, setCopySourceFor] = useState(null);
+
+  useEffect(() => { permissionsApi.stats().then(setStats).catch(() => {}); permissionsApi.catalog().then(setCatalog).catch(() => {}); }, []);
+
+  const loadUsers = () => {
+    setLoading(true);
+    const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
+    permissionsApi.users(params).then(d => setUserList(d.users || [])).catch(() => setUserList([])).finally(() => setLoading(false));
+  };
+  useEffect(loadUsers, [filters.search, filters.role, filters.department, filters.active]);
+
+  useEffect(() => { if (tab === "groups") permissionsApi.groups().then(d => setGroups(d.groups || [])).catch(() => {}); }, [tab]);
+  useEffect(() => { if (tab === "matrix") permissionsApi.matrix().then(setMatrixData).catch(() => {}); }, [tab]);
+  useEffect(() => { if (tab === "audit") permissionsApi.audit().then(d => setAuditLogs(d.logs || [])).catch(() => {}); }, [tab]);
+
+  useEffect(() => {
+    if (activityUserId) permissionsApi.audit({ userId: activityUserId }).then(d => setActivityLogs(d.logs || [])).catch(() => setActivityLogs([]));
+  }, [activityUserId]);
+
+  const removeAllCustom = async (userId) => {
+    if (!window.confirm("Remove ALL custom permissions for this user? They'll fall back to their role/group defaults.")) return;
+    try {
+      const detail = await permissionsApi.user(userId);
+      for (const p of detail.individual) await permissionsApi.revoke(userId, p.permissionKey);
+      showToast("Custom permissions removed.", "success");
+      loadUsers();
+    } catch (e) { showToast(e.message || "Failed to remove permissions", "error"); }
+  };
+
+  const doCopy = async (targetId, fromId) => {
+    try {
+      const r = await permissionsApi.copy(targetId, fromId);
+      showToast(r.message || "Permissions copied.", "success");
+      setCopySourceFor(null);
+      loadUsers();
+    } catch (e) { showToast(e.message || "Failed to copy permissions", "error"); }
+  };
+
+  const createGroup = async () => {
+    const name = window.prompt("Group name:");
+    if (!name) return;
+    const description = window.prompt("Description (optional):") || undefined;
+    try {
+      await permissionsApi.createGroup({ name, description });
+      showToast("Group created.", "success");
+      permissionsApi.groups().then(d => setGroups(d.groups || []));
+    } catch (e) { showToast(e.message || "Failed to create group", "error"); }
+  };
+
+  const TABS = [
+    { id: "users", label: "Users" },
+    { id: "groups", label: `Groups (${groups.length || stats?.permissionGroups || 0})` },
+    { id: "matrix", label: "Permission Matrix" },
+    { id: "audit", label: "Audit History" },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800 }}>Permissions Management</h2>
+        <p style={{ margin: 0, color: COLORS.muted, fontSize: 13 }}>Control exactly what each team member can access and manage across Kafaale Qaad.</p>
+      </div>
+
+      <div className="kf-stats-row" style={{ marginBottom: 20 }}>
+        <StatCard label="Total Users" value={stats?.totalUsers ?? "—"} icon="" color={COLORS.primary} />
+        <StatCard label="Custom Permissions" value={stats?.usersWithCustomPermissions ?? "—"} icon="⚙️" color="#7C3AED" />
+        <StatCard label="Permission Groups" value={stats?.permissionGroups ?? "—"} icon="📦" color="#059669" />
+        <StatCard label="Recently Updated" value={stats?.recentlyUpdated ?? "—"} icon="🕒" color="#D97706" />
+        <StatCard label="Suspended Access" value={stats?.suspendedAccess ?? "—"} icon="⛔" color={COLORS.danger} />
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: `1px solid ${COLORS.border}`, flexWrap: "wrap" }}>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, border: "none", background: "none", cursor: "pointer", color: tab === t.id ? COLORS.primary : COLORS.muted, borderBottom: tab === t.id ? `2px solid ${COLORS.primary}` : "2px solid transparent", marginBottom: -1 }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "users" && (
+        <div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+            <input placeholder="Search name or email…" value={filters.search} onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
+              style={{ flex: 1, minWidth: 200, padding: "9px 13px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 13 }} />
+            <input placeholder="Role (e.g. verification_office)" value={filters.role} onChange={e => setFilters(f => ({ ...f, role: e.target.value }))}
+              style={{ padding: "9px 13px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 13, minWidth: 160 }} />
+            <input placeholder="Department" value={filters.department} onChange={e => setFilters(f => ({ ...f, department: e.target.value }))}
+              style={{ padding: "9px 13px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 13, minWidth: 140 }} />
+            <Select value={filters.active} onChange={e => setFilters(f => ({ ...f, active: e.target.value }))} wrapStyle={{ marginBottom: 0, minWidth: 130 }}>
+              <option value="">Any status</option>
+              <option value="true">Active</option>
+              <option value="false">Suspended</option>
+            </Select>
+            <Btn variant="primary" onClick={createGroup}>+ Create Permission Group</Btn>
+          </div>
+
+          {loading ? (
+            <div style={{ padding: 32, textAlign: "center", color: COLORS.muted }}>Loading users…</div>
+          ) : userList.length === 0 ? (
+            <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 32, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No users match these filters</div>
+          ) : (
+            <div style={{ display: "grid", gap: 10 }}>
+              {userList.map(u => (
+                <div key={u.id} style={{ background: "#fff", border: `1.5px solid ${COLORS.border}`, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: COLORS.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 15, flexShrink: 0 }}>
+                    {(u.name || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 180 }}>
+                    <div style={{ fontWeight: 800, fontSize: 14 }}>{u.name} {!u.isActive && <span style={{ fontSize: 10, color: COLORS.danger, fontWeight: 700 }}>· SUSPENDED</span>}</div>
+                    <div style={{ fontSize: 12, color: COLORS.muted }}>{u.email}</div>
+                    <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 2 }}>
+                      {u.role}{u.department ? ` · ${u.department}` : ""} · Last login: {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : "never"} · {u.customPermissionCount} custom permission{u.customPermissionCount === 1 ? "" : "s"}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <Btn size="sm" variant="outline" onClick={() => setEditUserId(u.id)}>View / Edit Permissions</Btn>
+                    <Btn size="sm" variant="ghost" onClick={() => setCopySourceFor(u.id)}>Copy Permissions</Btn>
+                    {u.customPermissionCount > 0 && <Btn size="sm" variant="danger" onClick={() => removeAllCustom(u.id)}>Remove Custom</Btn>}
+                    <Btn size="sm" variant="ghost" onClick={() => setActivityUserId(u.id)}>View Activity</Btn>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "groups" && (
+        <div style={{ display: "grid", gap: 12 }}>
+          {groups.length === 0 ? (
+            <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 32, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No permission groups yet</div>
+          ) : groups.map(g => (
+            <div key={g.id} style={{ background: "#fff", border: `1.5px solid ${COLORS.border}`, borderRadius: 12, padding: "14px 18px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <div style={{ fontWeight: 800, fontSize: 15 }}>{g.name}</div>
+                <span style={{ fontSize: 11, color: COLORS.muted }}>{g.permissions.length} permissions · {g._count?.members || 0} members</span>
+              </div>
+              {g.description && <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 8 }}>{g.description}</div>}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {g.permissions.slice(0, 8).map(p => (
+                  <span key={p.id} style={{ fontSize: 10, background: "#F3F4F6", borderRadius: 8, padding: "3px 8px" }}>{p.permissionKey}</span>
+                ))}
+                {g.permissions.length > 8 && <span style={{ fontSize: 10, color: COLORS.muted }}>+{g.permissions.length - 8} more</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "matrix" && (
+        <div className="kf-table-wrap" style={{ overflowX: "auto" }}>
+          {!matrixData ? (
+            <div style={{ padding: 32, textAlign: "center", color: COLORS.muted }}>Loading matrix…</div>
+          ) : (() => {
+            const roles = Array.from(new Set(matrixData.rolePermissions.map(r => r.role)));
+            const byKey = new Map();
+            for (const rp of matrixData.rolePermissions) {
+              if (!byKey.has(rp.permissionKey)) byKey.set(rp.permissionKey, {});
+              byKey.get(rp.permissionKey)[rp.role] = rp.scope;
+            }
+            const keys = Array.from(byKey.keys()).sort();
+            return (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                <thead>
+                  <tr style={{ background: "#F8FAFC" }}>
+                    <th style={{ padding: "8px 12px", textAlign: "left", position: "sticky", left: 0, background: "#F8FAFC" }}>Permission</th>
+                    {roles.map(r => <th key={r} style={{ padding: "8px 10px", textAlign: "center", fontSize: 10 }}>{r.replace(/_/g, " ")}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {keys.map((k, i) => (
+                    <tr key={k} style={{ borderTop: `1px solid ${COLORS.border}`, background: i % 2 ? "#FAFBFC" : "#fff" }}>
+                      <td style={{ padding: "6px 12px", fontWeight: 600, position: "sticky", left: 0, background: i % 2 ? "#FAFBFC" : "#fff" }}>{k}</td>
+                      {roles.map(r => (
+                        <td key={r} style={{ padding: "6px 10px", textAlign: "center", color: byKey.get(k)[r] ? "#059669" : "#D1D5DB" }}>
+                          {byKey.get(k)[r] ? (byKey.get(k)[r] === "global" ? "✓" : byKey.get(k)[r]) : "—"}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            );
+          })()}
+        </div>
+      )}
+
+      {tab === "audit" && (
+        <div style={{ display: "grid", gap: 8 }}>
+          {auditLogs.length === 0 ? (
+            <div style={{ background: "#F9FAFB", borderRadius: 12, padding: 32, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No permission changes recorded yet</div>
+          ) : auditLogs.map(l => (
+            <div key={l.id} style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "10px 14px", fontSize: 12 }}>
+              <strong>{l.actor?.name || l.actorId}</strong> {l.action.replace(/_/g, " ")} {l.permissionKey ? <code style={{ background: "#F3F4F6", borderRadius: 6, padding: "1px 6px" }}>{l.permissionKey}</code> : ""} for <strong>{l.targetUser?.name || l.targetUserId}</strong>
+              {l.reason && <span style={{ color: COLORS.muted }}> — {l.reason}</span>}
+              <div style={{ fontSize: 10, color: COLORS.muted, marginTop: 2 }}>{new Date(l.createdAt).toLocaleString()}{l.ipAddress ? ` · ${l.ipAddress}` : ""}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {editUserId && <EditUserPermissionsModal userId={editUserId} catalog={catalog} onClose={() => { setEditUserId(null); loadUsers(); }} showToast={showToast} />}
+
+      {activityUserId && (
+        <Modal title="Permission Activity" onClose={() => setActivityUserId(null)}>
+          {activityLogs.length === 0 ? (
+            <div style={{ padding: 16, textAlign: "center", color: COLORS.muted, fontSize: 13 }}>No permission changes for this user yet.</div>
+          ) : activityLogs.map(l => (
+            <div key={l.id} style={{ padding: "8px 0", borderBottom: `1px solid ${COLORS.border}`, fontSize: 12 }}>
+              <strong>{l.actor?.name || l.actorId}</strong> {l.action.replace(/_/g, " ")} {l.permissionKey || ""}
+              <div style={{ fontSize: 10, color: COLORS.muted }}>{new Date(l.createdAt).toLocaleString()}</div>
+            </div>
+          ))}
+        </Modal>
+      )}
+
+      {copySourceFor && (
+        <Modal title="Copy Permissions From…" onClose={() => setCopySourceFor(null)}>
+          <p style={{ fontSize: 13, color: COLORS.muted, marginBottom: 12 }}>Search for the user whose individual permissions you want to copy onto this account.</p>
+          <input placeholder="Type an email and press Enter…" onKeyDown={async e => {
+            if (e.key !== "Enter") return;
+            const email = e.target.value.trim();
+            const found = userList.find(u => u.email.toLowerCase() === email.toLowerCase())
+              || (await permissionsApi.users({ search: email })).users?.[0];
+            if (!found) return showToast("No user found with that email", "error");
+            doCopy(copySourceFor, found.id);
+          }} style={{ width: "100%", padding: "10px 14px", borderRadius: 9, border: `1.5px solid ${COLORS.border}`, fontSize: 13, boxSizing: "border-box" }} />
+        </Modal>
+      )}
+    </div>
+  );
+};
+
 const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase, onAddUser, onDeleteUser, onChangeRole, onExport, onConfirmDonation, onComplete, onStartDelivery, onFullReport, onAssign, onPublish, onEdit, onArchive, onRestore, onReject, onRequestInfo, onEnroll, isSuperAdmin, currentUser, showToast }) => {
   const [activeModule, setActiveModule] = useState("workflow");
   const [donFilter, setDonFilter] = useState("all");
@@ -7607,6 +7968,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"workflow",   icon:"", label:"Workflow",        sub:`${workflowAlerts} need action`, color:"#DC2626", g:"linear-gradient(135deg,#DC2626,#EF4444)", badge: workflowAlerts },
     { id:"overview",   icon:"", label:"Overview",        sub:`${cases.length} cases`,         color:COLORS.primary, g:"linear-gradient(135deg,#204BA0,#2E5EC0)", badge: pendingCases.length },
     { id:"users",      icon:"", label:"Users",           sub:`${users.length} registered`,     color:"#7C3AED", g:"linear-gradient(135deg,#7C3AED,#9B59B6)", badge: 0 },
+    { id:"permissions", icon:"🔐", label:"Permissions",    sub:"Access control",                 color:"#4C1D95", g:"linear-gradient(135deg,#4C1D95,#7C3AED)", badge: 0 },
     { id:"cases",      icon:"", label:"All Cases",       sub:`${cases.length} records`,        color:"#0891B2", g:"linear-gradient(135deg,#0891B2,#0EA5E9)", badge: proofPending.length },
     { id:"deleted",    icon:"🗑️", label:"Deleted Cases",   sub:`${deletedCases.length} removed`, color:"#991B1B", g:"linear-gradient(135deg,#991B1B,#DC2626)", badge: deletedCases.length },
     { id:"duplicates", icon:"⚠️", label:"Duplicate & Risk", sub:`${flaggedForReview.length} flagged`, color:"#B45309", g:"linear-gradient(135deg,#B45309,#D97706)", badge: flaggedForReview.length },
@@ -7976,6 +8338,10 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
 
           {activeModule === "duplicates" && (
             <DuplicateRiskCenter onViewCase={onViewCase} cases={cases} showToast={showToast} />
+          )}
+
+          {activeModule === "permissions" && (
+            <PermissionsPanel currentUser={currentUser} showToast={showToast} />
           )}
 
           {activeModule === "donations" && (

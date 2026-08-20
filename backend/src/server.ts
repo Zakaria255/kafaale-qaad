@@ -54,6 +54,7 @@ import chatRoutes from './routes/chat';
 import updatesRoutes from './routes/updates';
 import mediaRoutes from './routes/media';
 import duplicatesRoutes from './routes/duplicates';
+import permissionsRoutes from './routes/permissions';
 import { getSettings } from './routes/settings';
 import cron from 'node-cron';
 import { sysLog } from './services/logger';
@@ -226,6 +227,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api/auth',          authLimiter, authRoutes);
 app.use('/api/cases',         casesRoutes);   // globalLimiter covers GETs; upload routes inside use their own check
 app.use('/api/admin/duplicates', duplicatesRoutes); // mounted before the broader /api/admin gate below (more specific path first)
+app.use('/api/admin/permissions', permissionsRoutes); // same — more specific path first
 app.use('/api/admin',         adminRoutes);
 app.use('/api/field',         uploadLimiter, fieldRoutes);
 app.use('/api/donate',        donationLimiter, donationRoutes);

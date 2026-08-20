@@ -144,6 +144,25 @@ export const duplicates = {
   review: (id, decision, reason)  => req(`/admin/duplicates/${id}/review`, { method: 'PATCH', body: JSON.stringify({ decision, reason }) }),
 };
 
+// ── Permissions Management endpoints ───────────────────────────────
+export const permissions = {
+  catalog:       ()                       => req('/admin/permissions/catalog'),
+  stats:         ()                       => req('/admin/permissions/stats'),
+  users:         (params = {})            => req('/admin/permissions/users?' + new URLSearchParams(params)),
+  user:          (id)                     => req(`/admin/permissions/users/${id}`),
+  grant:         (userId, data)           => req(`/admin/permissions/users/${userId}/permissions`, { method: 'POST', body: JSON.stringify(data) }),
+  revoke:        (userId, key)            => req(`/admin/permissions/users/${userId}/permissions/${encodeURIComponent(key)}`, { method: 'DELETE' }),
+  copy:          (userId, fromUserId)     => req(`/admin/permissions/users/${userId}/copy-permissions/${fromUserId}`, { method: 'POST' }),
+  groups:        ()                       => req('/admin/permissions/groups'),
+  createGroup:   (data)                   => req('/admin/permissions/groups', { method: 'POST', body: JSON.stringify(data) }),
+  updateGroup:   (id, data)               => req(`/admin/permissions/groups/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  addGroupPermission: (id, data)          => req(`/admin/permissions/groups/${id}/permissions`, { method: 'POST', body: JSON.stringify(data) }),
+  addGroupMember:     (id, userId)        => req(`/admin/permissions/groups/${id}/members`, { method: 'POST', body: JSON.stringify({ userId }) }),
+  removeGroupMember:  (id, userId)        => req(`/admin/permissions/groups/${id}/members/${userId}`, { method: 'DELETE' }),
+  audit:         (params = {})            => req('/admin/permissions/audit?' + new URLSearchParams(params)),
+  matrix:        ()                       => req('/admin/permissions/matrix'),
+};
+
 // ── Donations endpoints ───────────────────────────────────────────
 export const donations = {
   donate: (data) => req('/donate', { method: 'POST', body: JSON.stringify(data) }),

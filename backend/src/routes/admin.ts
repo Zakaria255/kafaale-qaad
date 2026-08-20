@@ -7,6 +7,8 @@ import { sysLog } from '../services/logger';
 import { safeError } from '../middleware/errors';
 import { fraudDetectionService } from '../services/fraudDetectionService';
 import { uploadCases, processUploads } from '../middleware/upload';
+import { requirePermission, PermissionRequest } from '../middleware/permissions';
+import { hasPermission } from '../services/permissionService';
 
 const router = Router();
 router.use(authenticate, requireRole([
@@ -14,11 +16,20 @@ router.use(authenticate, requireRole([
 ]));
 
 // GET /api/admin/cases — All cases with full details
-router.get('/cases', async (req: AuthRequest, res: Response) => {
+router.get('/cases', requirePermission('case.view'), async (req: PermissionRequest, res: Response) => {
   try {
     const { status, page = '1', limit = '20' } = req.query as Record<string,string>;
     const where: any = {};
     if (status) where.status = status;
+    // Scope-aware filtering — proves the scope mechanism end-to-end (see plan). Everyone
+    // with today's admin-tier roles is seeded scope:"global" so this is a no-op for them;
+    // a Super Admin can narrow a specific individual to "own"/"department" via the
+    // Permissions panel without touching their role.
+    if (req.permissionScope === 'own') where.reporterId = req.user!.id;
+    else if (req.permissionScope === 'department') {
+      const actor = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { department: true } });
+      if (actor?.department) where.reporter = { department: actor.department };
+    }
     const skip = (parseInt(page)-1) * parseInt(limit);
     const [cases, total] = await Promise.all([
       prisma.case.findMany({
@@ -39,7 +50,7 @@ router.get('/cases', async (req: AuthRequest, res: Response) => {
 });
 
 // GET /api/admin/cases/:id — Full private case detail
-router.get('/cases/:id', async (req: AuthRequest, res: Response) => {
+router.get('/cases/:id', requirePermission('case.view_private'), async (req: AuthRequest, res: Response) => {
   try {
     const kase = await prisma.case.findUnique({
       where: { id: req.params.id },
@@ -65,6 +76,12 @@ router.patch('/cases/:id/status', async (req: AuthRequest, res: Response) => {
     const { status, notes, rejectionReason } = req.body;
     const validStatuses = ['pending_review','team_assigned','investigating','investigation_completed','ai_sanitized','waiting_for_sponsor','sponsored','delivering','proof_uploaded','completed','rejected'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+
+    // Rejecting vs. every other forward transition maps to case.reject / case.approve —
+    // matches this route's own STATUS_TO_ACTION vocabulary below (everything that isn't
+    // 'rejected' already logs as an "approved"-family audit action).
+    const { granted } = await hasPermission(req.user!.id, status === 'rejected' ? 'case.reject' : 'case.approve');
+    if (!granted) return res.status(403).json({ error: 'Insufficient permissions', required: status === 'rejected' ? 'case.reject' : 'case.approve' });
 
     const updateData: any = { status };
     if (status === 'rejected') { updateData.rejectedAt = new Date(); updateData.rejectionReason = rejectionReason; }
@@ -166,7 +183,7 @@ router.patch('/cases/:id/assign-delivery', async (req: AuthRequest, res: Respons
 });
 
 // PATCH /api/admin/cases/:id/publish — Publish case after AI sanitization
-router.patch('/cases/:id/publish', async (req: AuthRequest, res: Response) => {
+router.patch('/cases/:id/publish', requirePermission('case.publish'), async (req: AuthRequest, res: Response) => {
   try {
     const { publicTitle, publicStory, publicCity, targetGoal } = req.body;
     const kase = await prisma.case.update({
@@ -212,9 +229,11 @@ router.patch('/cases/:id/public-info', async (req: AuthRequest, res: Response) =
 // portal without destroying it. Cases carry donations/audit logs/media, so a
 // hard delete would either fail on FK constraints or wipe financial records —
 // flipping status is the safe reversible equivalent (see /restore below).
-router.patch('/cases/:id/archive', async (req: AuthRequest, res: Response) => {
+router.patch('/cases/:id/archive', requirePermission('case.archive'), async (req: AuthRequest, res: Response) => {
   try {
-    if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    // Authorization is requirePermission('case.archive') above (seeded admin/super_admin
+    // by default, matching the old hardcoded check) — no inline role check here, it would
+    // silently defeat an individual grant.
     const existing = await prisma.case.findUnique({ where: { id: req.params.id }, select: { id: true, status: true } });
     if (!existing) return res.status(404).json({ error: 'Case not found' });
     if (existing.status === 'archived') return res.status(400).json({ error: 'Case is already removed' });
@@ -391,7 +410,7 @@ router.get('/donations', async (req: AuthRequest, res: Response) => {
 });
 
 // PATCH /api/admin/donations/:id/confirm — Confirm a pending donation (atomic)
-router.patch('/donations/:id/confirm', async (req: AuthRequest, res: Response) => {
+router.patch('/donations/:id/confirm', requirePermission('donation.confirm'), async (req: AuthRequest, res: Response) => {
   try {
     const existing = await prisma.donation.findUnique({
       where: { id: req.params.id },
@@ -438,9 +457,10 @@ router.patch('/donations/:id/confirm', async (req: AuthRequest, res: Response) =
 });
 
 // PATCH /api/admin/donations/:id/refund — Refund a donation (super_admin only)
-router.patch('/donations/:id/refund', async (req: AuthRequest, res: Response) => {
+router.patch('/donations/:id/refund', requirePermission('donation.refund'), async (req: AuthRequest, res: Response) => {
   try {
-    if (!['admin','super_admin'].includes(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    // Authorization is requirePermission('donation.refund') above — no inline role check
+    // here, it would silently defeat an individual grant.
     const { reason } = req.body;
     if (!reason?.trim()) return res.status(400).json({ error: 'Refund reason required' });
 
@@ -524,11 +544,12 @@ router.patch('/cases/:id/complete', async (req: AuthRequest, res: Response) => {
 });
 
 // PATCH /api/admin/users/:id/role — Change user role (super_admin only)
-router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
+router.patch('/users/:id/role', requirePermission('user.role_change'), async (req: AuthRequest, res: Response) => {
   try {
-    if (req.user!.role !== 'super_admin') {
-      return res.status(403).json({ error: 'Only Super Admin can change user roles' });
-    }
+    // Authorization is requirePermission('user.role_change') above — seeded super_admin-only
+    // by default (matching this route's original hardcoded check), individually expandable
+    // by a Super Admin via the Permissions panel. Do not reintroduce a hardcoded role check
+    // here — it would silently defeat any individual grant.
     const { id } = req.params;
     const { role } = req.body;
     const validRoles = ['user','reporter','donor','field_agent','verification_office','program_manager','project_manager','admin','super_admin'];
@@ -614,11 +635,10 @@ router.patch('/users/:id', async (req: AuthRequest, res: Response) => {
 // DELETE /api/admin/users/:id — Soft-delete (deactivate + anonymise) a user (super_admin only)
 // Hard prisma.user.delete() fails with FK constraint if the user has cases/donations/notifications.
 // Instead we deactivate and anonymise the account — preserving audit trail integrity.
-router.delete('/users/:id', async (req: AuthRequest, res: Response) => {
+router.delete('/users/:id', requirePermission('user.delete'), async (req: AuthRequest, res: Response) => {
   try {
-    if (req.user!.role !== 'super_admin') {
-      return res.status(403).json({ error: 'Only Super Admin can delete users' });
-    }
+    // Authorization is requirePermission('user.delete') above — see the note on
+    // PATCH /users/:id/role just above for why there's no hardcoded role check here.
     const { id } = req.params;
     if (id === req.user!.id) {
       return res.status(400).json({ error: 'You cannot delete your own account' });
@@ -738,7 +758,7 @@ router.post('/cases/:id/enroll-beneficiary', async (req: AuthRequest, res: Respo
   }
 });
 
-router.get('/audit', async (_req: AuthRequest, res: Response) => {
+router.get('/audit', requirePermission('audit.view'), async (_req: AuthRequest, res: Response) => {
   try {
     const logs = await prisma.adminAuditLog.findMany({
       orderBy: { timestamp: 'desc' },
