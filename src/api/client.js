@@ -223,6 +223,9 @@ export const programs = {
   markPaid:           (sponsorshipId, data)   => req(`/programs/sponsorships/${sponsorshipId}/mark-paid`, { method: 'POST', body: JSON.stringify(data) }),
   renewContract:      (sponsorshipId, data)   => req(`/programs/sponsorships/${sponsorshipId}/renew`, { method: 'PATCH', body: JSON.stringify(data) }),
   releaseToSeeking:   (beneficiaryId)         => req(`/programs/beneficiaries/${beneficiaryId}/release`, { method: 'PATCH' }),
+  pendingSponsorships: ()                     => req('/programs/sponsorships/pending'),
+  confirmSponsorship:  (id)                   => req(`/programs/sponsorships/${id}/confirm`, { method: 'PATCH' }),
+  rejectSponsorship:   (id, reason)           => req(`/programs/sponsorships/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }) }),
 };
 
 // ── Settings / Document templates endpoints ───────────────────────

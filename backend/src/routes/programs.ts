@@ -430,7 +430,9 @@ router.get('/sponsorships/my', authenticate, async (req: AuthRequest, res: Respo
 });
 
 // POST /api/programs/sponsorships — Create sponsorship (donor self-service)
-// NOTE: This creates a pending intent. Status only changes to under_sponsor when admin confirms 12-month contract via assign-donor.
+// Creates a pending pledge — nothing activates until an admin confirms it via
+// PATCH /sponsorships/:id/confirm. The beneficiary is reserved (pending_confirmation)
+// so it drops off the public "Seeking Sponsor" list while the pledge is under review.
 router.post('/sponsorships', authenticate, async (req: AuthRequest, res: Response) => {
   const schema = z.object({
     beneficiaryId:   z.string(),
@@ -459,23 +461,104 @@ router.post('/sponsorships', authenticate, async (req: AuthRequest, res: Respons
         monthlyAmount: data.monthlyAmount,
         paymentMethod: data.paymentMethod || 'bank_transfer',
         nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        status: 'pending',
         ...(endDate && { endDate }),
       },
     });
 
-    // Only move to under_sponsor when a full 12-month contract is committed
-    // Anything less stays seeking_sponsor — child remains visible on public page
-    if (data.commitmentMonths && data.commitmentMonths >= 12) {
-      await prisma.beneficiary.update({
-        where: { id: data.beneficiaryId },
-        data: { status: 'under_sponsor' },
-      });
-    }
+    await prisma.beneficiary.update({
+      where: { id: data.beneficiaryId },
+      data: { status: 'pending_confirmation' },
+    });
+
+    const staff = await prisma.user.findMany({ where: { role: { in: ['admin','super_admin','program_manager','office_staff'] }, isActive: true }, select: { id: true } });
+    await prisma.notification.createMany({
+      data: staff.map(u => ({
+        userId: u.id, type: 'sponsorship_pending',
+        title: '🌱 New Sponsorship Pledge',
+        message: `A new $${data.monthlyAmount}/month sponsorship pledge for ${beneficiary.publicId} needs your confirmation.`,
+      })),
+    });
 
     res.status(201).json(sponsorship);
   } catch (e: any) {
     res.status(400).json({ error: e.message });
   }
+});
+
+// GET /api/programs/sponsorships/pending — Admin review queue
+router.get('/sponsorships/pending', authenticate, async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const pending = await prisma.sponsorship.findMany({
+      where: { status: 'pending' },
+      include: {
+        beneficiary: { select: { id: true, publicId: true, privateFullName: true, publicPhotoUrl: true, programType: true, program: { select: { name: true, icon: true } } } },
+        sponsor: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+    res.json(pending);
+  } catch { res.status(500).json({ error: 'Failed to fetch pending sponsorships' }); }
+});
+
+// PATCH /api/programs/sponsorships/:id/confirm — Admin confirms a pending pledge
+router.patch('/sponsorships/:id/confirm', authenticate, async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const sp = await prisma.sponsorship.findUnique({
+      where: { id: req.params.id },
+      include: { beneficiary: { select: { publicId: true, privateFullName: true } } },
+    });
+    if (!sp) return res.status(404).json({ error: 'Sponsorship not found' });
+    if (sp.status !== 'pending') return res.status(400).json({ error: `Sponsorship is not pending (status: ${sp.status})` });
+
+    await prisma.$transaction([
+      prisma.sponsorship.update({ where: { id: sp.id }, data: { status: 'active' } }),
+      prisma.beneficiary.update({ where: { id: sp.beneficiaryId }, data: { status: 'under_sponsor' } }),
+      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, action: 'sponsorship_confirmed', notes: `Confirmed sponsorship of ${sp.beneficiary.publicId} at $${sp.monthlyAmount}/month` } }),
+    ]);
+    await prisma.notification.create({
+      data: {
+        userId: sp.sponsorId, type: 'sponsorship_confirmed',
+        title: '✅ Sponsorship Confirmed',
+        message: `Your sponsorship pledge for ${sp.beneficiary.privateFullName || sp.beneficiary.publicId} has been confirmed. Thank you for your commitment!`,
+      },
+    });
+    res.json({ message: 'Sponsorship confirmed' });
+  } catch (e: any) { return safeError(res, 500, 'Failed to confirm sponsorship', e); }
+});
+
+// PATCH /api/programs/sponsorships/:id/reject — Admin declines a pending pledge
+router.patch('/sponsorships/:id/reject', authenticate, async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const { reason } = req.body as { reason?: string };
+    const sp = await prisma.sponsorship.findUnique({
+      where: { id: req.params.id },
+      include: { beneficiary: { select: { publicId: true, privateFullName: true } } },
+    });
+    if (!sp) return res.status(404).json({ error: 'Sponsorship not found' });
+    if (sp.status !== 'pending') return res.status(400).json({ error: `Sponsorship is not pending (status: ${sp.status})` });
+
+    // Revert the beneficiary the same way /end does: back to under_sponsor if another
+    // active sponsorship still exists, otherwise back to seeking_sponsor.
+    const remainingActive = await prisma.sponsorship.count({ where: { beneficiaryId: sp.beneficiaryId, status: 'active', id: { not: sp.id } } });
+
+    await prisma.$transaction([
+      prisma.sponsorship.update({ where: { id: sp.id }, data: { status: 'rejected' } }),
+      prisma.beneficiary.update({ where: { id: sp.beneficiaryId }, data: { status: remainingActive > 0 ? 'under_sponsor' : 'seeking_sponsor' } }),
+      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, action: 'sponsorship_rejected', notes: `Declined sponsorship of ${sp.beneficiary.publicId}${reason ? `: ${reason}` : ''}` } }),
+    ]);
+    await prisma.notification.create({
+      data: {
+        userId: sp.sponsorId, type: 'sponsorship_rejected',
+        title: 'Sponsorship Pledge Not Confirmed',
+        message: `Your sponsorship pledge for ${sp.beneficiary.privateFullName || sp.beneficiary.publicId} was not confirmed${reason ? `: ${reason}` : '.'}`,
+      },
+    });
+    res.json({ message: 'Sponsorship rejected' });
+  } catch (e: any) { return safeError(res, 500, 'Failed to reject sponsorship', e); }
 });
 
 // GET /api/programs/stats — Program statistics
@@ -606,6 +689,110 @@ router.post('/sponsorships/:id/mark-paid', authenticate, async (req: AuthRequest
   } catch (e: any) {
     res.status(500).json({ error: 'Failed to mark payment: ' + e.message });
   }
+});
+
+// POST /api/programs/sponsorships/:id/pay — Donor submits a payment claim (needs admin confirmation)
+router.post('/sponsorships/:id/pay', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const sp = await prisma.sponsorship.findUnique({ where: { id: req.params.id } });
+    if (!sp) return res.status(404).json({ error: 'Sponsorship not found' });
+    if (sp.sponsorId !== req.user!.id && !isAdmin(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+    if (sp.status !== 'active') return res.status(400).json({ error: 'Sponsorship is not active' });
+
+    const now = new Date();
+    const month = req.body.month || now.getMonth() + 1;
+    const year  = req.body.year  || now.getFullYear();
+
+    const existing = await prisma.sponsorshipPayment.findFirst({ where: { sponsorshipId: sp.id, month, year, status: { in: ['pending', 'confirmed'] } } });
+    if (existing) return res.status(400).json({ error: `A payment for ${month}/${year} is already ${existing.status}` });
+
+    const payment = await prisma.sponsorshipPayment.create({
+      data: { sponsorshipId: sp.id, amount: sp.monthlyAmount, currency: sp.currency, month, year, status: 'pending' },
+    });
+
+    const staff = await prisma.user.findMany({ where: { role: { in: ['admin','super_admin','program_manager','office_staff'] }, isActive: true }, select: { id: true } });
+    await prisma.notification.createMany({
+      data: staff.map(u => ({
+        userId: u.id, type: 'payment_pending',
+        title: '💳 Payment Awaiting Confirmation',
+        message: `A $${sp.monthlyAmount} payment for ${month}/${year} was submitted and needs confirmation.`,
+      })),
+    });
+
+    res.status(201).json({ message: 'Payment submitted — admin will confirm receipt.', payment });
+  } catch (e: any) { return safeError(res, 500, 'Failed to submit payment', e); }
+});
+
+// GET /api/programs/admin/payments — Admin: list pending payments
+router.get('/admin/payments', authenticate, async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const pending = await prisma.sponsorshipPayment.findMany({
+      where: { status: 'pending' },
+      include: {
+        sponsorship: {
+          include: {
+            beneficiary: { select: { id: true, publicId: true, privateFullName: true, publicPhotoUrl: true } },
+            sponsor: { select: { id: true, name: true, email: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+    res.json(pending);
+  } catch { res.status(500).json({ error: 'Failed to fetch pending payments' }); }
+});
+
+// PATCH /api/programs/payments/:id/confirm — Admin confirms a submitted payment
+router.patch('/payments/:id/confirm', authenticate, async (req: AuthRequest, res: Response) => {
+  if (!isAdmin(req.user!.role)) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const payment = await prisma.sponsorshipPayment.findUnique({
+      where: { id: req.params.id },
+      include: { sponsorship: { include: { beneficiary: { select: { publicId: true, privateFullName: true, publicRegion: true, status: true } }, sponsor: { select: { id: true, name: true, email: true } } } } },
+    });
+    if (!payment) return res.status(404).json({ error: 'Payment not found' });
+    if (payment.status === 'confirmed') return res.status(400).json({ error: 'Payment already confirmed' });
+
+    const now = new Date();
+    const sp = payment.sponsorship;
+
+    const [, updatedSp] = await prisma.$transaction([
+      prisma.sponsorshipPayment.update({ where: { id: payment.id }, data: { status: 'confirmed', confirmedAt: now } }),
+      prisma.sponsorship.update({
+        where: { id: sp.id },
+        data: { totalPaid: { increment: payment.amount }, monthsCompleted: { increment: 1 }, nextPaymentDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) },
+      }),
+      prisma.adminAuditLog.create({ data: { adminId: req.user!.id, action: 'sponsor_payment_confirmed', notes: `Confirmed $${payment.amount} payment (${payment.month}/${payment.year}) for ${sp.beneficiary.publicId}` } }),
+    ]);
+
+    if (updatedSp.monthsCompleted >= 12 && !['under_sponsor', 'completed'].includes(sp.beneficiary.status)) {
+      await prisma.beneficiary.update({ where: { id: sp.beneficiaryId }, data: { status: 'under_sponsor' } });
+    }
+
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const receiptNo = `KQ-RCP-${Date.now().toString(36).toUpperCase().slice(-6)}-${payment.year}${String(payment.month).padStart(2,'0')}`;
+    const rcptTmpl = await getSettings(['receipt.title', 'receipt.body']);
+    await prisma.notification.create({
+      data: {
+        userId:  sp.sponsorId,
+        type:    'payment_receipt',
+        title:   rcptTmpl['receipt.title'],
+        message: rcptTmpl['receipt.body']
+          .replace(/{donorName}/g, sp.sponsor.name || 'Dear Donor')
+          .replace(/{amount}/g,    payment.amount.toFixed(2))
+          .replace(/{currency}/g,  payment.currency)
+          .replace(/{childId}/g,   sp.beneficiary.publicId)
+          .replace(/{childName}/g, sp.beneficiary.privateFullName || sp.beneficiary.publicId)
+          .replace(/{region}/g,    sp.beneficiary.publicRegion || 'Somalia')
+          .replace(/{receiptNo}/g, receiptNo)
+          .replace(/{month}/g,     MONTHS[payment.month - 1])
+          .replace(/{year}/g,      String(payment.year)),
+      },
+    });
+
+    res.json({ message: 'Payment confirmed', receiptNo });
+  } catch (e: any) { return safeError(res, 500, 'Failed to confirm payment', e); }
 });
 
 // PATCH /api/programs/sponsorships/:id/renew — Donor or admin renews contract for another period

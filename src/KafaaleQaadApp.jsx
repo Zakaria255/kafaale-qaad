@@ -8570,6 +8570,8 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
   const [filterStatus, setFilterStatus] = useState("");
   const [pendingPayments, setPendingPayments] = useState([]);
   const [loadingPay, setLoadingPay] = useState(false);
+  const [pendingSponsorships, setPendingSponsorships] = useState([]);
+  const [loadingSpons2, setLoadingSpons2] = useState(false);
   const [docSettings, setDocSettings] = useState(null);
   const [docSaving, setDocSaving] = useState(false);
   const [docEdited, setDocEdited] = useState({});
@@ -8591,7 +8593,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
   };
 
   useEffect(() => { load(); }, []);
-  useEffect(() => { if (tab === "payments") loadPendingPayments(); }, [tab]);
+  useEffect(() => { if (tab === "payments") { loadPendingPayments(); loadPendingSponsorships(); } }, [tab]);
   useEffect(() => {
     if (tab === "documents" && !docSettings) {
       settingsApi.all().then(d => { setDocSettings(d.settings || {}); setDocEdited(d.settings || {}); }).catch(() => {});
@@ -8613,6 +8615,33 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
       showToast("Payment confirmed — sponsor's total updated.");
       loadPendingPayments();
     } catch { showToast("Failed to confirm payment", "error"); }
+  };
+
+  const loadPendingSponsorships = () => {
+    setLoadingSpons2(true);
+    programsApi.pendingSponsorships()
+      .then(d => setPendingSponsorships(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      .finally(() => setLoadingSpons2(false));
+  };
+
+  const confirmPendingSponsorship = async (id) => {
+    try {
+      await programsApi.confirmSponsorship(id);
+      showToast("Sponsorship confirmed — beneficiary is now under sponsor.");
+      loadPendingSponsorships();
+      load();
+    } catch (e) { showToast(e.message || "Failed to confirm sponsorship", "error"); }
+  };
+
+  const rejectPendingSponsorship = async (id) => {
+    const reason = window.prompt("Reason for declining this pledge (optional):") || "";
+    try {
+      await programsApi.rejectSponsorship(id, reason);
+      showToast("Sponsorship pledge declined.");
+      loadPendingSponsorships();
+      load();
+    } catch (e) { showToast(e.message || "Failed to decline sponsorship", "error"); }
   };
 
   const handleVerify = async (id, status) => {
@@ -8644,7 +8673,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
     { id: "overview",      label: "Overview" },
     { id: "beneficiaries", label: `👶 Beneficiaries (${beneficiaries.length})` },
     { id: "projects",      label: `Community Projects (${projects.length})` },
-    { id: "payments",      label: `Sponsor Payments${pendingPayments.length > 0 ? ` (${pendingPayments.length} pending)` : ""}` },
+    { id: "payments",      label: `Approvals${(pendingPayments.length + pendingSponsorships.length) > 0 ? ` (${pendingPayments.length + pendingSponsorships.length} pending)` : ""}` },
     { id: "documents",     label: "Documents" },
   ];
 
@@ -8681,6 +8710,7 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
         <StatCard label="Under Sponsor"    value={beneficiaries.filter(b=>b.status==="under_sponsor"||b.status==="sponsored").length} icon="" color={COLORS.primary} />
         <StatCard label="Projects"         value={projects.length}                                            icon="" color={COLORS.teal} />
         <StatCard label="Pending Payments" value={pendingPayments.length}                                     icon="" color="#F59E0B" />
+        <StatCard label="Pending Pledges"  value={pendingSponsorships.length}                                 icon="🌱" color="#B45309" />
       </div>
 
       {/* Tabs */}
@@ -8919,12 +8949,47 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
         </div>
       )}
 
-      {/* ── SPONSOR PAYMENTS tab ── */}
+      {/* ── APPROVALS tab (pending sponsorship pledges + pending payments) ── */}
       {tab === "payments" && (() => {
         if (!isAdmin) return null;
-        if (loadingPay) return <div style={{ textAlign:"center", padding:40, color:COLORS.muted }}>Loading payments…</div>;
         return (
           <div>
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:12 }}>Pending Sponsorship Pledges</div>
+            {loadingSpons2 ? (
+              <div style={{ textAlign:"center", padding:24, color:COLORS.muted }}>Loading pledges…</div>
+            ) : pendingSponsorships.length === 0 ? (
+              <div style={{ textAlign:"center", padding:24, color:COLORS.muted, background:"#fff", borderRadius:16, boxShadow:"0 2px 8px #0001", marginBottom:24 }}>
+                No pending sponsorship pledges.
+              </div>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:24 }}>
+                {pendingSponsorships.map(sp => (
+                  <div key={sp.id} style={{ background:"#fff", borderRadius:12, padding:"16px 20px", border:`1px solid ${COLORS.border}`, boxShadow:"0 1px 4px #0001" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:12 }}>
+                      <div>
+                        <div style={{ fontWeight:800, fontSize:15 }}>{sp.sponsor?.name || "Sponsor"}</div>
+                        <div style={{ fontSize:12, color:COLORS.muted }}>{sp.sponsor?.email}</div>
+                        <div style={{ fontSize:13, marginTop:6 }}>
+                          Beneficiary: <b>{sp.beneficiary?.publicId}</b> · Program: <b>{sp.beneficiary?.program?.name}</b>
+                        </div>
+                        <div style={{ fontSize:11, color:COLORS.muted, marginTop:4 }}>
+                          Pledged: {new Date(sp.createdAt).toLocaleString()} · {sp.type} · {(sp.paymentMethod||"").replace(/_/g," ")}
+                        </div>
+                      </div>
+                      <div style={{ textAlign:"right" }}>
+                        <div style={{ fontSize:22, fontWeight:900, color:COLORS.primary }}>${(sp.monthlyAmount||0).toLocaleString()}/mo</div>
+                        <span style={{ background:"#FEF3C7", color:"#92400E", borderRadius:20, padding:"3px 12px", fontSize:11, fontWeight:700, display:"inline-block", marginTop:4 }}>Pending</span>
+                      </div>
+                    </div>
+                    <div style={{ marginTop:14, display:"flex", gap:8, flexWrap:"wrap" }}>
+                      <Btn variant="success" size="sm" onClick={() => confirmPendingSponsorship(sp.id)}>Confirm Sponsorship</Btn>
+                      <Btn variant="danger" size="sm" onClick={() => rejectPendingSponsorship(sp.id)}>Decline</Btn>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, flexWrap:"wrap", gap:8 }}>
               <div style={{ fontWeight:800, fontSize:16 }}>Pending Sponsorship Payments</div>
               <div style={{ display:"flex", gap:8 }}>
@@ -8940,7 +9005,9 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
             <div style={{ background:"#EFF6FF", border:"1px solid #BFDBFE", borderRadius:10, padding:"10px 14px", marginBottom:14, fontSize:12, color:"#1E40AF" }}>
               <strong>Auto-reminder:</strong> Donors are automatically notified 5 days before their monthly payment is due (daily at 8 AM). Use the button above to send manually at any time.
             </div>
-            {pendingPayments.length === 0 ? (
+            {loadingPay ? (
+              <div style={{ textAlign:"center", padding:40, color:COLORS.muted }}>Loading payments…</div>
+            ) : pendingPayments.length === 0 ? (
               <div style={{ textAlign:"center", padding:40, color:COLORS.muted, background:"#fff", borderRadius:16, boxShadow:"0 2px 8px #0001" }}>
                 <div style={{ fontSize:40, marginBottom:12 }}></div>
                 <div style={{ fontWeight:700 }}>No pending payments</div>
