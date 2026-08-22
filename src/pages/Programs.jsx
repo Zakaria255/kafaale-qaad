@@ -3,6 +3,7 @@ import FixedSelect from "../components/FixedSelect.jsx";
 import { useNavigate } from "react-router-dom";
 import { programs as programsApi, projects as projectsApi } from "../api/client.js";
 import { useLang } from "../context/LanguageContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import ContractModal from "../components/ContractModal.jsx";
 import { getCat } from "../utils/categories.js";
 import { C } from "../theme.js";
@@ -223,6 +224,8 @@ const ProjectCard = ({ p, onContribute }) => {
 };
 
 const SponsorBeneficiaryModal = ({ beneficiary, onClose, onDone }) => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [type, setType] = useState("full");
   const [amount, setAmount] = useState(String(beneficiary.monthlyNeed || 25));
   const [method, setMethod] = useState("bank_transfer");
@@ -249,6 +252,11 @@ const SponsorBeneficiaryModal = ({ beneficiary, onClose, onDone }) => {
       onDone && onDone();
       setDone(true);
     } catch (e) {
+      if (e.message === "Session expired. Please log in again.") {
+        logout();
+        navigate("/login");
+        return;
+      }
       setError(e.message || "Failed to create sponsorship");
     } finally {
       setLoading(false);
