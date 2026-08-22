@@ -222,6 +222,16 @@ router.post('/groups/:id/permissions', async (req: AuthRequest, res: Response) =
 router.post('/groups/:id/members', async (req: AuthRequest, res: Response) => {
   try {
     const { userId } = z.object({ userId: z.string() }).parse(req.body);
+    if (userId === req.user!.id) return res.status(403).json({ error: 'You cannot add yourself to a permission group' });
+
+    // Membership grants every permission the group holds — so joining a group must be
+    // held to the same authority-ceiling rule as a direct grant, or it's a bypass of it.
+    const groupPerms = await prisma.groupPermission.findMany({ where: { groupId: req.params.id } });
+    for (const gp of groupPerms) {
+      const check = await canGrant(req.user!.id, req.user!.role, gp.permissionKey);
+      if (!check.allowed) return res.status(403).json({ error: `Cannot add member: this group includes "${gp.permissionKey}" — ${check.reason}` });
+    }
+
     const membership = await prisma.userPermissionGroup.upsert({
       where: { userId_groupId: { userId, groupId: req.params.id } },
       update: {},
