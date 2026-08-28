@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi, duplicates as duplicatesApi, permissions as permissionsApi } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi, duplicates as duplicatesApi, permissions as permissionsApi, mothers as mothersApi, getToken as getAuthToken } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import ImageCropper from "./components/ImageCropper.jsx";
@@ -7985,6 +7985,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
     { id:"chat",       icon:"", label:"Communication",   sub:"Team channels & messages",       color:"#0284C7", g:"linear-gradient(135deg,#0284C7,#0EA5E9)", badge: 0 },
     { id:"notebook",   icon:"", label:"Notebook",        sub:"Notes & tasks",                  color:"#E28E12", g:"linear-gradient(135deg,#E28E12,#FAA528)", badge: 0 },
     { id:"settings",   icon:"", label:"Settings",        sub:"Site configuration",             color:"#374151", g:"linear-gradient(135deg,#374151,#6B7280)", badge: 0 },
+    { id:"mothers",    icon:"", label:"Mothers & Orphans", sub:"Registration & verification",  color:"#BE185D", g:"linear-gradient(135deg,#BE185D,#DB2777)", badge: 0 },
   ];
   const ADMIN_MODULES = SUPER_MODULES.filter(m => !["users","settings"].includes(m.id));
   const modules = isSuperAdmin ? SUPER_MODULES : ADMIN_MODULES;
@@ -8487,6 +8488,7 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
           {activeModule === "updates"        && <div style={{ padding:"8px 0" }}><SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} defaultTab="updates_mgr" /></div>}
           {activeModule === "media_mgr"      && <div style={{ padding:"8px 0" }}><SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} defaultTab="media_mgr" /></div>}
           {activeModule === "settings"       && isSuperAdmin && <SiteSettingsPanel showToast={showToast||(() => {})} currentUser={currentUser} />}
+          {activeModule === "mothers"        && <MothersRegistryPanel currentUser={currentUser} showToast={showToast||(() => {})} realRole={isSuperAdmin ? "super_admin" : "admin"} />}
         </div>
       )}
     </div>
@@ -9809,6 +9811,833 @@ const ProgramsDashboard = ({ currentUser, showToast, adminPaymentsApi }) => {
   );
 };
 
+// ── Vulnerable Mothers & Orphans Registration and Verification ─────────────────
+const MOTHER_REGIONS = ["Awdal","Bakool","Banadir","Bari","Bay","Galgaduud","Gedo","Hiiraan","Lower Juba","Lower Shabelle","Middle Juba","Middle Shabelle","Mudug","Nugaal","Sanaag","Sool","Togdheer","Woqooyi Galbeed"];
+const MOTHER_VULNERABILITY_REASONS = ["Caring for Orphans","Extreme Financial Difficulty","Single Mother","No Stable Income","Difficulty Supporting Children","Poor Living Conditions","Other"];
+const MOTHER_STATUS_MAP = {
+  pending_verification:  { label: "Pending Verification", color: "#B45309", bg: "#FEF3C7" },
+  correction_requested:  { label: "Needs Correction",      color: "#B91C1C", bg: "#FEE2E2" },
+  completed:              { label: "✓ Completed",           color: "#065F46", bg: "#D1FAE5" },
+  rejected:               { label: "Rejected",              color: "#991B1B", bg: "#FEE2E2" },
+};
+const MotherStatusBadge = ({ status }) => {
+  const s = MOTHER_STATUS_MAP[status] || { label: status, color: COLORS.muted, bg: "#F3F4F6" };
+  return <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.color}40`, borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>{s.label}</span>;
+};
+
+const MOTHER_SEL_STYLE = { width: "100%", padding: "10px 14px", border: `1.5px solid ${COLORS.border}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", background: "#fff" };
+
+// Authenticated file download (server route requires a Bearer token, so a plain
+// <a href> can't be used) — fetch as a blob, then trigger a synthetic click.
+async function downloadAuthed(url, filename) {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
+  if (!res.ok) throw new Error(`Download failed (${res.status})`);
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objUrl; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(objUrl), 1000);
+}
+
+// POST + blob download (bulk PDF ZIP export) — same idea as downloadAuthed but with a
+// JSON request body.
+async function postAndDownloadAuthed(url, body, filename) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getAuthToken()}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const msg = await res.json().catch(() => ({}));
+    throw new Error(msg.error || `Download failed (${res.status})`);
+  }
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objUrl; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(objUrl), 1000);
+}
+
+// Same idea, but opens the file in a new tab for viewing (documents/photos) instead
+// of forcing a download.
+async function openAuthed(url) {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
+  if (!res.ok) throw new Error(`Failed to open file (${res.status})`);
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  window.open(objUrl, "_blank");
+  setTimeout(() => URL.revokeObjectURL(objUrl), 60000);
+}
+
+const MOTHER_DOC_TYPES = [
+  { key: "national_id",    label: "Identification Document" },
+  { key: "family_doc",     label: "Family Documentation" },
+  { key: "supporting_doc", label: "Supporting Document" },
+  { key: "photo",          label: "Photograph" },
+  { key: "other",          label: "Other Supporting File" },
+];
+const MotherField = ({ label, children }) => (
+  <div style={{ marginBottom: 16 }}>
+    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: COLORS.text, marginBottom: 6 }}>{label}</label>
+    {children}
+  </div>
+);
+
+const emptyMotherForm = () => ({
+  fullName: "", age: "", dateOfBirth: "", gender: "female", phone: "", altPhone: "", maritalStatus: "",
+  nationalId: "", region: "", district: "", village: "", address: "",
+  childrenCount: "", childrenLivingWithHer: "", orphansUnderCare: "", otherDependents: "",
+  childrenAgeRange: "", familySituation: "", incomeSource: "",
+  vulnerabilityReasons: [], otherReasonText: "", additionalInfo: "",
+});
+
+// New Registration / Quick Add form — shared by both tabs.
+const MotherRegistrationForm = ({ onSaved, quickAdd, showToast }) => {
+  const [form, setForm] = useState(emptyMotherForm());
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [docs, setDocs] = useState({}); // { [docType]: File }
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const toggleReason = (r) => setForm(f => ({
+    ...f,
+    vulnerabilityReasons: f.vulnerabilityReasons.includes(r)
+      ? f.vulnerabilityReasons.filter(x => x !== r)
+      : [...f.vulnerabilityReasons, r],
+  }));
+
+  const validate = () => {
+    const e = {};
+    if (!form.fullName.trim()) e.fullName = "Full name is required";
+    if (!form.phone.trim()) e.phone = "Phone number is required";
+    else if (!/^[0-9+\-\s]{6,20}$/.test(form.phone.trim())) e.phone = "Enter a valid phone number";
+    if (!form.region) e.region = "Region is required";
+    if (!form.district.trim()) e.district = "District is required";
+    if (form.age && (isNaN(Number(form.age)) || Number(form.age) < 0)) e.age = "Age must be a valid number";
+    if (form.orphansUnderCare && isNaN(Number(form.orphansUnderCare))) e.orphansUnderCare = "Must be a valid number";
+    if (form.childrenCount && isNaN(Number(form.childrenCount))) e.childrenCount = "Must be a valid number";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const [dupMatches, setDupMatches] = useState(null); // null = not checked; [] = checked, none found
+
+  const buildPayload = () => {
+    const payload = { ...form };
+    ["age","childrenCount","childrenLivingWithHer","orphansUnderCare","otherDependents"].forEach(k => {
+      payload[k] = payload[k] === "" ? undefined : Number(payload[k]);
+    });
+    if (!payload.dateOfBirth) delete payload.dateOfBirth;
+    return payload;
+  };
+
+  const doCreate = async (payload) => {
+    setSaving(true);
+    try {
+      const created = await mothersApi.create(payload);
+      const docEntries = Object.entries(docs).filter(([, f]) => f);
+      if (docEntries.length > 0) {
+        const fd = new FormData();
+        docEntries.forEach(([type, f]) => fd.append(type, f));
+        try { await mothersApi.uploadDocuments(created.id, fd); }
+        catch (e) { showToast?.(`Registered, but document upload failed: ${e.message}`, "error"); }
+      }
+      showToast?.(`Registered ${created.fullName} — ${created.regNumber}`, "success");
+      setDupMatches(null);
+      if (quickAdd) { setForm(emptyMotherForm()); setErrors({}); setDocs({}); } // Save & Add Another — stay on the form
+      onSaved?.(created);
+    } catch (e) {
+      showToast?.(e.message || "Failed to save registration", "error");
+    } finally { setSaving(false); }
+  };
+
+  // Pre-submit duplicate check — a confirmation step, never a hard block (spec §10).
+  const submit = async () => {
+    if (!validate()) { showToast?.("Please fix the highlighted fields", "error"); return; }
+    const payload = buildPayload();
+    setSaving(true);
+    try {
+      const { matches } = await mothersApi.checkDuplicates(payload);
+      if (matches && matches.length > 0) { setDupMatches(matches); setSaving(false); return; }
+      await doCreate(payload);
+    } catch (e) {
+      // Duplicate-check failure shouldn't block registration — proceed to save directly.
+      await doCreate(payload);
+    }
+  };
+
+  const confirmAndSave = () => doCreate(buildPayload());
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 8px #0001" }}>
+      <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 800, color: COLORS.text }}>Mother Information</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: "0 16px" }}>
+        <MotherField label="Full Name *"><Input value={form.fullName} onChange={e => set("fullName", e.target.value)} style={errors.fullName ? { borderColor: COLORS.danger } : {}} /></MotherField>
+        <MotherField label="Age"><Input type="number" value={form.age} onChange={e => set("age", e.target.value)} style={errors.age ? { borderColor: COLORS.danger } : {}} /></MotherField>
+        <DatePicker label="Date of Birth" value={form.dateOfBirth} onChange={e => set("dateOfBirth", e.target.value)} max={new Date().toISOString().slice(0,10)} />
+        <MotherField label="Gender">
+          <select value={form.gender} onChange={e => set("gender", e.target.value)} style={MOTHER_SEL_STYLE}>
+            <option value="female">Female</option><option value="male">Male</option><option value="other">Other</option>
+          </select>
+        </MotherField>
+        <MotherField label="Phone Number *"><Input value={form.phone} onChange={e => set("phone", e.target.value)} style={errors.phone ? { borderColor: COLORS.danger } : {}} /></MotherField>
+        <MotherField label="Alternative Phone"><Input value={form.altPhone} onChange={e => set("altPhone", e.target.value)} /></MotherField>
+        <MotherField label="Marital Status">
+          <select value={form.maritalStatus} onChange={e => set("maritalStatus", e.target.value)} style={MOTHER_SEL_STYLE}>
+            <option value="">Select…</option>
+            <option value="single">Single</option><option value="married">Married</option>
+            <option value="widowed">Widowed</option><option value="divorced">Divorced</option>
+          </select>
+        </MotherField>
+        <MotherField label="National ID"><Input value={form.nationalId} onChange={e => set("nationalId", e.target.value)} /></MotherField>
+        <MotherField label="Region *">
+          <select value={form.region} onChange={e => set("region", e.target.value)} style={{ ...MOTHER_SEL_STYLE, ...(errors.region ? { borderColor: COLORS.danger } : {}) }}>
+            <option value="">Select region…</option>
+            {MOTHER_REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </MotherField>
+        <MotherField label="District *"><Input value={form.district} onChange={e => set("district", e.target.value)} style={errors.district ? { borderColor: COLORS.danger } : {}} /></MotherField>
+        <MotherField label="Village / Area"><Input value={form.village} onChange={e => set("village", e.target.value)} /></MotherField>
+      </div>
+      <MotherField label="Detailed Address"><Input value={form.address} onChange={e => set("address", e.target.value)} /></MotherField>
+
+      <h3 style={{ margin: "24px 0 16px", fontSize: 16, fontWeight: 800, color: COLORS.text }}>Family Information</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: "0 16px" }}>
+        <MotherField label="Number of Children"><Input type="number" value={form.childrenCount} onChange={e => set("childrenCount", e.target.value)} style={errors.childrenCount ? { borderColor: COLORS.danger } : {}} /></MotherField>
+        <MotherField label="Children Living With Her"><Input type="number" value={form.childrenLivingWithHer} onChange={e => set("childrenLivingWithHer", e.target.value)} /></MotherField>
+        <MotherField label="Orphans Under Her Care"><Input type="number" value={form.orphansUnderCare} onChange={e => set("orphansUnderCare", e.target.value)} style={errors.orphansUnderCare ? { borderColor: COLORS.danger } : {}} /></MotherField>
+        <MotherField label="Other Dependents"><Input type="number" value={form.otherDependents} onChange={e => set("otherDependents", e.target.value)} /></MotherField>
+        <MotherField label="Children's Age Range"><Input placeholder="e.g. 2-14" value={form.childrenAgeRange} onChange={e => set("childrenAgeRange", e.target.value)} /></MotherField>
+        <MotherField label="Main Source of Household Income"><Input value={form.incomeSource} onChange={e => set("incomeSource", e.target.value)} /></MotherField>
+      </div>
+      <MotherField label="Family Situation">
+        <textarea value={form.familySituation} onChange={e => set("familySituation", e.target.value)} rows={3}
+          style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${COLORS.border}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
+      </MotherField>
+
+      <h3 style={{ margin: "24px 0 12px", fontSize: 16, fontWeight: 800, color: COLORS.text }}>Vulnerability / Situation</h3>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+        {MOTHER_VULNERABILITY_REASONS.map(r => (
+          <button key={r} type="button" onClick={() => toggleReason(r)}
+            style={{ background: form.vulnerabilityReasons.includes(r) ? COLORS.primary : "#fff", color: form.vulnerabilityReasons.includes(r) ? "#fff" : COLORS.text, border: `1.5px solid ${form.vulnerabilityReasons.includes(r) ? COLORS.primary : COLORS.border}`, borderRadius: 20, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            {r}
+          </button>
+        ))}
+      </div>
+      {form.vulnerabilityReasons.includes("Other") && (
+        <MotherField label="Please specify"><Input value={form.otherReasonText} onChange={e => set("otherReasonText", e.target.value)} /></MotherField>
+      )}
+      <MotherField label="Additional Information / Explanation">
+        <textarea value={form.additionalInfo} onChange={e => set("additionalInfo", e.target.value)} rows={4}
+          style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${COLORS.border}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
+      </MotherField>
+
+      <h3 style={{ margin: "24px 0 12px", fontSize: 16, fontWeight: 800, color: COLORS.text }}>Documents / Evidence</h3>
+      <p style={{ margin: "0 0 12px", color: COLORS.muted, fontSize: 12 }}>Optional. JPG, PNG, or PDF — max 10MB each.</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: "0 16px" }}>
+        {MOTHER_DOC_TYPES.map(dt => (
+          <MotherField key={dt.key} label={dt.label}>
+            <input type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+              onChange={e => setDocs(d => ({ ...d, [dt.key]: e.target.files?.[0] || null }))} />
+            {docs[dt.key] && <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 4 }}>{docs[dt.key].name}</div>}
+          </MotherField>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+        <Btn variant="primary" disabled={saving} onClick={submit}>
+          {saving ? "Saving…" : quickAdd ? "Save & Add Another" : "Save Registration"}
+        </Btn>
+      </div>
+
+      {dupMatches && dupMatches.length > 0 && (
+        <Modal title="Possible Existing Registration" onClose={() => setDupMatches(null)}>
+          <p style={{ margin: "0 0 16px", color: COLORS.text, fontSize: 14 }}>
+            {dupMatches[0].score >= 60
+              ? "One or more existing registrations closely match this person. Please review before continuing."
+              : "One or more existing registrations share some details with this person. Please review before continuing."}
+          </p>
+          <div style={{ marginBottom: 16 }}>
+            {dupMatches.map(m => (
+              <div key={m.motherId} style={{ border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: 12, marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: 14 }}>
+                  <span>{m.fullName} — {m.regNumber}</span>
+                  <span style={{ color: m.score >= 60 ? COLORS.danger : "#B45309" }}>{m.score}% match</span>
+                </div>
+                <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 4 }}>{m.reasons.join(" · ")}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+            <Btn variant="ghost" onClick={() => setDupMatches(null)}>Cancel</Btn>
+            <Btn variant="danger" disabled={saving} onClick={confirmAndSave}>
+              {saving ? "Saving…" : "This is a different person — Save Anyway"}
+            </Btn>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+};
+
+const MothersAllRegistrationsTab = ({ realRole, currentUser, refreshKey, forcedStatuses, onView, showToast }) => {
+  const [mothersList, setMothersList] = useState([]);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState(forcedStatuses && forcedStatuses.length === 1 ? forcedStatuses[0] : "");
+  const [sort, setSort] = useState("newest");
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(new Set());
+  const [exporting, setExporting] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    mothersApi.list({ page: String(page), limit: "20", ...(search && { search }), ...(status && { status }), sort })
+      .then(d => {
+        const rows = forcedStatuses ? (d.mothers || []).filter(m => forcedStatuses.includes(m.status)) : (d.mothers || []);
+        setMothersList(rows);
+        setPagination(d.pagination || { total: 0, page: 1, totalPages: 1 });
+        setSelected(new Set());
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, [page, status, sort, refreshKey]);
+  useEffect(() => { const t = setTimeout(() => { setPage(1); load(); }, 350); return () => clearTimeout(t); }, [search]);
+
+  const completedOnPage = mothersList.filter(m => m.status === "completed");
+  const toggleOne = (id) => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleAllOnPage = () => setSelected(s => {
+    const allSelected = completedOnPage.length > 0 && completedOnPage.every(m => s.has(m.id));
+    if (allSelected) { const n = new Set(s); completedOnPage.forEach(m => n.delete(m.id)); return n; }
+    const n = new Set(s); completedOnPage.forEach(m => n.add(m.id)); return n;
+  });
+
+  const downloadSelected = async () => {
+    setExporting(true);
+    try {
+      await postAndDownloadAuthed(mothersApi.bulkPdfUrl(), { ids: Array.from(selected) }, `mothers-export-${Date.now()}.zip`);
+    } catch (e) { showToast?.(e.message || "Export failed", "error"); } finally { setExporting(false); }
+  };
+  const downloadAllCompleted = async () => {
+    setExporting(true);
+    try {
+      await postAndDownloadAuthed(mothersApi.bulkPdfUrl(), { all: true }, `mothers-export-all-${Date.now()}.zip`);
+    } catch (e) { showToast?.(e.message || "Export failed", "error"); } finally { setExporting(false); }
+  };
+
+  const STATUS_PILLS = [["", "All"], ["pending_verification","Pending"], ["correction_requested","Correction"], ["completed","Completed"], ["rejected","Rejected"]]
+    .filter(([val]) => !forcedStatuses || val === "" || forcedStatuses.includes(val));
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
+        <Input placeholder="Search by reg #, name, phone, national ID…" value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 260, marginBottom: 0 }} />
+        <select value={sort} onChange={e => setSort(e.target.value)} style={{ ...MOTHER_SEL_STYLE, width: "auto" }}>
+          <option value="newest">Newest first</option><option value="oldest">Oldest first</option>
+          <option value="name_az">Name A–Z</option><option value="name_za">Name Z–A</option>
+        </select>
+        <div style={{ flex: 1 }} />
+        <Btn variant="ghost" size="sm" disabled={exporting || selected.size === 0} onClick={downloadSelected}>
+          ⬇ Download Selected PDFs {selected.size > 0 ? `(${selected.size})` : ""}
+        </Btn>
+        <Btn variant="teal" size="sm" disabled={exporting} onClick={downloadAllCompleted}>⬇ Download All Completed PDFs</Btn>
+      </div>
+      {!forcedStatuses && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          {STATUS_PILLS.map(([val, lbl]) => (
+            <button key={val} onClick={() => { setStatus(val); setPage(1); }}
+              style={{ background: status === val ? COLORS.primary : "#fff", color: status === val ? "#fff" : COLORS.text, border: `1px solid ${status === val ? COLORS.primary : COLORS.border}`, borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              {lbl}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px #0001", overflow: "hidden" }}>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: 40, color: COLORS.muted }}>Loading…</div>
+        ) : mothersList.length === 0 ? (
+          <div style={{ textAlign: "center", padding: 40, color: COLORS.muted }}>No registrations found.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: "#F9FAFB", textAlign: "left" }}>
+                  <th style={{ padding: "12px 14px" }}>
+                    <input type="checkbox" checked={completedOnPage.length > 0 && completedOnPage.every(m => selected.has(m.id))} onChange={toggleAllOnPage} />
+                  </th>
+                  {["Reg #","Name","Phone","Region","District","Orphans","Reg. Date","Registered By","Status",""].map(h => (
+                    <th key={h} style={{ padding: "12px 14px", fontWeight: 700, color: COLORS.muted, whiteSpace: "nowrap" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {mothersList.map(m => (
+                  <tr key={m.id} style={{ borderTop: `1px solid ${COLORS.border}` }}>
+                    <td style={{ padding: "10px 14px" }}>
+                      <input type="checkbox" disabled={m.status !== "completed"} checked={selected.has(m.id)} onChange={() => toggleOne(m.id)} />
+                    </td>
+                    <td style={{ padding: "10px 14px", fontWeight: 700 }}>{m.regNumber}</td>
+                    <td style={{ padding: "10px 14px" }}>{m.fullName}</td>
+                    <td style={{ padding: "10px 14px" }}>{m.phone}</td>
+                    <td style={{ padding: "10px 14px" }}>{m.region}</td>
+                    <td style={{ padding: "10px 14px" }}>{m.district}</td>
+                    <td style={{ padding: "10px 14px" }}>{m.orphansUnderCare ?? "—"}</td>
+                    <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>{new Date(m.registeredAt).toLocaleDateString()}</td>
+                    <td style={{ padding: "10px 14px" }}>{m.registeredBy?.name || "—"}</td>
+                    <td style={{ padding: "10px 14px" }}><MotherStatusBadge status={m.status} /></td>
+                    <td style={{ padding: "10px 14px" }}><Btn variant="ghost" size="sm" onClick={() => onView(m.id)}>View</Btn></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      {pagination.totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 16 }}>
+          <Btn variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>‹ Prev</Btn>
+          <span style={{ padding: "6px 12px", fontSize: 13, color: COLORS.muted }}>Page {pagination.page} of {pagination.totalPages}</span>
+          <Btn variant="ghost" size="sm" disabled={page >= pagination.totalPages} onClick={() => setPage(p => p + 1)}>Next ›</Btn>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MotherDetailRow = ({ label, value }) => (
+  <div style={{ marginBottom: 10 }}>
+    <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.muted, textTransform: "uppercase", letterSpacing: 0.3 }}>{label}</div>
+    <div style={{ fontSize: 14, color: COLORS.text, marginTop: 2 }}>{value === "" || value === null || value === undefined ? "—" : String(value)}</div>
+  </div>
+);
+
+// Full read view ("Verification Profile") + Verify/Reject/Request Correction actions.
+const MotherDetailView = ({ motherId, realRole, onBack, onChanged, showToast }) => {
+  const [mother, setMother] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [showReject, setShowReject] = useState(false);
+  const [correctionNotes, setCorrectionNotes] = useState("");
+  const [showCorrection, setShowCorrection] = useState(false);
+  const [verifyNotes, setVerifyNotes] = useState("");
+
+  const canVerify = ["admin","super_admin","verification_staff"].includes(realRole);
+  const canDecide = canVerify && ["pending_verification","correction_requested"].includes(mother?.status);
+
+  const load = () => {
+    setLoading(true);
+    mothersApi.get(motherId).then(setMother).catch(() => showToast?.("Failed to load registration", "error")).finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, [motherId]);
+
+  const doVerify = async () => {
+    setBusy(true);
+    try {
+      await mothersApi.verify(motherId, verifyNotes);
+      showToast?.("Registration verified and marked Completed", "success");
+      load(); onChanged?.();
+    } catch (e) { showToast?.(e.message || "Failed to verify", "error"); } finally { setBusy(false); }
+  };
+  const doReject = async () => {
+    if (!rejectReason.trim()) { showToast?.("A rejection reason is required", "error"); return; }
+    setBusy(true);
+    try {
+      await mothersApi.reject(motherId, rejectReason);
+      showToast?.("Registration rejected", "success");
+      setShowReject(false); load(); onChanged?.();
+    } catch (e) { showToast?.(e.message || "Failed to reject", "error"); } finally { setBusy(false); }
+  };
+  const doCorrection = async () => {
+    if (!correctionNotes.trim()) { showToast?.("Correction notes are required", "error"); return; }
+    setBusy(true);
+    try {
+      await mothersApi.requestCorrection(motherId, correctionNotes);
+      showToast?.("Correction requested", "success");
+      setShowCorrection(false); load(); onChanged?.();
+    } catch (e) { showToast?.(e.message || "Failed to request correction", "error"); } finally { setBusy(false); }
+  };
+
+  if (loading) return <div style={{ textAlign: "center", padding: 40, color: COLORS.muted }}>Loading…</div>;
+  if (!mother) return null;
+
+  return (
+    <div>
+      <Btn variant="ghost" size="sm" onClick={onBack} style={{ marginBottom: 16 }}>‹ Back to list</Btn>
+
+      <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 8px #0001", marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
+          <div>
+            <h2 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 800 }}>{mother.fullName}</h2>
+            <div style={{ color: COLORS.muted, fontSize: 13 }}>{mother.regNumber} · Registered {new Date(mother.registeredAt).toLocaleDateString()} by {mother.registeredBy?.name || "—"}</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+            <MotherStatusBadge status={mother.status} />
+            {mother.status === "completed" && (
+              <Btn variant="teal" size="sm" onClick={() => downloadAuthed(mothersApi.pdfUrl(mother.id), `${mother.regNumber}.pdf`).catch(e => showToast?.(e.message, "error"))}>
+                ⬇ Download PDF
+              </Btn>
+            )}
+          </div>
+        </div>
+
+        <h3 style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 800, color: COLORS.text }}>Mother Information</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "0 16px", marginBottom: 12 }}>
+          <MotherDetailRow label="Age" value={mother.age} />
+          <MotherDetailRow label="Date of Birth" value={mother.dateOfBirth ? new Date(mother.dateOfBirth).toLocaleDateString() : null} />
+          <MotherDetailRow label="Gender" value={mother.gender} />
+          <MotherDetailRow label="Phone" value={mother.phone} />
+          <MotherDetailRow label="Alt. Phone" value={mother.altPhone} />
+          <MotherDetailRow label="Marital Status" value={mother.maritalStatus} />
+          <MotherDetailRow label="National ID" value={mother.nationalId} />
+          <MotherDetailRow label="Region" value={mother.region} />
+          <MotherDetailRow label="District" value={mother.district} />
+          <MotherDetailRow label="Village" value={mother.village} />
+        </div>
+        <MotherDetailRow label="Address" value={mother.address} />
+
+        <h3 style={{ margin: "16px 0 10px", fontSize: 14, fontWeight: 800, color: COLORS.text }}>Family Information</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "0 16px" }}>
+          <MotherDetailRow label="Children Count" value={mother.childrenCount} />
+          <MotherDetailRow label="Living With Her" value={mother.childrenLivingWithHer} />
+          <MotherDetailRow label="Orphans Under Care" value={mother.orphansUnderCare} />
+          <MotherDetailRow label="Other Dependents" value={mother.otherDependents} />
+          <MotherDetailRow label="Children's Age Range" value={mother.childrenAgeRange} />
+          <MotherDetailRow label="Income Source" value={mother.incomeSource} />
+        </div>
+        <MotherDetailRow label="Family Situation" value={mother.familySituation} />
+
+        <h3 style={{ margin: "16px 0 10px", fontSize: 14, fontWeight: 800, color: COLORS.text }}>Situation</h3>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+          {(mother.vulnerabilityReasons || []).map(r => (
+            <span key={r} style={{ background: "#EEF2FF", color: "#4338CA", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600 }}>{r}</span>
+          ))}
+          {(mother.vulnerabilityReasons || []).length === 0 && <span style={{ color: COLORS.muted, fontSize: 13 }}>—</span>}
+        </div>
+        {mother.otherReasonText && <MotherDetailRow label="Other Reason" value={mother.otherReasonText} />}
+        <MotherDetailRow label="Additional Information" value={mother.additionalInfo} />
+
+        <h3 style={{ margin: "16px 0 10px", fontSize: 14, fontWeight: 800, color: COLORS.text }}>Uploaded Documents</h3>
+        {(mother.documents || []).length === 0 ? (
+          <div style={{ color: COLORS.muted, fontSize: 13 }}>No documents uploaded.</div>
+        ) : (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {mother.documents.map(d => (
+              <button key={d.id} onClick={() => openAuthed(mothersApi.documentUrl(mother.id, d.id)).catch(e => showToast?.(e.message, "error"))}
+                style={{ background: "#F3F4F6", border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "8px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer", color: COLORS.text }}>
+                📄 {MOTHER_DOC_TYPES.find(t => t.key === d.type)?.label || d.type} — {d.filename}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <h3 style={{ margin: "16px 0 10px", fontSize: 14, fontWeight: 800, color: COLORS.text }}>Registration History</h3>
+        <div style={{ fontSize: 12, color: COLORS.muted }}>
+          {(mother.auditLogs || []).map(l => (
+            <div key={l.id} style={{ padding: "4px 0", borderBottom: `1px solid ${COLORS.border}` }}>
+              {new Date(l.timestamp).toLocaleString()} — <strong>{l.action}</strong> by {l.actor?.name || "—"}{l.notes ? ` — ${l.notes}` : ""}
+            </div>
+          ))}
+          {(mother.auditLogs || []).length === 0 && <div>No history yet.</div>}
+        </div>
+
+        {(mother.status === "completed" || mother.status === "rejected" || mother.status === "correction_requested") && (
+          <>
+            <h3 style={{ margin: "16px 0 10px", fontSize: 14, fontWeight: 800, color: COLORS.text }}>Verification</h3>
+            {mother.status === "completed" && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "0 16px" }}>
+                <MotherDetailRow label="Verified By" value={mother.verifiedBy?.name} />
+                <MotherDetailRow label="Verified At" value={mother.verifiedAt ? new Date(mother.verifiedAt).toLocaleString() : null} />
+                <MotherDetailRow label="Notes" value={mother.verificationNotes} />
+              </div>
+            )}
+            {mother.status === "rejected" && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "0 16px" }}>
+                <MotherDetailRow label="Rejected By" value={mother.rejectedBy?.name} />
+                <MotherDetailRow label="Rejected At" value={mother.rejectedAt ? new Date(mother.rejectedAt).toLocaleString() : null} />
+                <MotherDetailRow label="Reason" value={mother.rejectionReason} />
+              </div>
+            )}
+            {mother.status === "correction_requested" && <MotherDetailRow label="Correction Requested" value={mother.correctionRequestedNotes} />}
+          </>
+        )}
+      </div>
+
+      {canDecide && (
+        <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 8px #0001" }}>
+          <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 800, color: COLORS.text }}>Verification Decision</h3>
+          <MotherField label="Verification Notes (optional)">
+            <textarea value={verifyNotes} onChange={e => setVerifyNotes(e.target.value)} rows={2}
+              style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${COLORS.border}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
+          </MotherField>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Btn variant="success" disabled={busy} onClick={doVerify}>✓ Verify</Btn>
+            <Btn variant="danger" disabled={busy} onClick={() => setShowReject(s => !s)}>Reject</Btn>
+            <Btn variant="ghost" disabled={busy} onClick={() => setShowCorrection(s => !s)}>Request Correction</Btn>
+          </div>
+          {showReject && (
+            <div style={{ marginTop: 14 }}>
+              <MotherField label="Rejection Reason (required)">
+                <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={2}
+                  style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${COLORS.border}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
+              </MotherField>
+              <Btn variant="danger" size="sm" disabled={busy || !rejectReason.trim()} onClick={doReject}>Confirm Reject</Btn>
+            </div>
+          )}
+          {showCorrection && (
+            <div style={{ marginTop: 14 }}>
+              <MotherField label="What needs correcting? (required)">
+                <textarea value={correctionNotes} onChange={e => setCorrectionNotes(e.target.value)} rows={2}
+                  style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${COLORS.border}`, borderRadius: 10, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
+              </MotherField>
+              <Btn variant="ghost" size="sm" disabled={busy || !correctionNotes.trim()} onClick={doCorrection}>Confirm Request</Btn>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MothersAuditLogTab = () => {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { mothersApi.auditLogs().then(setLogs).catch(() => {}).finally(() => setLoading(false)); }, []);
+  if (loading) return <div style={{ textAlign: "center", padding: 40, color: COLORS.muted }}>Loading…</div>;
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 2px 8px #0001", overflow: "hidden" }}>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ background: "#F9FAFB", textAlign: "left" }}>
+              {["When","Actor","Action","Registration","Details"].map(h => (
+                <th key={h} style={{ padding: "12px 14px", fontWeight: 700, color: COLORS.muted, whiteSpace: "nowrap" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map(l => (
+              <tr key={l.id} style={{ borderTop: `1px solid ${COLORS.border}` }}>
+                <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>{new Date(l.timestamp).toLocaleString()}</td>
+                <td style={{ padding: "10px 14px" }}>{l.actor?.name || "—"}</td>
+                <td style={{ padding: "10px 14px", fontWeight: 700 }}>{l.action}</td>
+                <td style={{ padding: "10px 14px" }}>{l.mother ? `${l.mother.regNumber} — ${l.mother.fullName}` : "—"}</td>
+                <td style={{ padding: "10px 14px", color: COLORS.muted }}>{l.notes || "—"}</td>
+              </tr>
+            ))}
+            {logs.length === 0 && (
+              <tr><td colSpan={5} style={{ padding: 30, textAlign: "center", color: COLORS.muted }}>No audit entries yet.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const downloadErrorReportCsv = (result) => {
+  const rows = [["Row", "Type", "Field / Reason", "Details"]];
+  (result.invalid || []).forEach(r => rows.push([r.row, "Invalid", r.field, r.message]));
+  (result.needsReview || []).forEach(r => rows.push([r.row, "Possible Duplicate", r.fullName, (r.matches || []).map(m => `${m.regNumber} (${m.score}%)`).join("; ")]));
+  const csv = rows.map(r => r.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `mother-import-errors-${Date.now()}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+const MothersBulkImportTab = ({ showToast, onImported }) => {
+  const [file, setFile] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const downloadTemplate = () => {
+    downloadAuthed(mothersApi.bulkImportTemplateUrl(), "Mother_Registration_Template.xlsx")
+      .catch(e => showToast?.(e.message || "Failed to download template", "error"));
+  };
+
+  const submit = async () => {
+    if (!file) { showToast?.("Choose a .xlsx or .csv file first", "error"); return; }
+    setBusy(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await mothersApi.bulkImport(fd);
+      setResult(res);
+      showToast?.(`${res.insertedCount} registrations imported successfully. ${res.needsReview.length} rows need review, ${res.invalid.length} invalid.`, "success");
+      onImported?.();
+    } catch (e) {
+      showToast?.(e.message || "Bulk import failed", "error");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, padding: 24, boxShadow: "0 2px 8px #0001" }}>
+      <h3 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 800 }}>Bulk Import</h3>
+      <p style={{ margin: "0 0 16px", color: COLORS.muted, fontSize: 13 }}>
+        Download the template, fill in one row per mother, then upload it here. Every row is validated and checked for
+        possible duplicates before anything is saved — nothing is imported silently.
+      </p>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
+        <Btn variant="ghost" onClick={downloadTemplate}>⬇ Download Mother_Registration_Template.xlsx</Btn>
+      </div>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <input type="file" accept=".xlsx,.csv" onChange={e => setFile(e.target.files?.[0] || null)} />
+        <Btn variant="primary" disabled={busy || !file} onClick={submit}>{busy ? "Importing…" : "Import"}</Btn>
+      </div>
+
+      {result && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+            <StatCard icon="📄" label="Total Rows" value={result.total} color={COLORS.primary} />
+            <StatCard icon="✓" label="Imported" value={result.insertedCount} color="#065F46" />
+            <StatCard icon="⚠️" label="Needs Review" value={result.needsReview.length} color="#B45309" />
+            <StatCard icon="✕" label="Invalid" value={result.invalid.length} color="#991B1B" />
+          </div>
+          {(result.invalid.length > 0 || result.needsReview.length > 0) && (
+            <Btn variant="ghost" size="sm" onClick={() => downloadErrorReportCsv(result)}>⬇ Download Error Report (CSV)</Btn>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Self-contained panel — the entire Mothers & Orphans workflow lives here for both
+// the two dedicated roles (standalone dashboard) and Admin/Super Admin (module tile).
+const MothersRegistryPanel = ({ currentUser, showToast, realRole }) => {
+  const canRegister = ["admin","super_admin","registration_staff"].includes(realRole);
+  const canVerify   = ["admin","super_admin","verification_staff"].includes(realRole);
+  const isAdminTier  = ["admin","super_admin"].includes(realRole);
+  const TABS = [
+    ...(canRegister ? [{ id: "register", label: "New Registration" }] : []),
+    ...(canRegister ? [{ id: "quickadd", label: "Quick Add" }] : []),
+    ...(canRegister ? [{ id: "import", label: "Bulk Import" }] : []),
+    { id: "all", label: "All Registrations" },
+    ...(canVerify ? [{ id: "queue", label: "Verification Queue" }] : []),
+    ...(isAdminTier ? [{ id: "audit", label: "Audit Log" }] : []),
+  ];
+  const [tab, setTab] = useState(TABS[0]?.id || "all");
+  const [stats, setStats] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [viewingId, setViewingId] = useState(null);
+
+  useEffect(() => { mothersApi.dashboardStats().then(setStats).catch(() => {}); }, [refreshKey]);
+
+  const openView = (id) => setViewingId(id);
+  const closeView = () => setViewingId(null);
+  const onDecided = () => setRefreshKey(k => k + 1);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800 }}>Vulnerable Mothers & Orphans Registry</h2>
+        <p style={{ margin: 0, color: COLORS.muted }}>Welcome, {currentUser?.fullname || currentUser?.name} — register, verify, and export mother &amp; orphan case files</p>
+      </div>
+
+      {stats && (
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
+          <StatCard icon="📋" label="Total Registrations" value={stats.total} color={COLORS.primary} />
+          <StatCard icon="⏳" label="Pending Verification" value={stats.pending} color="#B45309" />
+          <StatCard icon="✓" label="Completed" value={stats.completed} color="#065F46" />
+          <StatCard icon="✕" label="Rejected" value={stats.rejected} color="#991B1B" />
+          <StatCard icon="📅" label="Registered Today" value={stats.today} color={COLORS.secondary} />
+        </div>
+      )}
+
+      {stats && (stats.byRegion?.length > 0 || stats.last14Days?.length > 0) && (
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
+          {stats.byRegion?.length > 0 && (
+            <div style={{ flex: "1 1 280px", background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px #0001" }}>
+              <h4 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 800, color: COLORS.text }}>Registrations by Region</h4>
+              {(() => {
+                const max = Math.max(...stats.byRegion.map(r => r.count), 1);
+                return stats.byRegion.slice().sort((a, b) => b.count - a.count).map(r => (
+                  <div key={r.region} style={{ marginBottom: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
+                      <span>{r.region}</span><span style={{ fontWeight: 700 }}>{r.count}</span>
+                    </div>
+                    <div style={{ background: "#F3F4F6", borderRadius: 6, height: 8 }}>
+                      <div style={{ width: `${(r.count / max) * 100}%`, background: COLORS.primary, height: 8, borderRadius: 6 }} />
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          )}
+          {stats.last14Days?.length > 0 && (
+            <div style={{ flex: "1 1 280px", background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px #0001" }}>
+              <h4 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 800, color: COLORS.text }}>Registrations — Last 14 Days</h4>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 80 }}>
+                {(() => {
+                  const max = Math.max(...stats.last14Days.map(d => d.count), 1);
+                  return stats.last14Days.map(d => (
+                    <div key={d.date} title={`${d.date}: ${d.count}`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
+                      <div style={{ width: "100%", background: COLORS.secondary, borderRadius: "3px 3px 0 0", height: `${Math.max((d.count / max) * 100, d.count > 0 ? 6 : 2)}%` }} />
+                    </div>
+                  ));
+                })()}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: COLORS.muted, marginTop: 4 }}>
+                <span>{stats.last14Days[0]?.date?.slice(5)}</span>
+                <span>{stats.last14Days[stats.last14Days.length - 1]?.date?.slice(5)}</span>
+              </div>
+            </div>
+          )}
+          <div style={{ flex: "1 1 200px", background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 2px 8px #0001" }}>
+            <h4 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 800, color: COLORS.text }}>Completed vs Pending</h4>
+            <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 20, marginBottom: 8 }}>
+              <div style={{ width: `${stats.total ? (stats.completed / stats.total) * 100 : 0}%`, background: "#065F46" }} />
+              <div style={{ width: `${stats.total ? (stats.pending / stats.total) * 100 : 0}%`, background: "#B45309" }} />
+              <div style={{ flex: 1, background: "#F3F4F6" }} />
+            </div>
+            <div style={{ fontSize: 12, color: COLORS.muted }}>
+              <span style={{ color: "#065F46", fontWeight: 700 }}>● Completed {stats.completed}</span>{"  "}
+              <span style={{ color: "#B45309", fontWeight: 700 }}>● Pending {stats.pending}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20, borderBottom: `1px solid ${COLORS.border}`, paddingBottom: 12 }}>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => { setTab(t.id); closeView(); }}
+            style={{ background: tab === t.id ? COLORS.primary : "#fff", color: tab === t.id ? "#fff" : COLORS.text, border: `1px solid ${tab === t.id ? COLORS.primary : COLORS.border}`, borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {viewingId ? (
+        <MotherDetailView motherId={viewingId} realRole={realRole} onBack={closeView} onChanged={onDecided} showToast={showToast} />
+      ) : (
+        <>
+          {tab === "register" && canRegister && (
+            <MotherRegistrationForm showToast={showToast} onSaved={() => { setRefreshKey(k => k + 1); setTab("all"); }} />
+          )}
+          {tab === "quickadd" && canRegister && (
+            <MotherRegistrationForm quickAdd showToast={showToast} onSaved={() => setRefreshKey(k => k + 1)} />
+          )}
+          {tab === "import" && canRegister && (
+            <MothersBulkImportTab showToast={showToast} onImported={() => setRefreshKey(k => k + 1)} />
+          )}
+          {tab === "all" && (
+            <MothersAllRegistrationsTab realRole={realRole} currentUser={currentUser} refreshKey={refreshKey} onView={openView} showToast={showToast} />
+          )}
+          {tab === "queue" && canVerify && (
+            <MothersAllRegistrationsTab realRole={realRole} currentUser={currentUser} refreshKey={refreshKey}
+              forcedStatuses={["pending_verification","correction_requested"]} onView={openView} showToast={showToast} />
+          )}
+          {tab === "audit" && isAdminTier && <MothersAuditLogTab />}
+        </>
+      )}
+    </div>
+  );
+};
+
 // ── Program Manager Dashboard ──────────────────────────────────────────────────
 const ProgramManagerDashboard = ({ currentUser, showToast }) => {
   return (
@@ -9971,6 +10800,8 @@ const ROLE_MAP = {
   field_team:          "field_team",
   program_manager:     "program_manager",
   project_manager:     "project_manager",
+  registration_staff:  "registration_staff",
+  verification_staff:  "verification_staff",
 };
 
 const ROLE_LABELS = {
@@ -9983,6 +10814,8 @@ const ROLE_LABELS = {
   super_admin:         { icon: "", label: "Super Administrator"    },
   program_manager:     { icon: "",  label: "Program Manager"       },
   project_manager:     { icon: "", label: "Project Manager"       },
+  registration_staff:  { icon: "📝", label: "Registration Staff"    },
+  verification_staff:  { icon: "✅", label: "Verification Staff"    },
 };
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────
@@ -10332,7 +11165,7 @@ export default function KafaaleQaadApp() {
   }
 
   // ─── Access denied guard ────────────────────────────────────────────────
-  const VALID_ROLES = ["public_user","observer","verification_office","field_team","donor","super_admin","admin","program_manager","project_manager"];
+  const VALID_ROLES = ["public_user","observer","verification_office","field_team","donor","super_admin","admin","program_manager","project_manager","registration_staff","verification_staff"];
   if (!VALID_ROLES.includes(internalRole)) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg }}>
@@ -10419,6 +11252,12 @@ export default function KafaaleQaadApp() {
     ),
     project_manager: (
       <ProjectManagerDashboard currentUser={currentUser} showToast={showToast} cases={filteredCases} />
+    ),
+    registration_staff: (
+      <MothersRegistryPanel currentUser={currentUser} showToast={showToast} realRole="registration_staff" />
+    ),
+    verification_staff: (
+      <MothersRegistryPanel currentUser={currentUser} showToast={showToast} realRole="verification_staff" />
     ),
   };
 

@@ -46,6 +46,66 @@ export async function uploadToStorage(buffer: Buffer, originalName: string, mime
   return `${base}/uploads/${name}`;
 }
 
+// ── Private storage (mother registration documents) ─────
+// Separate bucket from `uploadToStorage`'s public `kafaale-media`, and never calls
+// getPublicUrl — only a storage PATH is returned/persisted. Access is granted solely
+// via a short-lived signed URL generated on demand (see getSignedDocUrl below), per
+// the spec's requirement that sensitive PII documents never sit behind a predictable
+// public URL. NOTE: the 'kafaale-mother-docs' bucket must be created in Supabase with
+// public:false before this runs against production storage — not something a Prisma
+// migration can do; local dev falls back to disk (uploads-private/, outside the
+// /uploads static mount) same as uploadToStorage does for kafaale-media.
+const PRIVATE_BUCKET = 'kafaale-mother-docs';
+
+export async function uploadToPrivateStorage(buffer: Buffer, originalName: string, mimeType: string, folder: string): Promise<string> {
+  const ext  = path.extname(originalName).toLowerCase() || '.bin';
+  const name = `${folder}/${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`;
+
+  const sb = getSupabase();
+  if (sb) {
+    const { error } = await sb.storage.from(PRIVATE_BUCKET).upload(name, buffer, { contentType: mimeType });
+    if (error) throw new Error(`Supabase private upload failed: ${error.message}`);
+    return name; // storage path only — never a public URL
+  }
+
+  if (process.env.VERCEL) {
+    throw new Error('Private document storage is not configured: set SUPABASE_URL and SUPABASE_SERVICE_KEY in the Vercel Production environment.');
+  }
+
+  const localPath = path.join(process.cwd(), 'uploads-private', name);
+  fs.mkdirSync(path.dirname(localPath), { recursive: true });
+  fs.writeFileSync(localPath, buffer);
+  return name;
+}
+
+/**
+ * Resolves a private document for download. In production (Supabase configured)
+ * this returns a short-lived signed URL to redirect the client to. In local dev
+ * (no Supabase key) there is no bucket to sign against, so the caller streams the
+ * file straight from `localPath` instead — deliberately NOT served via
+ * express.static (that would make it as public as /uploads), only reachable
+ * through the authenticated GET /api/mothers/:motherId/documents/:docId route.
+ */
+export async function resolveDocDownload(storagePath: string, expirySeconds = 120): Promise<{ signedUrl: string } | { localPath: string }> {
+  const sb = getSupabase();
+  if (sb) {
+    const { data, error } = await sb.storage.from(PRIVATE_BUCKET).createSignedUrl(storagePath, expirySeconds);
+    if (error || !data) throw new Error(`Failed to sign document URL: ${error?.message}`);
+    return { signedUrl: data.signedUrl };
+  }
+  return { localPath: path.join(process.cwd(), 'uploads-private', storagePath) };
+}
+
+const MOTHER_DOC_ALLOWED = new Set(['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']);
+const motherDocFilter = (_req: Request, file: any, cb: multer.FileFilterCallback) => {
+  MOTHER_DOC_ALLOWED.has(file.mimetype) ? cb(null, true) : cb(new Error(`File type not allowed: ${file.mimetype}. Only JPG, PNG, and PDF are accepted.`));
+};
+export const uploadMothers = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: motherDocFilter,
+  limits: { fileSize: 10 * 1024 * 1024, files: 5 },
+});
+
 // ── Multer — memory storage so we can pipe to Supabase ─
 const ALLOWED = new Set([
   'image/jpeg','image/jpg','image/png','image/webp',

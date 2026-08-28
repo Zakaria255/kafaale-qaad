@@ -28,6 +28,7 @@ backend/logs/
 
 # Uploads (user content)
 backend/uploads/
+backend/uploads-private/
 
 # OS files
 .DS_Store

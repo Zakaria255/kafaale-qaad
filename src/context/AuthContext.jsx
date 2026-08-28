@@ -12,6 +12,8 @@ const DEMO_ACCOUNTS = {
   'donor@kafaale.org':      { id: 'demo-donor',      name: 'Fatima Al-Thani',  role: 'donor',              email: 'donor@kafaale.org' },
   'reporter@kafaale.org':   { id: 'demo-reporter',   name: 'Hodan Farah',      role: 'reporter',           email: 'reporter@kafaale.org' },
   'programs@kafaale.org':   { id: 'demo-programs',   name: 'Sahra Programs',   role: 'program_manager',    email: 'programs@kafaale.org' },
+  'registrar@kafaale.org':  { id: 'demo-registrar',  name: 'Amina Registrar',  role: 'registration_staff', email: 'registrar@kafaale.org' },
+  'verifier2@kafaale.org':  { id: 'demo-verifier2',  name: 'Khadija Verifier', role: 'verification_staff', email: 'verifier2@kafaale.org' },
 };
 const DEMO_PASSWORD = 'Kafaale123!';
 const DEMO_TOKEN = 'demo-token-kafaale-qaad';

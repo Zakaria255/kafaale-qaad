@@ -1,0 +1,107 @@
+import PDFDocument from 'pdfkit';
+
+// Individual registration PDF. Deliberately does NOT embed uploaded document images —
+// those stay behind the signed-URL document route; embedding them here would re-expose
+// PII files inside a second, more freely-downloadable artifact. Content is the
+// registration + verification summary only, per spec §17.
+
+export interface MotherPdfData {
+  regNumber: string;
+  registeredAt: Date;
+  registeredByName: string;
+  fullName: string; age?: number | null; dateOfBirth?: Date | null; gender: string;
+  phone: string; altPhone?: string | null; maritalStatus?: string | null; nationalId?: string | null;
+  region: string; district: string; village?: string | null; address?: string | null;
+  childrenCount?: number | null; childrenLivingWithHer?: number | null; orphansUnderCare?: number | null;
+  otherDependents?: number | null; childrenAgeRange?: string | null; familySituation?: string | null; incomeSource?: string | null;
+  vulnerabilityReasons: string[]; otherReasonText?: string | null; additionalInfo?: string | null;
+  status: string;
+  verifiedByName?: string | null; verifiedAt?: Date | null; verificationNotes?: string | null;
+}
+
+function fmtDate(d?: Date | null): string {
+  return d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+}
+
+export function generateMotherPdf(m: MotherPdfData): PDFKit.PDFDocument {
+  const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
+  const green = '#0F773C';
+  const muted = '#6B7280';
+
+  doc.fontSize(18).fillColor(green).font('Helvetica-Bold').text('Kafaale Qaad', { continued: false });
+  doc.fontSize(11).fillColor(muted).font('Helvetica').text('Vulnerable Mothers & Orphans Registration and Verification System');
+  doc.moveDown(0.5);
+  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor(green).lineWidth(1.5).stroke();
+  doc.moveDown(1);
+
+  doc.fontSize(15).fillColor('#111827').font('Helvetica-Bold').text(m.fullName);
+  doc.fontSize(11).fillColor(muted).font('Helvetica').text(`Registration No. ${m.regNumber}`);
+  doc.moveDown(1);
+
+  const section = (title: string) => {
+    doc.moveDown(0.5);
+    doc.fontSize(12).fillColor(green).font('Helvetica-Bold').text(title);
+    doc.moveTo(50, doc.y + 2).lineTo(545, doc.y + 2).strokeColor('#E5E7EB').lineWidth(0.75).stroke();
+    doc.moveDown(0.5);
+    doc.font('Helvetica').fillColor('#111827').fontSize(10);
+  };
+  const row = (label: string, value: string) => {
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#374151').text(label + ': ', { continued: true });
+    doc.font('Helvetica').fillColor('#111827').text(value || '—');
+  };
+
+  section('Registration Information');
+  row('Registration Number', m.regNumber);
+  row('Registration Date', fmtDate(m.registeredAt));
+  row('Registered By', m.registeredByName);
+  row('Status', m.status === 'completed' ? 'COMPLETED' : m.status.replace(/_/g, ' ').toUpperCase());
+
+  section('Mother Information');
+  row('Full Name', m.fullName);
+  row('Age', m.age != null ? String(m.age) : '—');
+  row('Date of Birth', fmtDate(m.dateOfBirth));
+  row('Gender', m.gender);
+  row('Phone', m.phone);
+  row('Alternative Phone', m.altPhone || '—');
+  row('Marital Status', m.maritalStatus || '—');
+  row('National ID', m.nationalId || '—');
+  row('Region', m.region);
+  row('District', m.district);
+  row('Village / Area', m.village || '—');
+  row('Address', m.address || '—');
+
+  section('Family Information');
+  row('Number of Children', m.childrenCount != null ? String(m.childrenCount) : '—');
+  row('Children Living With Her', m.childrenLivingWithHer != null ? String(m.childrenLivingWithHer) : '—');
+  row('Orphans Under Her Care', m.orphansUnderCare != null ? String(m.orphansUnderCare) : '—');
+  row('Other Dependents', m.otherDependents != null ? String(m.otherDependents) : '—');
+  row('Children\'s Age Range', m.childrenAgeRange || '—');
+  row('Main Source of Household Income', m.incomeSource || '—');
+  if (m.familySituation) { doc.moveDown(0.3); doc.font('Helvetica-Bold').text('Family Situation:'); doc.font('Helvetica').text(m.familySituation); }
+
+  section('Situation');
+  row('Vulnerability Reasons', m.vulnerabilityReasons.length ? m.vulnerabilityReasons.join(', ') : '—');
+  if (m.otherReasonText) row('Other Reason', m.otherReasonText);
+  if (m.additionalInfo) { doc.moveDown(0.3); doc.font('Helvetica-Bold').text('Additional Information:'); doc.font('Helvetica').text(m.additionalInfo); }
+
+  if (m.status === 'completed') {
+    section('Verification');
+    row('Verification Status', 'VERIFIED — COMPLETED');
+    row('Verified By', m.verifiedByName || '—');
+    row('Verified Date', fmtDate(m.verifiedAt));
+    if (m.verificationNotes) row('Verification Notes', m.verificationNotes);
+  }
+
+  // Footer + page numbers on every page.
+  const pages = doc.bufferedPageRange();
+  for (let i = 0; i < pages.count; i++) {
+    doc.switchToPage(i);
+    doc.fontSize(8).fillColor(muted).text(
+      'Generated by the Registration & Verification System',
+      50, 800, { align: 'left', lineBreak: false },
+    );
+    doc.text(`Page ${i + 1} of ${pages.count}`, 50, 800, { align: 'right', lineBreak: false });
+  }
+
+  return doc;
+}

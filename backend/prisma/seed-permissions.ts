@@ -14,7 +14,7 @@ import { PERMISSION_CATALOG, PermissionDef } from '../src/services/permissionCat
 
 const prisma = new PrismaClient();
 
-const ALL_ROLES = ['super_admin', 'admin', 'verification_office', 'office_staff', 'program_manager', 'project_manager', 'field_agent', 'field_team', 'reporter', 'donor', 'user'];
+const ALL_ROLES = ['super_admin', 'admin', 'verification_office', 'office_staff', 'program_manager', 'project_manager', 'field_agent', 'field_team', 'reporter', 'donor', 'user', 'registration_staff', 'verification_staff'];
 
 // Ground truth for the 12 permissions that actually gate a route today — copied from the
 // verified route code, not inferred. role -> scope.
@@ -32,6 +32,13 @@ const ENFORCED_DEFAULTS: Record<string, Record<string, string>> = {
   'user.permission_assign':{ admin: 'global', super_admin: 'global' },
   'system.manage':         { admin: 'global', super_admin: 'global' },
   'audit.view':            { admin: 'global', super_admin: 'global', verification_office: 'global', office_staff: 'global', program_manager: 'global', project_manager: 'global' },
+  'mother.view':           { admin: 'global', super_admin: 'global', registration_staff: 'global', verification_staff: 'global' },
+  'mother.create':         { admin: 'global', super_admin: 'global', registration_staff: 'global' },
+  'mother.edit':           { admin: 'global', super_admin: 'global', registration_staff: 'global' },
+  'mother.verify':         { admin: 'global', super_admin: 'global', verification_staff: 'global' },
+  'mother.reject':         { admin: 'global', super_admin: 'global', verification_staff: 'global' },
+  'mother.export':         { admin: 'global', super_admin: 'global', registration_staff: 'global', verification_staff: 'global' },
+  'mother.bulk_import':    { admin: 'global', super_admin: 'global', registration_staff: 'global' },
 };
 
 // Heuristic defaults for the rest of the catalog, by module. 'full' = every level in that
@@ -48,6 +55,10 @@ const ROLE_MODULE_ACCESS: Record<string, { full?: string[]; view?: string[] }> =
   reporter:             { full: ['CASE_REPORTING'], view: ['DASHBOARD', 'NOTIFICATIONS', 'COMMUNICATION'] },
   donor:                { view: ['DASHBOARD', 'NOTIFICATIONS', 'COMMUNICATION'] },
   user:                 { view: ['DASHBOARD', 'NOTIFICATIONS'] },
+  // MOTHER_REGISTRATION access itself comes from ENFORCED_DEFAULTS above (this feature
+  // enforces every mother.* key from day one) — these two just get the base dashboard view.
+  registration_staff:   { view: ['DASHBOARD'] },
+  verification_staff:   { view: ['DASHBOARD'] },
 };
 
 const STARTER_GROUPS: { name: string; description: string; permissions: string[] }[] = [

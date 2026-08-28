@@ -76,6 +76,8 @@ function demoFallback(path, opts = {}) {
   if (path.startsWith('/admin'))       return Promise.resolve({ success: true, items: [], data: [], cases: [], users: [], donations: [] });
   if (path.startsWith('/donations'))   return Promise.resolve({ donations: [], total: 0 });
   if (path.startsWith('/programs'))    return Promise.resolve({ programs: [], beneficiaries: [] });
+  if (path.startsWith('/mothers/dashboard/stats')) return Promise.resolve({ total: 0, pending: 0, completed: 0, rejected: 0, today: 0, byRegion: [] });
+  if (path.startsWith('/mothers'))     return Promise.resolve({ mothers: [], pagination: { total: 0, page: 1, limit: 20, totalPages: 1 } });
   if (path.startsWith('/notifications'))return Promise.resolve({ notifications: [], unread: 0 });
   if (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE')
     return Promise.resolve({ success: true, message: 'Demo mode — changes are local only' });
@@ -293,4 +295,24 @@ export const projects = {
   updateStatus:(id, data)     => req(`/projects/${id}/status`, { method: 'PATCH', body: JSON.stringify(data) }),
 };
 
-export default { auth, cases, admin, donations, field, notifications, impact, ai, partners, programs, projects, getUser, getToken, isLoggedIn, setAuth, clearAuth };
+// ── Vulnerable Mothers & Orphans Registration endpoints ────────────
+export const mothers = {
+  list:              (params = {}) => req('/mothers?' + new URLSearchParams(params)),
+  get:               (id)          => req(`/mothers/${id}`),
+  create:            (data)        => req('/mothers', { method: 'POST', body: JSON.stringify(data) }),
+  checkDuplicates:   (data)        => req('/mothers/check-duplicates', { method: 'POST', body: JSON.stringify(data) }),
+  update:            (id, data)    => req(`/mothers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  dashboardStats:    ()            => req('/mothers/dashboard/stats'),
+  verify:            (id, notes)   => req(`/mothers/${id}/verify`, { method: 'POST', body: JSON.stringify({ notes }) }),
+  reject:            (id, reason)  => req(`/mothers/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  requestCorrection: (id, notes)   => req(`/mothers/${id}/request-correction`, { method: 'POST', body: JSON.stringify({ notes }) }),
+  auditLogs:         ()            => req('/mothers/audit-logs'),
+  bulkImport:        (formData)    => req('/mothers/bulk-import', { method: 'POST', body: formData }),
+  bulkImportTemplateUrl: ()        => `${API}/mothers/bulk-import/template`,
+  uploadDocuments:   (id, formData)=> req(`/mothers/${id}/documents`, { method: 'POST', body: formData }),
+  pdfUrl:            (id)          => `${API}/mothers/${id}/pdf`,
+  documentUrl:       (motherId, docId) => `${API}/mothers/${motherId}/documents/${docId}`,
+  bulkPdfUrl:        ()            => `${API}/mothers/bulk-pdf`,
+};
+
+export default { auth, cases, admin, donations, field, notifications, impact, ai, partners, programs, projects, mothers, getUser, getToken, isLoggedIn, setAuth, clearAuth };

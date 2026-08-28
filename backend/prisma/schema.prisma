@@ -49,6 +49,11 @@ model User {
   chatMessages         ChatMessage[]         @relation("ChatSender")
   permissionGroups     UserPermissionGroup[]
   userPermissions      UserPermission[]
+  motherRegistrations  Mother[]              @relation("MotherRegisteredBy")
+  motherVerifications  Mother[]              @relation("MotherVerifiedBy")
+  motherRejections     Mother[]              @relation("MotherRejectedBy")
+  motherDocuments      MotherDocument[]
+  motherAuditLogs      MotherAuditLog[]
 
   @@index([role])
   @@index([email])
@@ -411,6 +416,118 @@ model AdminAuditLog {
 
   @@index([adminId])
   @@index([caseId])
+  @@index([action])
+  @@index([timestamp])
+}
+
+// ── Vulnerable Mothers & Orphans Registration and Verification ──────────
+// Internal staff-only workflow, distinct from the public Case pipeline —
+// no private/public field split, no donor audience. See
+// backend/src/routes/mothers.ts and backend/src/services/mother*.ts.
+model Mother {
+  id        String @id @default(cuid())
+  regNumber String @unique // "KM-2026-000001" — see generateRegNumber() in mothers.ts
+
+  // Mother information
+  fullName      String
+  age           Int?
+  dateOfBirth   DateTime?
+  gender        String  @default("female")
+  phone         String
+  altPhone      String?
+  maritalStatus String?
+  nationalId    String?
+  region        String
+  district      String
+  village       String?
+  address       String?
+
+  // Family information
+  childrenCount         Int?
+  childrenLivingWithHer Int?
+  orphansUnderCare      Int?
+  otherDependents       Int?
+  childrenAgeRange      String?
+  familySituation       String?
+  incomeSource          String?
+
+  // Vulnerability / situation
+  vulnerabilityReasons String  @default("[]") // JSON array as String (SQLite-compat convention, mirrors Case.publicMediaUrls)
+  otherReasonText      String?
+  additionalInfo       String?
+
+  // Workflow
+  status String @default("pending_verification") // pending_verification | correction_requested | completed | rejected
+
+  registeredById String
+  registeredBy   User     @relation("MotherRegisteredBy", fields: [registeredById], references: [id])
+  registeredAt   DateTime @default(now())
+
+  verifiedById      String?
+  verifiedBy        User?     @relation("MotherVerifiedBy", fields: [verifiedById], references: [id])
+  verifiedAt        DateTime?
+  verificationNotes String?
+
+  rejectedById    String?
+  rejectedBy      User?     @relation("MotherRejectedBy", fields: [rejectedById], references: [id])
+  rejectedAt      DateTime?
+  rejectionReason String?
+
+  correctionRequestedAt    DateTime?
+  correctionRequestedNotes String?
+
+  // Duplicate detection (submission-stage signal, denormalized like Case.duplicateScore)
+  duplicateScore       Int     @default(0)
+  duplicateMatchesJson String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents MotherDocument[]
+  auditLogs MotherAuditLog[]
+
+  @@index([status])
+  @@index([region])
+  @@index([district])
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([registeredById])
+  @@index([verifiedAt])
+  @@index([nationalId])
+  @@index([phone])
+}
+
+model MotherDocument {
+  id           String   @id @default(cuid())
+  motherId     String
+  mother       Mother   @relation(fields: [motherId], references: [id])
+  type         String // national_id | family_doc | supporting_doc | photo | other
+  storagePath  String // private-bucket storage path — never a public URL
+  filename     String
+  mimeType     String
+  sizeBytes    Int?
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  uploadedAt   DateTime @default(now())
+
+  @@index([motherId])
+  @@index([type])
+}
+
+model MotherAuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  motherId  String?
+  mother    Mother?  @relation(fields: [motherId], references: [id])
+  action    String // registered | edited | verified | rejected | correction_requested | bulk_imported | pdf_downloaded | bulk_pdf_downloaded | document_viewed
+  notes     String?
+  metadata  String?
+  ipAddress String?
+  timestamp DateTime @default(now())
+
+  @@index([actorId])
+  @@index([motherId])
   @@index([action])
   @@index([timestamp])
 }

@@ -55,6 +55,7 @@ import updatesRoutes from './routes/updates';
 import mediaRoutes from './routes/media';
 import duplicatesRoutes from './routes/duplicates';
 import permissionsRoutes from './routes/permissions';
+import mothersRoutes from './routes/mothers';
 import { getSettings } from './routes/settings';
 import cron from 'node-cron';
 import { sysLog } from './services/logger';
@@ -218,6 +219,14 @@ const uploadLimiter = rateLimit({
   message: { error: 'Too many uploads. Please try again later.' },
 });
 
+// Mothers bulk operations: import parses/DB-writes up to 500 rows per call, bulk-pdf
+// generates up to 300 PDFs per call — both meaningfully heavier than a normal request.
+const mothersBulkLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: { error: 'Too many bulk operations. Please try again later.' },
+});
+
 app.use(globalLimiter);
 
 // ── Static uploads ───────────────────────────────────────────────────────────
@@ -247,6 +256,9 @@ app.use('/api/updates',      updatesRoutes);
 // No uploadLimiter here (unlike /api/field) — this route also serves the public
 // GET feed, and only admin-role users can hit the upload endpoints anyway.
 app.use('/api/media',        mediaRoutes);
+app.use('/api/mothers/bulk-import', mothersBulkLimiter); // more-specific path first
+app.use('/api/mothers/bulk-pdf',    mothersBulkLimiter);
+app.use('/api/mothers',      mothersRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 // Served under /api too: on Vercel only /api/* is routed to the function, so a

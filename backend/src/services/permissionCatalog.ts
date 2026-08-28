@@ -146,6 +146,15 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   p('program.view_sponsorship', 'PROGRAMS', 'View sponsorship', 'view'),
   p('program.manage_sponsorship', 'PROGRAMS', 'Manage sponsorship', 'manage'),
 
+  // ── MOTHER_REGISTRATION ───────────────────────────────────────────────
+  p('mother.view', 'MOTHER_REGISTRATION', 'View mother registrations', 'view'),
+  p('mother.create', 'MOTHER_REGISTRATION', 'Register mother', 'create'),
+  p('mother.edit', 'MOTHER_REGISTRATION', 'Edit mother registration', 'edit'),
+  p('mother.verify', 'MOTHER_REGISTRATION', 'Verify mother registration', 'approve'),
+  p('mother.reject', 'MOTHER_REGISTRATION', 'Reject mother registration', 'approve'),
+  p('mother.export', 'MOTHER_REGISTRATION', 'Export mother PDFs', 'export'),
+  p('mother.bulk_import', 'MOTHER_REGISTRATION', 'Bulk import mother registrations', 'create'),
+
   // ── PROJECTS ───────────────────────────────────────────────────────────
   p('project.view', 'PROJECTS', 'View projects', 'view'),
   p('project.create', 'PROJECTS', 'Create projects', 'create'),
@@ -270,4 +279,11 @@ export const ENFORCED_PERMISSION_KEYS = [
   'user.permission_assign',
   'system.manage',
   'audit.view',
+  'mother.view',
+  'mother.create',
+  'mother.edit',
+  'mother.verify',
+  'mother.reject',
+  'mother.export',
+  'mother.bulk_import',
 ];
