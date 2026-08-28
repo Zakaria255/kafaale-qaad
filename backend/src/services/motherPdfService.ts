@@ -170,35 +170,19 @@ export function generateMotherPdf(m: MotherPdfData): InstanceType<typeof PDFDocu
   // ── Verification ─────────────────────────────────────────────────────
   if (isCompleted) {
     sectionHeader('Verification');
+    const stampAnchorTop = y;
     row2('Verification Status', 'VERIFIED — COMPLETED', 'Verified Date', fmtDate(m.verifiedAt));
     if (m.verificationNotes) row2('Verified By', m.verifiedByName || '—', 'Verification Notes', m.verificationNotes);
     else { ensureSpace(29); kv('Verified By', m.verifiedByName || '—', PAGE_LEFT, 225); y += 27; }
+
+    // Official stamp placeholder — an empty circle, never a fabricated seal.
+    const stampR = 34;
+    const stampCx = PAGE_RIGHT - stampR - 4;
+    const stampCy = stampAnchorTop + stampR - 6;
+    doc.circle(stampCx, stampCy, stampR).dash(3, { space: 3 }).strokeColor(BRAND.muted).lineWidth(1).stroke();
+    doc.undash();
+    doc.font('Helvetica').fontSize(7).fillColor(BRAND.muted).text('OFFICIAL STAMP', stampCx - stampR, stampCy - 5, { width: stampR * 2, align: 'center', characterSpacing: 0.4 });
   }
-
-  // ── Authorized signature + official stamp placeholder ───────────────
-  const blockH = 88;
-  ensureSpace(blockH + 14);
-  y += 8;
-  doc.moveTo(PAGE_LEFT, y).lineTo(PAGE_RIGHT, y).strokeColor(BRAND.border).lineWidth(0.75).stroke();
-  y += 16;
-
-  const sigTop = y;
-  const sigLine = (label: string, ly: number) => {
-    doc.font('Helvetica').fontSize(8.5).fillColor(BRAND.muted).text(label, PAGE_LEFT, ly, { width: 100 });
-    doc.moveTo(PAGE_LEFT + 105, ly + 9).lineTo(PAGE_LEFT + 300, ly + 9).strokeColor(BRAND.border).lineWidth(0.75).stroke();
-  };
-  doc.font('Helvetica-Bold').fontSize(8.5).fillColor(BRAND.navy).text('AUTHORIZED BY', PAGE_LEFT, sigTop, { characterSpacing: 0.4 });
-  sigLine('Name:', sigTop + 18);
-  sigLine('Position:', sigTop + 38);
-  sigLine('Date:', sigTop + 58);
-
-  // Official stamp placeholder — an empty circle, never a fabricated seal.
-  const stampCx = PAGE_RIGHT - 55, stampCy = sigTop + 36, stampR = 38;
-  doc.circle(stampCx, stampCy, stampR).dash(3, { space: 3 }).strokeColor(BRAND.muted).lineWidth(1).stroke();
-  doc.undash();
-  doc.font('Helvetica').fontSize(7.5).fillColor(BRAND.muted).text('OFFICIAL STAMP', stampCx - stampR, stampCy - 5, { width: stampR * 2, align: 'center', characterSpacing: 0.4 });
-
-  y = sigTop + blockH;
 
   // ── Footer + page numbers on every page ──────────────────────────────
   // The footer band (y ~795-813) sits below the document's own bottom margin
