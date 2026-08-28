@@ -23,7 +23,7 @@ function fmtDate(d?: Date | null): string {
   return d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 }
 
-export function generateMotherPdf(m: MotherPdfData): PDFKit.PDFDocument {
+export function generateMotherPdf(m: MotherPdfData): InstanceType<typeof PDFDocument> {
   const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
   const green = '#0F773C';
   const muted = '#6B7280';
