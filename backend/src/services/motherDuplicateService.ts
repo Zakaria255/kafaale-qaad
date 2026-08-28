@@ -82,16 +82,23 @@ function score(draft: MotherDraft, candidate: any): { score: number; reasons: st
   } else if (nameSim >= 0.8) {
     s += 15; reasons.push('Similar full name');
   } else if (dobMatch) {
-    s += 10; reasons.push('Matching date of birth');
+    // Weak alone — a shared birthdate between two otherwise-unrelated names is a real
+    // coincidence, not evidence of duplication. Kept low deliberately (see region/village
+    // below) so bulk-import rows that copy-paste a template's location/DOB and only edit
+    // the name column don't get flagged against each other.
+    s += 6; reasons.push('Matching date of birth');
   }
 
   if (draft.region && draft.district && draft.village &&
       draft.region === candidate.region && draft.district === candidate.district && draft.village === candidate.village) {
-    s += 10; reasons.push('Same region, district and village');
+    // Also deliberately weak alone — "same village" says nothing about identity on its
+    // own (a village can have thousands of residents); it should only nudge a score that
+    // already has a real signal (name/phone/ID) behind it, not carry one by itself.
+    s += 4; reasons.push('Same region, district and village');
   }
 
   const daysSince = (Date.now() - new Date(candidate.createdAt).getTime()) / 86400000;
-  if (daysSince <= 30) { s += 5; reasons.push('Registered within the last 30 days'); }
+  if (daysSince <= 30) { s += 3; reasons.push('Registered within the last 30 days'); }
 
   return { score: Math.min(s, 100), reasons };
 }
