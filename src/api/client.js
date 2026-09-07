@@ -15,27 +15,12 @@ export const setAuth  = (user, token) => { localStorage.setItem('kf_token', toke
 export const clearAuth = () => { localStorage.removeItem('kf_token'); localStorage.removeItem('kf_user'); };
 export const isLoggedIn = () => !!getToken();
 
-const DEMO_TOKEN = 'demo-token-kafaale-qaad';
-
-// True when the current session is the offline demo session (backend unreachable).
-export const isDemoMode = () => getToken() === DEMO_TOKEN;
-
 const emit = (name) => { try { window.dispatchEvent(new CustomEvent(name)); } catch { /* SSR */ } };
 
 // ── Core fetch wrapper ────────────────────────────────────────────
 async function req(path, opts = {}) {
   const token = getToken();
-  const inDemo = token === DEMO_TOKEN;
-  // Auth calls ALWAYS hit the network, even while holding a demo token. Without
-  // this, demoFallback answers /auth/login with a token-less {success:true}, so
-  // setAuth never runs and the login button is a silent no-op forever — the demo
-  // session becomes an inescapable trap once a transient outage arms it.
-  const isAuthCall = path.startsWith('/auth/');
-  if (inDemo && !isAuthCall) {
-    return demoFallback(path, opts);
-  }
-  // Never send the fake token upstream — the server would just 401 on it.
-  const authHeader = token && !inDemo ? { Authorization: `Bearer ${token}` } : {};
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
   // FormData (file uploads) must NOT get a JSON Content-Type — the browser sets
   // multipart/form-data with the correct boundary itself. Forcing JSON here breaks
   // multer parsing on the server, so no files ever arrive.
@@ -49,9 +34,6 @@ async function req(path, opts = {}) {
     // and would surface live cases as "not found". API data is always dynamic.
     res = await fetch(`${API}${path}`, { cache: 'no-store', ...opts, headers });
     emit('kf-api-online'); // got a response → server reachable
-    // Backend is answering again, so the offline demo session is stale. Drop it
-    // now; a real login below will write real credentials over the top.
-    if (inDemo) clearAuth();
   } catch (e) {
     emit('kf-api-offline'); // network/fetch failure → server unreachable
     throw e;
@@ -63,25 +45,6 @@ async function req(path, opts = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
   return data;
-}
-
-// Demo fallback — returns plausible empty shapes for every endpoint
-function demoFallback(path, opts = {}) {
-  const method = (opts.method || 'GET').toUpperCase();
-  if (path.startsWith('/auth/me'))     return Promise.resolve(getUser());
-  if (path.startsWith('/auth/logout')) return Promise.resolve({});
-  if (path.startsWith('/auth/refresh'))return Promise.resolve({ token: DEMO_TOKEN });
-  if (path.startsWith('/cases'))       return Promise.resolve({ cases: [], total: 0, page: 1, pages: 1 });
-  if (path.startsWith('/admin/stats')) return Promise.resolve({ totalCases: 0, pendingReview: 0, published: 0, totalRaised: 0, totalDonations: 0, activeAgents: 0 });
-  if (path.startsWith('/admin'))       return Promise.resolve({ success: true, items: [], data: [], cases: [], users: [], donations: [] });
-  if (path.startsWith('/donations'))   return Promise.resolve({ donations: [], total: 0 });
-  if (path.startsWith('/programs'))    return Promise.resolve({ programs: [], beneficiaries: [] });
-  if (path.startsWith('/mothers/dashboard/stats')) return Promise.resolve({ total: 0, pending: 0, completed: 0, rejected: 0, today: 0, byRegion: [] });
-  if (path.startsWith('/mothers'))     return Promise.resolve({ mothers: [], pagination: { total: 0, page: 1, limit: 20, totalPages: 1 } });
-  if (path.startsWith('/notifications'))return Promise.resolve({ notifications: [], unread: 0 });
-  if (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE')
-    return Promise.resolve({ success: true, message: 'Demo mode — changes are local only' });
-  return Promise.resolve({});
 }
 
 // ── Auth endpoints ────────────────────────────────────────────────
@@ -220,7 +183,16 @@ export const impact = {
 // ── Partners endpoints ────────────────────────────────────────────
 export const partners = {
   all:     () => req('/partners'),
+  list:    () => req('/partners'),
   stories: () => req('/partners/stories'),
+  apply:   (data) => req('/partners/apply', { method: 'POST', body: JSON.stringify(data) }),
+  // Admin (needs admin/super_admin auth — token attached automatically by req()).
+  adminList:    ()       => req('/partners/admin/list'),
+  adminCreate:  (data)   => req('/partners/admin', { method: 'POST', body: JSON.stringify(data) }),
+  adminUpdate:  (id, data) => req(`/partners/admin/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  adminApprove: (id)     => req(`/partners/admin/${id}/approve`, { method: 'PATCH' }),
+  adminReject:  (id)     => req(`/partners/admin/${id}/reject`, { method: 'PATCH' }),
+  adminDelete:  (id)     => req(`/partners/admin/${id}`, { method: 'DELETE' }),
 };
 
 // ── AI endpoints ──────────────────────────────────────────────────

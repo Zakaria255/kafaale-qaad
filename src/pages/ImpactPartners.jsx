@@ -1,13 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import FixedSelect from "../components/FixedSelect.jsx";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import ContractModal from "../components/ContractModal.jsx";
 import { getCat } from "../utils/categories.js";
 import { C } from "../theme.js";
-
-const PARTNER_REG_KEY = "kf_partner_applications";
-const ADMIN_PARTNERS_KEY = "kf_admin_partners";
+import { partners as partnersApi } from "../api/client.js";
 
 const ALL_COUNTRIES = [
   "Afghanistan","Albania","Algeria","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan",
@@ -33,13 +31,17 @@ const FOCUS_AREAS = [
   "Disaster Risk Reduction","Refugee Support","Orphan Care","Legal Aid","Other",
 ];
 
-const EXISTING_PARTNERS = [
-  { id:1, name:"Al-Khair Foundation",     type:"International NGO",        country:"United Kingdom",   color:"#3B82F6", focus:["Food Aid","Medical","Shelter"],          cases:312, img:"", verified:true },
-  { id:2, name:"Somali Medical Relief",   type:"Healthcare Organization",  country:"Somalia",          color:"#10B981", focus:["Medical","Emergency Care"],              cases:198, img:"🏥", verified:true },
-  { id:3, name:"Horn of Africa NGO",      type:"Local NGO",                country:"Kenya",            color:"#F59E0B", focus:["Education","Child Protection"],          cases:145, img:"🌍", verified:true },
-  { id:4, name:"Gulf Charity Alliance",   type:"Foundation",               country:"Qatar",            color:"#8B5CF6", focus:["Emergency Relief","Water & Sanitation"], cases:421, img:"", verified:true },
-  { id:5, name:"UK Aid Direct",           type:"Government Agency",        country:"United Kingdom",   color:"#06B6D4", focus:["Livelihoods","Food Security"],           cases:89,  img:"🇬🇧", verified:true },
-  { id:6, name:"Turkish Red Crescent",    type:"International NGO",        country:"Turkey",           color:C.danger, focus:["Emergency Relief","Healthcare"],         cases:267, img:"", verified:true },
+// Safely parse the `focus` column (JSON-encoded string array, may be null/malformed).
+const parseFocus = (focus) => {
+  if (Array.isArray(focus)) return focus;
+  if (!focus) return [];
+  try { const arr = JSON.parse(focus); return Array.isArray(arr) ? arr : []; } catch { return []; }
+};
+
+const PARTNER_TIERS = [
+  { value:"featured",      label:"Featured Partner" },
+  { value:"community",     label:"Community Partner" },
+  { value:"verified_org",  label:"Verified Organisation" },
 ];
 
 const BLANK = {
@@ -50,7 +52,7 @@ const BLANK = {
 };
 
 const BLANK_PARTNER = {
-  name:"", type:"", country:"", website:"", focusAreas:[], description:"", cases:0, logoUrl:"", color:C.primary, published:false,
+  name:"", type:"", tier:"community", country:"", website:"", focus:[], description:"", casesSupported:0, logoUrl:"", color:C.primary, isActive:false,
 };
 
 const STEPS = ["Organisation","Contact Person","Operations","Review & Submit"];
@@ -63,24 +65,75 @@ export default function ImpactPartners() {
   const [step, setStep]     = useState(0);
   const [form, setForm]     = useState(BLANK);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [showPartnerContract, setShowPartnerContract] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const getAdminPartners = () => { try { return JSON.parse(localStorage.getItem(ADMIN_PARTNERS_KEY)||"[]"); } catch { return []; } };
-  const saveAdminPartners = (list) => localStorage.setItem(ADMIN_PARTNERS_KEY, JSON.stringify(list));
+  // ── Public partner directory (GET /api/partners) ──
+  const [publicPartners, setPublicPartners] = useState({ featured:[], community:[], organizations:[], totals:null });
+  const [publicLoading, setPublicLoading] = useState(true);
+  const [publicError, setPublicError] = useState("");
 
-  const [adminPartners, setAdminPartners] = useState(getAdminPartners);
+  const loadPublicPartners = useCallback(async () => {
+    setPublicLoading(true);
+    setPublicError("");
+    try {
+      const data = await partnersApi.list();
+      setPublicPartners({
+        featured: data?.featured || [],
+        community: data?.community || [],
+        organizations: data?.organizations || [],
+        totals: data?.totals || null,
+      });
+    } catch (err) {
+      setPublicError(err?.message || "Failed to load partners.");
+    } finally {
+      setPublicLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadPublicPartners(); }, [loadPublicPartners]);
+
+  const combinedPublicPartners = [
+    ...publicPartners.featured,
+    ...publicPartners.community,
+    ...publicPartners.organizations,
+  ];
+
+  // ── Admin: manage partners (GET/POST/PATCH/DELETE /api/partners/admin*) ──
+  const [adminPartners, setAdminPartners] = useState([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminError, setAdminError] = useState("");
   const [apForm, setApForm] = useState(BLANK_PARTNER);
   const [apErrors, setApErrors] = useState({});
   const [apSaved, setApSaved] = useState(false);
+  const [apSaving, setApSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const logoInputRef = useRef(null);
   const regLogoInputRef = useRef(null);
 
+  const loadAdminPartners = useCallback(async () => {
+    setAdminLoading(true);
+    setAdminError("");
+    try {
+      const data = await partnersApi.adminList();
+      setAdminPartners(data?.partners || []);
+    } catch (err) {
+      setAdminError(err?.message || "Failed to load partners.");
+    } finally {
+      setAdminLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "admin" && isAdmin) loadAdminPartners();
+  }, [tab, isAdmin, loadAdminPartners]);
+
   const setAp = (k, v) => setApForm(f => ({ ...f, [k]: v }));
   const toggleApFocus = (f) => setApForm(prev => ({
-    ...prev, focusAreas: prev.focusAreas.includes(f) ? prev.focusAreas.filter(x=>x!==f) : [...prev.focusAreas, f],
+    ...prev, focus: prev.focus.includes(f) ? prev.focus.filter(x=>x!==f) : [...prev.focus, f],
   }));
 
   const handleLogoUpload = (e) => {
@@ -109,41 +162,81 @@ export default function ImpactPartners() {
     return Object.keys(e).length === 0;
   };
 
-  const savePartner = (publish) => {
+  const savePartner = async (publish) => {
     if (!validateAp()) return;
-    const partner = { ...apForm, published: publish, id: editingId || "ap-"+Date.now(), createdAt: new Date().toISOString() };
-    const updated = editingId
-      ? adminPartners.map(p => p.id === editingId ? partner : p)
-      : [partner, ...adminPartners];
-    saveAdminPartners(updated);
-    setAdminPartners(updated);
-    setApForm(BLANK_PARTNER);
-    setEditingId(null);
-    setApSaved(true);
-    setTimeout(() => setApSaved(false), 3000);
+    setApSaving(true);
+    setAdminError("");
+    const payload = {
+      name: apForm.name, type: apForm.type, tier: apForm.tier, country: apForm.country,
+      website: apForm.website, description: apForm.description, focus: apForm.focus,
+      color: apForm.color, logoUrl: apForm.logoUrl, casesSupported: Number(apForm.casesSupported) || 0,
+      isActive: publish,
+    };
+    try {
+      if (editingId) await partnersApi.adminUpdate(editingId, payload);
+      else await partnersApi.adminCreate(payload);
+      await loadAdminPartners();
+      setApForm(BLANK_PARTNER);
+      setEditingId(null);
+      setApSaved(true);
+      setTimeout(() => setApSaved(false), 3000);
+    } catch (err) {
+      setAdminError(err?.message || "Failed to save partner.");
+    } finally {
+      setApSaving(false);
+    }
   };
 
-  const deletePartner = (id) => {
-    const updated = adminPartners.filter(p => p.id !== id);
-    saveAdminPartners(updated);
-    setAdminPartners(updated);
+  const deletePartner = async (id) => {
+    setAdminError("");
+    try {
+      await partnersApi.adminDelete(id);
+      setAdminPartners(list => list.filter(p => p.id !== id));
+    } catch (err) {
+      setAdminError(err?.message || "Failed to delete partner.");
+    }
   };
 
-  const togglePublish = (id) => {
-    const updated = adminPartners.map(p => p.id === id ? { ...p, published: !p.published } : p);
-    saveAdminPartners(updated);
-    setAdminPartners(updated);
+  const togglePublish = async (p) => {
+    setAdminError("");
+    try {
+      const updated = await partnersApi.adminUpdate(p.id, { isActive: !p.isActive });
+      setAdminPartners(list => list.map(x => x.id === p.id ? updated : x));
+    } catch (err) {
+      setAdminError(err?.message || "Failed to update partner.");
+    }
+  };
+
+  const approvePartner = async (id) => {
+    setAdminError("");
+    try {
+      const updated = await partnersApi.adminApprove(id);
+      setAdminPartners(list => list.map(x => x.id === id ? updated : x));
+    } catch (err) {
+      setAdminError(err?.message || "Failed to approve partner.");
+    }
+  };
+
+  const rejectPartner = async (id) => {
+    setAdminError("");
+    try {
+      const updated = await partnersApi.adminReject(id);
+      setAdminPartners(list => list.map(x => x.id === id ? updated : x));
+    } catch (err) {
+      setAdminError(err?.message || "Failed to reject partner.");
+    }
   };
 
   const startEdit = (p) => {
-    setApForm({ ...p });
+    setApForm({
+      name: p.name || "", type: p.type || "", tier: p.tier || "community", country: p.country || "",
+      website: p.website || "", focus: parseFocus(p.focus), description: p.description || "",
+      casesSupported: p.casesSupported || 0, logoUrl: p.logoUrl || "", color: p.color || C.primary,
+      isActive: !!p.isActive,
+    });
     setEditingId(p.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  const allPublishedPartners = [...EXISTING_PARTNERS, ...adminPartners.filter(p => p.published).map((p, i) => ({
-    ...p, img: p.logoUrl || "", verified: true, focus: p.focusAreas, cases: Number(p.cases) || 0,
-  }))];
 
   const set = (k, v) => setForm(f => ({ ...f, [k]:v }));
   const toggleFocus = (f) => setForm(prev => ({
@@ -177,40 +270,35 @@ export default function ImpactPartners() {
   const next = () => { if (validate(step)) setStep(s => Math.min(s+1, 3)); };
   const back = () => setStep(s => Math.max(s-1, 0));
 
-  const submit = () => {
+  const submit = async () => {
     if (!validate(3)) return;
-    const app = { ...form, id:"app-"+Date.now(), submittedAt:new Date().toISOString(), status:"pending" };
+    setSubmitting(true);
+    setSubmitError("");
     try {
-      const existing = JSON.parse(localStorage.getItem(PARTNER_REG_KEY)||"[]");
-      localStorage.setItem(PARTNER_REG_KEY, JSON.stringify([app, ...existing]));
-    } catch {}
-    const pendingPartner = {
-      id: app.id,
-      name: form.orgName,
-      type: form.type,
-      country: form.country,
-      website: form.website,
-      focusAreas: form.focusAreas,
-      description: form.description,
-      cases: 0,
-      logoUrl: form.logoUrl || "",
-      color: C.primary,
-      published: false,
-      status: "pending",
-      contactName: form.contactName,
-      contactEmail: form.contactEmail,
-      contactPhone: form.contactPhone,
-      regNumber: form.regNumber,
-      yearFounded: form.yearFounded,
-      annualBudget: form.annualBudget,
-      staffCount: form.staffCount,
-      operatingRegions: form.operatingRegions,
-      submittedAt: app.submittedAt,
-    };
-    const updatedPartners = [pendingPartner, ...adminPartners];
-    saveAdminPartners(updatedPartners);
-    setAdminPartners(updatedPartners);
-    setSubmitted(true);
+      await partnersApi.apply({
+        orgName: form.orgName,
+        type: form.type,
+        country: form.country,
+        website: form.website || undefined,
+        regNumber: form.regNumber || undefined,
+        yearFounded: form.yearFounded ? Number(form.yearFounded) : undefined,
+        contactName: form.contactName,
+        contactTitle: form.contactTitle || undefined,
+        contactEmail: form.contactEmail,
+        contactPhone: form.contactPhone,
+        focusAreas: form.focusAreas,
+        operatingRegions: form.operatingRegions || undefined,
+        description: form.description,
+        annualBudget: form.annualBudget || undefined,
+        staffCount: form.staffCount ? Number(form.staffCount) : undefined,
+        logoUrl: form.logoUrl || undefined,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err?.message || "Failed to submit application. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const field = (key, label, type="text", placeholder="") => (
@@ -290,33 +378,53 @@ export default function ImpactPartners() {
               <h2 style={{ fontSize:"clamp(24px,3.5vw,40px)", fontWeight:900, margin:"0 0 10px", letterSpacing:-0.5 }}>Our Impact Network</h2>
               <p style={{ fontSize:15, color:C.muted }}>Verified partners delivering aid across the region.</p>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:22 }}>
-              {allPublishedPartners.map(p => (
-                <div key={p.id} style={{ background:"#fff", borderRadius:18, overflow:"hidden", border:`1px solid ${C.border}`, boxShadow:"0 2px 12px rgba(0,0,0,.06)" }}>
-                  <div style={{ background:`linear-gradient(135deg, ${p.color}18, ${p.color}08)`, padding:"28px 24px 22px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-                      <div style={{ width:56, height:56, borderRadius:14, background:`linear-gradient(135deg,${p.color}30,${p.color}60)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0, overflow:"hidden" }}>
-                        {p.logoUrl && p.logoUrl.startsWith("data:")
-                          ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} />
-                          : p.img}
+            {publicLoading ? (
+              <div style={{ textAlign:"center", padding:"60px 24px", color:C.muted, fontSize:14 }}>Loading partners…</div>
+            ) : publicError ? (
+              <div style={{ textAlign:"center", padding:"40px 24px", background:"#FEF2F2", border:`1px solid ${C.danger}40`, borderRadius:16, color:C.danger, fontSize:14, fontWeight:600 }}>
+                {publicError}
+              </div>
+            ) : combinedPublicPartners.length === 0 ? (
+              <div style={{ textAlign:"center", padding:"60px 24px", background:"#fff", border:`2px dashed ${C.border}`, borderRadius:18 }}>
+                <h3 style={{ margin:"0 0 8px", fontSize:18, fontWeight:800, color:C.text }}>No partners yet</h3>
+                <p style={{ fontSize:14, color:C.muted, margin:0 }}>Our impact network is just getting started — check back soon, or be the first to register.</p>
+              </div>
+            ) : (
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:22 }}>
+                {combinedPublicPartners.map(p => {
+                  const focusList = parseFocus(p.focus);
+                  const isFeatured = p.tier === "featured";
+                  return (
+                    <div key={p.id} style={{ background:"#fff", borderRadius:18, overflow:"hidden", border: isFeatured ? `2px solid ${p.color}` : `1px solid ${C.border}`, boxShadow: isFeatured ? `0 4px 20px ${p.color}30` : "0 2px 12px rgba(0,0,0,.06)", position:"relative" }}>
+                      {isFeatured && (
+                        <span style={{ position:"absolute", top:14, right:14, background:C.accent, color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:800, letterSpacing:.5, zIndex:1 }}>★ FEATURED</span>
+                      )}
+                      <div style={{ background:`linear-gradient(135deg, ${p.color}18, ${p.color}08)`, padding:"28px 24px 22px" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                          <div style={{ width:56, height:56, borderRadius:14, background:`linear-gradient(135deg,${p.color}30,${p.color}60)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0, overflow:"hidden" }}>
+                            {p.logoUrl
+                              ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} />
+                              : (p.avatar || "🤝")}
+                          </div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:15, fontWeight:800, color:C.text }}>{p.name}</div>
+                            <div style={{ fontSize:12, color:p.color, fontWeight:700, marginTop:2 }}>{p.type}</div>
+                            <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{p.country}</div>
+                          </div>
+                          {p.isVerified && <span style={{ background:"#D1FAE5", color:"#065F46", borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:800 }}>✓ Verified</span>}
+                        </div>
                       </div>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:15, fontWeight:800, color:C.text }}>{p.name}</div>
-                        <div style={{ fontSize:12, color:p.color, fontWeight:700, marginTop:2 }}>{p.type}</div>
-                        <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{p.country}</div>
+                      <div style={{ padding:"16px 24px 22px" }}>
+                        <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:14 }}>
+                          {focusList.map(f => <span key={f} style={{ background:p.color+"15", color:p.color, borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:700 }}>{f}</span>)}
+                        </div>
+                        <div style={{ fontSize:13, color:C.muted, fontWeight:600 }}>{p.casesSupported || 0} cases supported</div>
                       </div>
-                      {p.verified && <span style={{ background:"#D1FAE5", color:"#065F46", borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:800 }}>✓ Verified</span>}
                     </div>
-                  </div>
-                  <div style={{ padding:"16px 24px 22px" }}>
-                    <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:14 }}>
-                      {p.focus.map(f => <span key={f} style={{ background:p.color+"15", color:p.color, borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:700 }}>{f}</span>)}
-                    </div>
-                    <div style={{ fontSize:13, color:C.muted, fontWeight:600 }}>{p.cases} cases supported</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
             <div style={{ textAlign:"center", marginTop:48 }}>
               <div style={{ background:"#fff", borderRadius:18, border:`2px dashed ${C.border}`, padding:"40px 24px", display:"inline-block", maxWidth:480 }}>
                 <div style={{ fontSize:42, marginBottom:12 }}></div>
@@ -513,6 +621,7 @@ export default function ImpactPartners() {
                         </label>
                         {errors.acceptsTerms && <div style={{ fontSize:11, color:C.danger, marginTop:6 }}>{errors.acceptsTerms}</div>}
                       </div>
+                      {submitError && <div style={{ fontSize:12, color:C.danger, marginTop:14, background:"#FEF2F2", border:`1px solid ${C.danger}40`, borderRadius:10, padding:"10px 14px" }}>{submitError}</div>}
                     </div>
                   )}
 
@@ -526,8 +635,8 @@ export default function ImpactPartners() {
                       ? <button onClick={next} style={{ padding:"12px 32px", borderRadius:11, background:C.primary, color:"#fff", border:"none", fontWeight:800, fontSize:14, cursor:"pointer" }}>
                           Continue →
                         </button>
-                      : <button onClick={submit} style={{ padding:"12px 32px", borderRadius:11, background:C.secondary, color:"#fff", border:"none", fontWeight:800, fontSize:14, cursor:"pointer" }}>
-                          Submit Application
+                      : <button onClick={submit} disabled={submitting} style={{ padding:"12px 32px", borderRadius:11, background:C.secondary, color:"#fff", border:"none", fontWeight:800, fontSize:14, cursor: submitting ? "default" : "pointer", opacity: submitting ? 0.7 : 1 }}>
+                          {submitting ? "Submitting…" : "Submit Application"}
                         </button>
                     }
                   </div>
@@ -550,6 +659,12 @@ export default function ImpactPartners() {
             {apSaved && (
               <div style={{ background:"#D1FAE5", border:"1px solid #6EE7B7", borderRadius:12, padding:"14px 20px", marginBottom:24, color:"#065F46", fontWeight:700, fontSize:14 }}>
                 Partner saved successfully!
+              </div>
+            )}
+
+            {adminError && (
+              <div style={{ background:"#FEF2F2", border:`1px solid ${C.danger}40`, borderRadius:12, padding:"14px 20px", marginBottom:24, color:C.danger, fontWeight:700, fontSize:14 }}>
+                {adminError}
               </div>
             )}
 
@@ -615,7 +730,7 @@ export default function ImpactPartners() {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
                   <div>
                     <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Cases Supported</label>
-                    <input type="number" value={apForm.cases} onChange={e=>setAp("cases",e.target.value)} placeholder="0"
+                    <input type="number" value={apForm.casesSupported} onChange={e=>setAp("casesSupported",e.target.value)} placeholder="0"
                       style={{ width:"100%", padding:"11px 14px", borderRadius:10, border:`1.5px solid ${C.border}`, fontSize:14, boxSizing:"border-box" }} />
                   </div>
                   <div>
@@ -629,14 +744,21 @@ export default function ImpactPartners() {
                 </div>
 
                 <div>
+                  <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5, textTransform:"uppercase", letterSpacing:.5 }}>Listing Tier</label>
+                  <FixedSelect value={apForm.tier} onChange={e=>setAp("tier",e.target.value)} style={{ width:"100%", borderRadius:10, fontSize:14, border:`1.5px solid ${C.border}` }}>
+                    {PARTNER_TIERS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </FixedSelect>
+                </div>
+
+                <div>
                   <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:8, textTransform:"uppercase", letterSpacing:.5 }}>Focus Areas</label>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                     {FOCUS_AREAS.map(f => (
                       <button key={f} onClick={() => toggleApFocus(f)} style={{
                         padding:"5px 12px", borderRadius:99, fontSize:11, fontWeight:700, border:"1.5px solid", cursor:"pointer",
-                        background: apForm.focusAreas.includes(f) ? C.primary : "#fff",
-                        color: apForm.focusAreas.includes(f) ? "#fff" : C.muted,
-                        borderColor: apForm.focusAreas.includes(f) ? C.primary : C.border,
+                        background: apForm.focus.includes(f) ? C.primary : "#fff",
+                        color: apForm.focus.includes(f) ? "#fff" : C.muted,
+                        borderColor: apForm.focus.includes(f) ? C.primary : C.border,
                       }}>{f}</button>
                     ))}
                   </div>
@@ -651,11 +773,15 @@ export default function ImpactPartners() {
 
                 <div style={{ display:"flex", gap:12, justifyContent:"flex-end", flexWrap:"wrap" }}>
                   {editingId && <button onClick={() => { setApForm(BLANK_PARTNER); setEditingId(null); }} style={{ padding:"11px 22px", borderRadius:10, border:`1.5px solid ${C.border}`, background:"#fff", fontWeight:700, fontSize:14, cursor:"pointer" }}>Cancel</button>}
-                  <button onClick={() => savePartner(false)} style={{ padding:"11px 22px", borderRadius:10, background:C.muted, color:"#fff", border:"none", fontWeight:700, fontSize:14, cursor:"pointer" }}>Save as Draft</button>
-                  <button onClick={() => savePartner(true)} style={{ padding:"11px 24px", borderRadius:10, background:C.secondary, color:"#fff", border:"none", fontWeight:800, fontSize:14, cursor:"pointer" }}>Publish Partner</button>
+                  <button disabled={apSaving} onClick={() => savePartner(false)} style={{ padding:"11px 22px", borderRadius:10, background:C.muted, color:"#fff", border:"none", fontWeight:700, fontSize:14, cursor: apSaving?"default":"pointer", opacity: apSaving?0.7:1 }}>Save as Draft</button>
+                  <button disabled={apSaving} onClick={() => savePartner(true)} style={{ padding:"11px 24px", borderRadius:10, background:C.secondary, color:"#fff", border:"none", fontWeight:800, fontSize:14, cursor: apSaving?"default":"pointer", opacity: apSaving?0.7:1 }}>{apSaving ? "Saving…" : "Publish Partner"}</button>
                 </div>
               </div>
             </div>
+
+            {adminLoading && (
+              <div style={{ textAlign:"center", padding:"24px", color:C.muted, fontSize:14 }}>Loading partners…</div>
+            )}
 
             {/* Pending registrations */}
             {adminPartners.filter(p => p.status === "pending").length > 0 && (
@@ -666,19 +792,19 @@ export default function ImpactPartners() {
                   {adminPartners.filter(p => p.status === "pending").map(p => (
                     <div key={p.id} style={{ background:"#FFFBEB", borderRadius:14, padding:"20px 24px", border:`1.5px solid #FCD34D`, boxShadow:"0 2px 8px rgba(0,0,0,.04)", display:"flex", alignItems:"center", gap:16 }}>
                       <div style={{ width:52, height:52, borderRadius:12, background:"#FEF3C7", border:`1.5px solid #F59E0B`, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0 }}>
-                        {p.logoUrl ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} /> : <span style={{ fontSize:22 }}></span>}
+                        {p.logoUrl ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} /> : <span style={{ fontSize:22 }}>{p.avatar || "🏢"}</span>}
                       </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:15, fontWeight:800, color:C.text }}>{p.name}</div>
                         <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>{p.type} · {p.country}</div>
                         {p.contactEmail && <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>Contact: {p.contactName} · {p.contactEmail}</div>}
-                        <div style={{ fontSize:11, color:"#92400E", marginTop:4, fontWeight:700 }}>Submitted {new Date(p.submittedAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div>
+                        {p.createdAt && <div style={{ fontSize:11, color:"#92400E", marginTop:4, fontWeight:700 }}>Submitted {new Date(p.createdAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div>}
                       </div>
                       <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
                         <span style={{ background:"#FEF3C7", color:"#92400E", borderRadius:99, padding:"4px 12px", fontSize:11, fontWeight:800 }}>Pending</span>
                         <button onClick={() => startEdit(p)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.primary}`, background:C.primary, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer" }}>Edit & Review</button>
-                        <button onClick={() => { const updated = adminPartners.map(x => x.id===p.id ? {...x, status:"approved", published:true} : x); saveAdminPartners(updated); setAdminPartners(updated); }} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.secondary}`, background:C.secondary, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer" }}>Approve & Publish</button>
-                        <button onClick={() => deletePartner(p.id)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.danger}`, background:"#fff", color:C.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}>Reject</button>
+                        <button onClick={() => approvePartner(p.id)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.secondary}`, background:C.secondary, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer" }}>Approve & Publish</button>
+                        <button onClick={() => rejectPartner(p.id)} style={{ padding:"7px 14px", borderRadius:8, border:`1.5px solid ${C.danger}`, background:"#fff", color:C.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}>Reject</button>
                       </div>
                     </div>
                   ))}
@@ -691,33 +817,35 @@ export default function ImpactPartners() {
               <div>
                 <h3 style={{ fontSize:18, fontWeight:800, marginBottom:18 }}>Managed Partners ({adminPartners.filter(p=>p.status!=="pending").length})</h3>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))", gap:22 }}>
-                  {adminPartners.filter(p => p.status !== "pending").map(p => (
-                    <div key={p.id} style={{ background:"#fff", borderRadius:18, overflow:"hidden", border:`2px solid ${p.published ? C.secondary+"40" : C.border}`, boxShadow:"0 2px 12px rgba(0,0,0,.06)", display:"flex", flexDirection:"column" }}>
+                  {adminPartners.filter(p => p.status !== "pending").map(p => {
+                    const focusList = parseFocus(p.focus);
+                    return (
+                    <div key={p.id} style={{ background:"#fff", borderRadius:18, overflow:"hidden", border:`2px solid ${p.isActive ? C.secondary+"40" : C.border}`, boxShadow:"0 2px 12px rgba(0,0,0,.06)", display:"flex", flexDirection:"column" }}>
                       {/* Card header — same as public */}
                       <div style={{ background:`linear-gradient(135deg, ${p.color}18, ${p.color}08)`, padding:"24px 20px 18px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:14 }}>
                           <div style={{ width:56, height:56, borderRadius:14, background:`linear-gradient(135deg,${p.color}30,${p.color}60)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0, overflow:"hidden" }}>
                             {p.logoUrl
                               ? <img src={p.logoUrl} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} />
-                              : <span></span>}
+                              : <span>{p.avatar || "🤝"}</span>}
                           </div>
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontSize:15, fontWeight:800, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.name}</div>
                             <div style={{ fontSize:12, color:p.color, fontWeight:700, marginTop:2 }}>{p.type}</div>
                             <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>{p.country}</div>
                           </div>
-                          <span style={{ background: p.published ? "#D1FAE5" : "#FEF3C7", color: p.published ? "#065F46" : "#92400E", borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:800, flexShrink:0 }}>
-                            {p.published ? "✓ Published" : "Draft"}
+                          <span style={{ background: p.isActive ? "#D1FAE5" : "#FEF3C7", color: p.isActive ? "#065F46" : "#92400E", borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:800, flexShrink:0 }}>
+                            {p.isActive ? "✓ Published" : "Draft"}
                           </span>
                         </div>
                       </div>
 
                       {/* Card body */}
                       <div style={{ padding:"14px 20px 18px", flex:1 }}>
-                        {p.focusAreas?.length > 0 && (
+                        {focusList.length > 0 && (
                           <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:10 }}>
-                            {p.focusAreas.slice(0,3).map(f=><span key={f} style={{ background:p.color+"15", color:p.color, borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:700 }}>{f}</span>)}
-                            {p.focusAreas.length > 3 && <span style={{ fontSize:10, color:C.muted }}>+{p.focusAreas.length-3}</span>}
+                            {focusList.slice(0,3).map(f=><span key={f} style={{ background:p.color+"15", color:p.color, borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:700 }}>{f}</span>)}
+                            {focusList.length > 3 && <span style={{ fontSize:10, color:C.muted }}>+{focusList.length-3}</span>}
                           </div>
                         )}
                         {p.description && (
@@ -725,19 +853,20 @@ export default function ImpactPartners() {
                             {p.description}
                           </div>
                         )}
-                        <div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>{Number(p.cases)||0} cases supported</div>
+                        <div style={{ fontSize:12, color:C.muted, fontWeight:600 }}>{Number(p.casesSupported)||0} cases supported</div>
                       </div>
 
                       {/* Admin actions */}
                       <div style={{ borderTop:`1px solid ${C.border}`, padding:"12px 16px", display:"flex", gap:8, flexWrap:"wrap" }}>
-                        <button onClick={() => togglePublish(p.id)} style={{ flex:1, padding:"8px 10px", borderRadius:9, border:`1.5px solid ${p.published ? C.danger : C.secondary}`, background: p.published ? "#FEF2F2" : "#ECFDF5", color: p.published ? C.danger : C.secondary, fontWeight:700, fontSize:12, cursor:"pointer" }}>
-                          {p.published ? "Unpublish" : "Publish"}
+                        <button onClick={() => togglePublish(p)} style={{ flex:1, padding:"8px 10px", borderRadius:9, border:`1.5px solid ${p.isActive ? C.danger : C.secondary}`, background: p.isActive ? "#FEF2F2" : "#ECFDF5", color: p.isActive ? C.danger : C.secondary, fontWeight:700, fontSize:12, cursor:"pointer" }}>
+                          {p.isActive ? "Unpublish" : "Publish"}
                         </button>
                         <button onClick={() => startEdit(p)} style={{ flex:1, padding:"8px 10px", borderRadius:9, border:`1.5px solid ${C.primary}`, background:"#EFF6FF", color:C.primary, fontWeight:700, fontSize:12, cursor:"pointer" }}>Edit</button>
                         <button onClick={() => deletePartner(p.id)} style={{ padding:"8px 12px", borderRadius:9, border:`1.5px solid ${C.danger}`, background:"#fff", color:C.danger, fontWeight:700, fontSize:12, cursor:"pointer" }}>✕</button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

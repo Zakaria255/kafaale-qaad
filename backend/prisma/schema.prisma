@@ -798,6 +798,19 @@ model Partner {
   addedByAdmin  String?
   notes         String?
 
+  // Registration-application review workflow (separate from `isActive`,
+  // which controls public-listing visibility once approved).
+  status           String  @default("approved") // pending | approved | rejected
+  contactName      String?
+  contactTitle     String?
+  contactEmail     String?
+  contactPhone     String?
+  regNumber        String?
+  yearFounded      Int?
+  annualBudget     String?
+  staffCount       Int?
+  operatingRegions String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -805,6 +818,7 @@ model Partner {
   @@index([isVerified, isActive])
   @@index([type])
   @@index([featuredOrder])
+  @@index([status])
 }
 
 // ─── OTP / Password Reset ────────────────────────────────────────────────────
