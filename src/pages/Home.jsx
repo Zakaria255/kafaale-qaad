@@ -16,16 +16,6 @@ import {
 
 const URGENCY_RANK = { critical: 4, high: 3, medium: 2, low: 1 };
 
-/* Shown until the API returns published cases. Cities and case refs only. */
-const DEMO_CASES = [
-  { id: null, title: "Emergency shelter after flooding", location: "Mogadishu", urgency: "critical", funded: 45, goal: 1200,
-    story: "Family displaced by flooding needs immediate shelter and essential supplies. Verified on site 12 July." },
-  { id: null, title: "Chronic medication and food support", location: "Baidoa", urgency: "high", funded: 68, goal: 850,
-    story: "Elderly community member with a chronic illness needs ongoing medication and monthly food support." },
-  { id: null, title: "Community hall for women's literacy", location: "Beledweyne", urgency: "medium", funded: 30, goal: 6500,
-    story: "Multi-purpose hall for women's literacy classes and youth skills training, serving 480 people." },
-];
-
 function Reveal({ children, delay = 0, style }) {
   const ref = useReveal();
   return (
@@ -40,7 +30,11 @@ export default function Home() {
   const P = PT.home[lang] || PT.home.en;
   const { isMobile } = useResponsive();
   const reduced = usePrefersReducedMotion();
-  const [featured, setFeatured] = useState(DEMO_CASES);
+  // No fake fallback: this starts empty and only ever fills with real,
+  // published cases from the API. Zero eligible cases is a legitimate
+  // state — shown as an empty message, never invented content.
+  const [featured, setFeatured] = useState([]);
+  const [casesLoaded, setCasesLoaded] = useState(false);
 
   /* Hero entrance fires once, on the frame after mount. */
   const [lit, setLit] = useState(false);
@@ -67,8 +61,8 @@ export default function Home() {
         image: c.mediaFiles?.[0]?.url || null,
       }));
       const sorted = normalized.sort((a, b) => (URGENCY_RANK[b.urgency] || 0) - (URGENCY_RANK[a.urgency] || 0));
-      if (sorted.length > 0) setFeatured(sorted.slice(0, 3));
-    }).catch(() => {});
+      setFeatured(sorted.slice(0, 3));
+    }).catch(() => {}).finally(() => setCasesLoaded(true));
   }, []);
 
   const [showStats] = useState(() => {
@@ -278,16 +272,22 @@ export default function Home() {
             </div>
           </Reveal>
 
-          <div style={{
-            marginBlockStart: "var(--kf-s8)", display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: "var(--kf-s6)",
-          }}>
-            {featured.map((c, i) => (
-              <Reveal key={c.id ?? `demo-${i}`} delay={i * 60}>
-                <CaseCard {...c} percent={c.funded} lang={lang} labels={cardLabels} />
-              </Reveal>
-            ))}
-          </div>
+          {casesLoaded && featured.length === 0 ? (
+            <div style={{ marginBlockStart: "var(--kf-s8)", textAlign: "center", padding: "var(--kf-s8) var(--kf-s5)", color: "var(--kf-muted)" }}>
+              No cases currently need sponsors — check back soon.
+            </div>
+          ) : (
+            <div style={{
+              marginBlockStart: "var(--kf-s8)", display: "grid",
+              gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: "var(--kf-s6)",
+            }}>
+              {featured.map((c, i) => (
+                <Reveal key={c.id} delay={i * 60}>
+                  <CaseCard {...c} percent={c.funded} lang={lang} labels={cardLabels} />
+                </Reveal>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
