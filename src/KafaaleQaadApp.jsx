@@ -595,6 +595,24 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor, sho
   const [proofVideos,  setProofVideos]  = useState([]);
   const [proofReceipts,setProofReceipts]= useState([]);
 
+  // The case list this modal is opened from only carries a media COUNT
+  // (_count.mediaFiles), never the actual files/URLs — c.media_files is
+  // always [] as a result, so "Media (0)" showed regardless of what was
+  // really uploaded. Fetch the real file list once, on open.
+  const [realMedia,    setRealMedia]    = useState(null); // null = still loading
+  const [mediaError,   setMediaError]   = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    adminApi.getCase(c.id)
+      .then(full => {
+        if (cancelled) return;
+        setRealMedia((full.mediaFiles || []).map(f => ({ url: f.url, type: f.type || 'image' })));
+      })
+      .catch(err => { if (!cancelled) setMediaError(err.message || 'Failed to load media'); });
+    return () => { cancelled = true; };
+  }, [c.id]);
+  const mediaFiles = realMedia ?? c.media_files;
+
   const stepIdx = WORKFLOW_STEPS.findIndex(s => s.status === c.status);
 
   const canAdvance = () => {
@@ -636,14 +654,14 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor, sho
     onClose();
   };
 
-  const totalMedia = c.media_files.length + evidencePhotos.length + evidenceVideos.length + evidenceDocs.length;
+  const totalMedia = (realMedia === null ? 0 : mediaFiles.length) + evidencePhotos.length + evidenceVideos.length + evidenceDocs.length;
   const totalProof = c.proof_files.length + proofPhotos.length + proofVideos.length + proofReceipts.length;
 
   const canSeeIntegrity = ["admin", "super_admin", "verification_office"].includes(currentUser.role);
   const tabs = [
     { id: "details",  label: "Details"  },
     { id: "timeline", label: "Timeline" },
-    { id: "media",    label: `Media (${totalMedia})` },
+    { id: "media",    label: realMedia === null ? "Media" : `Media (${totalMedia})` },
     ...(totalProof > 0 ? [{ id: "proof", label: `Proof (${totalProof})` }] : []),
     ...(canSeeIntegrity ? [{ id: "integrity", label: `Integrity${c.duplicateScore >= 25 ? ` (${c.duplicateScore}%)` : ""}` }] : []),
   ];
@@ -956,7 +974,11 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor, sho
       {/* ── MEDIA TAB ── */}
       {activeTab === "media" && (
         <div>
-          {c.media_files.length === 0 && evidencePhotos.length === 0 && evidenceVideos.length === 0 && evidenceDocs.length === 0 ? (
+          {realMedia === null && !mediaError ? (
+            <div style={{ padding: 32, textAlign: "center", color: COLORS.muted }}>Loading media…</div>
+          ) : mediaError ? (
+            <div style={{ padding: 32, textAlign: "center", color: COLORS.danger }}>{mediaError}</div>
+          ) : mediaFiles.length === 0 && evidencePhotos.length === 0 && evidenceVideos.length === 0 && evidenceDocs.length === 0 ? (
             <div style={{ padding: 32, textAlign: "center", color: COLORS.muted }}>
               <div style={{ fontSize: 40, marginBottom: 8 }}></div>
               No media files attached to this case yet.
@@ -964,11 +986,11 @@ const CaseDetailModal = ({ c, currentUser, onClose, onUpdateCase, onSponsor, sho
           ) : (
             <div>
               {/* Existing files */}
-              {c.media_files.length > 0 && (
+              {mediaFiles.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 10 }}>EXISTING FILES</div>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    {c.media_files.map((f, i) => (
+                    {mediaFiles.map((f, i) => (
                       <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1.5px solid #BFDBFE', background: '#EFF6FF', width: 100, flexShrink: 0 }}>
                         {f.type === 'video' || f.url?.match(/\.(mp4|mov|webm|avi)$/i)
                           ? <video src={f.url} controls style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} />
