@@ -7227,11 +7227,20 @@ const parsePartnerFocus = (focus) => {
   if (Array.isArray(focus)) return focus;
   try { const v = JSON.parse(focus); return Array.isArray(v) ? v : []; } catch { return []; }
 };
+const PARTNER_TIER_OPTIONS = [
+  { value:"featured",     label:"Featured Partner" },
+  { value:"community",    label:"Community Partner" },
+  { value:"verified_org", label:"Verified Organisation" },
+];
+
 const PartnerApplicationsPanel = ({ showToast }) => {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -7248,14 +7257,57 @@ const PartnerApplicationsPanel = ({ showToast }) => {
     action
       .then(updatedPartner => {
         setApps(prev => prev.map(a => a.id === id ? updatedPartner : a));
-        setSelected(null);
+        setSelected(updatedPartner);
         showToast?.(`Application ${status}`, status === "approved" ? "success" : "error");
       })
       .catch(err => {
         showToast?.(err.message || `Failed to ${status === "approved" ? "approve" : "reject"} application`, "error");
       });
   };
+
+  const startEdit = (p) => {
+    setEditForm({
+      name: p.name || "", type: p.type || "", tier: p.tier || "community",
+      country: p.country || "", website: p.website || "",
+      description: p.description || "", focus: parsePartnerFocus(p.focus).join(", "),
+      casesSupported: p.casesSupported ?? 0, isActive: !!p.isActive,
+    });
+    setEditing(true);
+  };
+
+  const saveEdit = () => {
+    if (!selected) return;
+    setSaving(true);
+    const payload = {
+      ...editForm,
+      focus: editForm.focus.split(",").map(s => s.trim()).filter(Boolean),
+      casesSupported: Number(editForm.casesSupported) || 0,
+    };
+    partnersApi.adminUpdate(selected.id, payload)
+      .then(updated => {
+        setApps(prev => prev.map(a => a.id === selected.id ? updated : a));
+        setSelected(updated);
+        setEditing(false);
+        showToast?.("Partner updated", "success");
+      })
+      .catch(err => showToast?.(err.message || "Failed to save changes", "error"))
+      .finally(() => setSaving(false));
+  };
+
+  const toggleVisibility = (p) => {
+    partnersApi.adminUpdate(p.id, { isActive: !p.isActive })
+      .then(updated => {
+        setApps(prev => prev.map(a => a.id === p.id ? updated : a));
+        setSelected(sel => sel && sel.id === p.id ? updated : sel);
+        showToast?.(updated.isActive ? "Partner is now visible to the public" : "Partner hidden from the public site", updated.isActive ? "success" : "error");
+      })
+      .catch(err => showToast?.(err.message || "Failed to update visibility", "error"));
+  };
+
   const ST = { pending:{ bg:"#FEF3C7", color:"#92400E", label:"Pending" }, approved:{ bg:"#D1FAE5", color:"#065F46", label:"Approved" }, rejected:{ bg:"#FEE2E2", color:"#991B1B", label:"Rejected" } };
+  const inputStyle = { width:"100%", padding:"9px 12px", borderRadius:8, border:`1.5px solid ${COLORS.border}`, fontSize:13, boxSizing:"border-box", fontFamily:"inherit" };
+  const labelStyle = { display:"block", fontSize:11, fontWeight:700, color:COLORS.muted, marginBottom:4, textTransform:"uppercase", letterSpacing:.4 };
+
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
@@ -7272,15 +7324,25 @@ const PartnerApplicationsPanel = ({ showToast }) => {
             <div>
               <div style={{ fontSize:15, fontWeight:800, color:COLORS.text }}>{a.name || "Unknown Organization"}</div>
               <div style={{ fontSize:12, color:COLORS.muted, marginTop:2 }}>{a.type} · {a.country} · {a.contactEmail}</div>
-              <div style={{ fontSize:11, color:COLORS.muted }}>Submitted {a.createdAt ? new Date(a.createdAt).toLocaleDateString() : "—"}</div>
+              <div style={{ fontSize:11, color:COLORS.muted }}>Submitted {a.createdAt ? new Date(a.createdAt).toLocaleDateString() : "—"} · {a.casesSupported ?? 0} cases supported</div>
             </div>
-            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
               <span style={{ ...((ST[a.status]||ST.pending)), borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>{(ST[a.status]||ST.pending).label}</span>
-              <button onClick={() => setSelected(a)} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.primary, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Review</button>
+              {a.status === "approved" && (
+                <span style={{ background: a.isActive ? "#D1FAE5" : "#FEE2E2", color: a.isActive ? "#065F46" : "#991B1B", borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>
+                  {a.isActive ? "Visible" : "Hidden"}
+                </span>
+              )}
+              <button onClick={() => { setSelected(a); setEditing(false); }} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.primary, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Review</button>
               {a.status === "pending" && <>
                 <button onClick={() => updateStatus(a.id,"approved")} style={{ padding:"7px 14px", borderRadius:8, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Approve</button>
                 <button onClick={() => updateStatus(a.id,"rejected")} style={{ padding:"7px 14px", borderRadius:8, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>Reject</button>
               </>}
+              {a.status === "approved" && (
+                <button onClick={() => toggleVisibility(a)} style={{ padding:"7px 14px", borderRadius:8, background: a.isActive ? "#FEF2F2" : "#ECFDF5", color: a.isActive ? COLORS.danger : "#065F46", border:`1.5px solid ${a.isActive ? COLORS.danger : "#10B981"}`, cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                  {a.isActive ? "Hide" : "Publish"}
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -7291,18 +7353,53 @@ const PartnerApplicationsPanel = ({ showToast }) => {
           <div style={{ background:"#fff", borderRadius:20, padding:28, maxWidth:560, width:"100%", maxHeight:"85vh", overflowY:"auto" }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
               <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>{selected.name}</h3>
-              <button onClick={() => setSelected(null)} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:COLORS.muted }}>✕</button>
-            </div>
-            {[["Organization",`${selected.name} · ${selected.type}`],["Country",selected.country],["Website",selected.website||"—"],["Reg. Number",selected.regNumber||"—"],["Founded",selected.yearFounded||"—"],["Contact",`${selected.contactName} · ${selected.contactTitle}`],["Email",selected.contactEmail],["Phone",selected.contactPhone||"—"],["Focus Areas",parsePartnerFocus(selected.focus).join(", ")||"—"],["Description",selected.description||"—"]].map(([k,v])=>(
-              <div key={k} style={{ display:"grid", gridTemplateColumns:"140px 1fr", gap:8, padding:"10px 0", borderBottom:`1px solid ${COLORS.border}` }}>
-                <div style={{ fontSize:12, fontWeight:700, color:COLORS.muted }}>{k}</div>
-                <div style={{ fontSize:13, color:COLORS.text }}>{v}</div>
+              <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+                {!editing && <button onClick={() => startEdit(selected)} style={{ padding:"6px 14px", borderRadius:8, background:COLORS.primary+"15", color:COLORS.primary, border:`1.5px solid ${COLORS.primary}`, cursor:"pointer", fontSize:12, fontWeight:700 }}>Edit</button>}
+                <button onClick={() => { setSelected(null); setEditing(false); }} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:COLORS.muted }}>✕</button>
               </div>
-            ))}
-            {selected.status === "pending" && (
-              <div style={{ display:"flex", gap:10, marginTop:20 }}>
-                <button onClick={() => updateStatus(selected.id,"approved")} style={{ flex:1, padding:"12px", borderRadius:10, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>Approve Partner</button>
-                <button onClick={() => updateStatus(selected.id,"rejected")} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>Reject</button>
+            </div>
+
+            {!editing ? (
+              <>
+                {[["Organization",`${selected.name} · ${selected.type}`],["Tier",PARTNER_TIER_OPTIONS.find(t=>t.value===selected.tier)?.label || selected.tier],["Country",selected.country],["Website",selected.website||"—"],["Reg. Number",selected.regNumber||"—"],["Founded",selected.yearFounded||"—"],["Contact",`${selected.contactName} · ${selected.contactTitle}`],["Email",selected.contactEmail],["Phone",selected.contactPhone||"—"],["Focus Areas",parsePartnerFocus(selected.focus).join(", ")||"—"],["Cases Supported",selected.casesSupported ?? 0],["Description",selected.description||"—"]].map(([k,v])=>(
+                  <div key={k} style={{ display:"grid", gridTemplateColumns:"140px 1fr", gap:8, padding:"10px 0", borderBottom:`1px solid ${COLORS.border}` }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:COLORS.muted }}>{k}</div>
+                    <div style={{ fontSize:13, color:COLORS.text }}>{v}</div>
+                  </div>
+                ))}
+                {selected.status === "pending" && (
+                  <div style={{ display:"flex", gap:10, marginTop:20 }}>
+                    <button onClick={() => updateStatus(selected.id,"approved")} style={{ flex:1, padding:"12px", borderRadius:10, background:"#10B981", color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>Approve Partner</button>
+                    <button onClick={() => updateStatus(selected.id,"rejected")} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.danger, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>Reject</button>
+                  </div>
+                )}
+                {selected.status === "approved" && (
+                  <button onClick={() => toggleVisibility(selected)} style={{ width:"100%", marginTop:20, padding:"12px", borderRadius:10, background: selected.isActive ? "#FEF2F2" : "#ECFDF5", color: selected.isActive ? COLORS.danger : "#065F46", border:`1.5px solid ${selected.isActive ? COLORS.danger : "#10B981"}`, cursor:"pointer", fontWeight:800 }}>
+                    {selected.isActive ? "Hide from public site" : "Publish to public site"}
+                  </button>
+                )}
+              </>
+            ) : (
+              <div style={{ display:"grid", gap:14 }}>
+                <div><label style={labelStyle}>Organisation Name</label><input style={inputStyle} value={editForm.name} onChange={e=>setEditForm(f=>({...f,name:e.target.value}))} /></div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                  <div><label style={labelStyle}>Type</label><input style={inputStyle} value={editForm.type} onChange={e=>setEditForm(f=>({...f,type:e.target.value}))} /></div>
+                  <div><label style={labelStyle}>Country</label><input style={inputStyle} value={editForm.country} onChange={e=>setEditForm(f=>({...f,country:e.target.value}))} /></div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Tier (where it shows publicly)</label>
+                  <Select value={editForm.tier} onChange={e=>setEditForm(f=>({...f,tier:e.target.value}))} wrapStyle={{ marginBottom:0 }}>
+                    {PARTNER_TIER_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </Select>
+                </div>
+                <div><label style={labelStyle}>Website</label><input style={inputStyle} value={editForm.website} onChange={e=>setEditForm(f=>({...f,website:e.target.value}))} /></div>
+                <div><label style={labelStyle}>Focus Areas (comma-separated)</label><input style={inputStyle} value={editForm.focus} onChange={e=>setEditForm(f=>({...f,focus:e.target.value}))} placeholder="Medical, Emergency Care" /></div>
+                <div><label style={labelStyle}>Cases Supported</label><input type="number" style={inputStyle} value={editForm.casesSupported} onChange={e=>setEditForm(f=>({...f,casesSupported:e.target.value}))} /></div>
+                <div><label style={labelStyle}>Description</label><textarea rows={4} style={{...inputStyle, resize:"vertical", lineHeight:1.6}} value={editForm.description} onChange={e=>setEditForm(f=>({...f,description:e.target.value}))} /></div>
+                <div style={{ display:"flex", gap:10, marginTop:6 }}>
+                  <button onClick={() => setEditing(false)} disabled={saving} style={{ flex:1, padding:"12px", borderRadius:10, background:"#F3F4F6", color:COLORS.muted, border:"none", cursor:"pointer", fontWeight:700 }}>Cancel</button>
+                  <button onClick={saveEdit} disabled={saving} style={{ flex:1, padding:"12px", borderRadius:10, background:COLORS.primary, color:"#fff", border:"none", cursor:"pointer", fontWeight:800 }}>{saving ? "Saving…" : "Save Changes"}</button>
+                </div>
               </div>
             )}
           </div>
