@@ -170,73 +170,6 @@ function StorySubmitSection({ isMobile }) {
   );
 }
 
-const STATIC_STORIES = [
-  {
-    id:"st1", category:"Success Story", date:"2026-05-12", location:"Mogadishu",
-    title:"Family of Seven Finds Safety After Flood Displacement",
-    excerpt:"After losing their home to seasonal flooding, a family of seven was living in a collapsed structure. Within 14 days of verification, Kafaala Qaad delivered emergency shelter, three months of food supplies, and clothing for all children.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"Family of 7 living in collapsed structure with no clean water or food.",
-    afterDesc:"Temporary shelter erected, food supply secured for 3 months, children back in school.",
-    daysToDeliver:"14", amountDistributed:"$820",
-    tags:["shelter","food","emergency"],
-    featured: true,
-  },
-  {
-    id:"st2", category:"Medical", date:"2026-04-28", location:"Baidoa",
-    title:"8-Year-Old Girl Receives Critical Medication",
-    excerpt:"A young girl in Baidoa had been without essential medication for weeks, causing rapid health deterioration. After case verification, sponsors covered four months of doctor visits and medication costs.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"Critical medication unavailable, health deteriorating rapidly.",
-    afterDesc:"Full medication course delivered, 4 months of specialist visits funded.",
-    daysToDeliver:"9", amountDistributed:"$540",
-    tags:["medical","child"],
-    featured: false,
-  },
-  {
-    id:"st3", category:"Education", date:"2026-04-10", location:"Kismayo",
-    title:"Three Orphaned Brothers Return to School",
-    excerpt:"Three brothers aged 9, 11, and 13 had dropped out after losing both parents. An education program sponsor covered school fees, uniforms, and stationery for a full academic year.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"Three brothers out of school, surviving on charity from neighbours.",
-    afterDesc:"All three enrolled, school fees paid, uniforms and supplies provided.",
-    daysToDeliver:"21", amountDistributed:"$960",
-    tags:["education","orphan","children"],
-    featured: true,
-  },
-  {
-    id:"st4", category:"Food & Nutrition", date:"2026-03-22", location:"Garowe",
-    title:"Weekly Food Deliveries Reach Isolated Elder",
-    excerpt:"A 78-year-old man living alone with no income had no reliable access to food. A monthly food program now ensures weekly deliveries and a community health worker visits regularly.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"No food security, no family contact, deteriorating health.",
-    afterDesc:"Weekly food delivery, monthly health check, reconnected with distant family.",
-    daysToDeliver:"11", amountDistributed:"$460",
-    tags:["food","elderly"],
-    featured: false,
-  },
-  {
-    id:"st5", category:"Press Release", date:"2026-03-05", location:"Mogadishu",
-    title:"Kafaala Qaad Reaches 500 Verified Cases Milestone",
-    excerpt:"The platform announces the verification and aid delivery for its 500th case, representing families in 12 regions across Somalia. Total funds distributed exceed $380,000.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"", afterDesc:"",
-    daysToDeliver:null, amountDistributed:"$380,000+",
-    tags:["milestone","platform"],
-    featured: true,
-  },
-  {
-    id:"st6", category:"Partnership", date:"2026-02-18", location:"",
-    title:"New Partnership with Regional Health Ministry",
-    excerpt:"A formal agreement enables Kafaala Qaad field agents to coordinate directly with regional health clinics for medical cases, reducing verification time from 14 days to under 5 days.",
-    beforeImg:null, afterImg:null,
-    beforeDesc:"", afterDesc:"",
-    daysToDeliver:null, amountDistributed:null,
-    tags:["partnership","health"],
-    featured: false,
-  },
-];
-
 const CAT_COLORS = {
   "Success Story":    { bg:"#D1FAE5", text:"#065F46" },
   "Medical":          { bg:"#DBEAFE", text:"#1E40AF" },
@@ -298,7 +231,7 @@ export default function Stories() {
     return () => window.removeEventListener("storage", sync);
   }, []);
 
-  const allStories = [...adminStories, ...pubStories, ...STATIC_STORIES];
+  const allStories = [...adminStories, ...pubStories];
   const CATEGORIES = ["All", ...Array.from(new Set(allStories.map(s => s.category)))];
   const [activeCat, setActiveCat] = useState("All");
   const [search, setSearch] = useState("");
@@ -419,7 +352,14 @@ export default function Stories() {
               <span style={{ fontSize:14, color:C.muted, fontWeight:400, marginLeft:10 }}>({rest.length})</span>
             </h2>
           )}
-          {displayed.length === 0 && (
+          {displayed.length === 0 && allStories.length === 0 && (
+            <div style={{ textAlign:"center", padding:"60px 0", color:C.muted }}>
+              <div style={{ fontSize:48, marginBottom:16 }}></div>
+              <div style={{ fontSize:18, fontWeight:700 }}>No stories yet</div>
+              <div style={{ fontSize:14, marginTop:8 }}>Check back soon — verified impact stories will appear here.</div>
+            </div>
+          )}
+          {displayed.length === 0 && allStories.length > 0 && (
             <div style={{ textAlign:"center", padding:"60px 0", color:C.muted }}>
               <div style={{ fontSize:48, marginBottom:16 }}></div>
               <div style={{ fontSize:18, fontWeight:700 }}>No stories found</div>

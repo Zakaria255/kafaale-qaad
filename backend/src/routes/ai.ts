@@ -464,6 +464,13 @@ INSTRUCTIONS FOR RESPONDING:
 
   } catch (err: any) {
     sysLog.error('AI chat error', err);
+    // NOTE: `mode` distinguishes a real Claude answer ('live') from a canned keyword-matched
+    // fallback ('demo' / 'demo-fallback'), but the frontend chat widget
+    // (src/components/AiAssistant.jsx `send()`) currently reads only `data.reply` and drops
+    // `data.mode` entirely — the user sees no visual difference between a live AI answer and
+    // this generic fallback. TODO (frontend): surface `mode !== 'live'` as a small
+    // "AI unavailable, showing general info" notice on the message. Left as a comment per
+    // scope — this task is backend-only and must not edit frontend files.
     res.json({ reply: getDemoResponse(req.body.message || ''), mode: 'demo-fallback' });
   }
 });
@@ -482,20 +489,15 @@ router.post('/sanitize/:caseId', authenticate, requireRole(['admin','super_admin
     let aiData: any;
 
     if (!apiKey) {
-      // ── DEMO sanitization ─────────────────────────────────────
-      const cityHint = kase.privateAddress
-        ? kase.privateAddress.split(',').slice(-2).join(',').trim()
-        : 'Somalia';
-      aiData = {
-        generatedTitle: `Urgent ${kase.category.charAt(0).toUpperCase() + kase.category.slice(1)} Support Needed in ${cityHint}`,
-        generatedStory: `A family in ${cityHint} is facing a serious ${kase.category} emergency. Our field team has physically verified the situation and confirmed the urgent need for support. With your sponsorship, we can deliver immediate assistance to those in critical need. Every contribution makes a real difference in transforming a life.`,
-        generatedCity: cityHint,
-        generatedUrgency: kase.emergencyLevel,
-        piiDetected: true,
-        piiRemoved: ['victim full name', 'phone number', 'exact home address', 'GPS coordinates'],
-        confidenceScore: 87,
-        mode: 'demo',
-      };
+      // No API key configured — do NOT fabricate a title/story and write it into the
+      // case's public fields. A template-generated "sanitization" is indistinguishable
+      // from a real AI-verified result once saved, so refuse instead of faking it.
+      // The case's public fields and status are left untouched.
+      sysLog.error(`AI sanitize blocked for case ${kase.id}: ANTHROPIC_API_KEY not configured`);
+      return res.status(503).json({
+        error: 'AI sanitization is not configured — contact an administrator',
+        code: 'ai_not_configured',
+      });
     } else {
       // ── LIVE AI sanitization ──────────────────────────────────
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
@@ -569,7 +571,7 @@ Respond with ONLY valid JSON (no markdown, no extra text):
         piiRemoved:        JSON.stringify(aiData.piiRemoved || []),
         mediaFlagged:      JSON.stringify([]),
         confidenceScore:   aiData.confidenceScore,
-        model:             apiKey ? 'claude-sonnet-4-6' : 'demo-mode',
+        model:             'claude-sonnet-4-6',
       },
     });
 

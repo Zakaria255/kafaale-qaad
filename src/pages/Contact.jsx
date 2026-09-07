@@ -47,7 +47,9 @@ export default function Contact() {
         privateDistrict: form.location,
       };
       const res = await casesApi.submit(payload);
-      setRefNum(res?.caseRef || res?.id || `RPT-${Math.floor(Math.random()*90000)+10000}`);
+      // Never fabricate a reference number — if the API didn't return a real
+      // one, leave it blank and say so rather than inventing one.
+      setRefNum(res?.caseRef || res?.id || "");
       setSubmitted(true);
     } catch (err) {
       setSubmitError(err.message || "Submission failed. Please try again.");
@@ -158,7 +160,10 @@ export default function Contact() {
                   <h3 style={{ fontSize: 22, fontWeight: 900, color: C.secondary, margin: "0 0 10px" }}>{P.success_title}</h3>
                   <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 24 }}>{P.success_sub}</p>
                   <div style={{ background: "#F0FDF4", borderRadius: 12, padding: 16, marginBottom: 24, textAlign: "left", fontSize: 13, lineHeight: 2 }}>
-                    <div>{P.ref_lbl} <strong>{refNum}</strong></div>
+                    {refNum
+                      ? <div>{P.ref_lbl} <strong>{refNum}</strong></div>
+                      : <div style={{ color: C.muted }}>Your report was submitted, but we couldn't retrieve a reference number — check My Reports.</div>
+                    }
                     <div>{P.submitted_lbl} <strong>{new Date().toLocaleString()}</strong></div>
                     <div>{P.location_lbl} <strong>{form.location}</strong></div>
                     <div>{P.urgency_lbl} <strong>{form.urgency}</strong></div>

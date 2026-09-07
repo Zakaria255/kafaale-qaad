@@ -9,7 +9,7 @@ import { useLang } from "../context/LanguageContext.jsx";
 import { PT } from "../translations.js";
 import { useResponsive } from "../hooks/useResponsive.js";
 import { useReveal, usePrefersReducedMotion } from "../hooks/useReveal.js";
-import { cases as casesApi } from "../api/client.js";
+import { cases as casesApi, impact as impactApi } from "../api/client.js";
 import {
   Button, SectionHeader, SunriseRule, CaseCard, StatItem, Arc, Timeline, GuidedByQuran, FeaturedCase,
 } from "../ui/index.js";
@@ -80,6 +80,15 @@ export default function Home() {
     } catch { return false; }
   });
 
+  // Real, backend-aggregated impact numbers (GET /api/impact). No fake
+  // fallback — a tile only renders once genuine data has arrived, and any
+  // metric with no real backend equivalent (e.g. "regions", "proof rate")
+  // is simply omitted rather than invented.
+  const [impactStats, setImpactStats] = useState(null);
+  useEffect(() => {
+    impactApi.stats().then(setImpactStats).catch(() => {});
+  }, []);
+
   const cardLabels = {
     sponsor: P.card_sponsor, details: P.card_details, verified: P.card_verified,
     goalOf: P.card_goal_of,
@@ -89,12 +98,13 @@ export default function Home() {
 
   /* ── Data ───────────────────────────────────────────────────────────────── */
 
-  const STATS = [
-    { val: "2,400+", label: P.stat_sponsored },
-    { val: "98.8%",  label: P.stat_success },
-    { val: "6",      label: P.stat_regions },
-    { val: "100%",   label: P.stat_proofrate },
-  ];
+  // Only real, Prisma-aggregated fields from /api/impact are shown. "Operating
+  // regions" and "delivery-proof rate" have no genuine backend equivalent, so
+  // those tiles are dropped rather than filled with invented numbers.
+  const STATS = impactStats ? [
+    { val: String(impactStats.activeSponsorships ?? 0), label: P.stat_sponsored },
+    { val: `${impactStats.verificationRate ?? 0}%`,      label: P.stat_success },
+  ] : [];
 
   const ROLES = [
     { icon: FilePen,        label: lang==="so"?"Warbixiye":lang==="ar"?"مراسل":lang==="tr"?"Muhabir":lang==="es"?"Reportero":lang==="fr"?"Rapporteur":"Reporter" },
@@ -214,13 +224,13 @@ export default function Home() {
       </section>
 
       {/* ═══════════ §3-C IMPACT COUNTERS ═══════════ */}
-      {showStats && (
+      {showStats && STATS.length > 0 && (
         <section style={section("var(--kf-surface)")}>
           <div style={container}>
             <Reveal>
               <div style={{
                 display: "grid",
-                gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+                gridTemplateColumns: isMobile ? "1fr 1fr" : `repeat(${STATS.length}, 1fr)`,
                 gap: isMobile ? "var(--kf-s7)" : 0,
               }}>
                 {STATS.map((s, i) => (

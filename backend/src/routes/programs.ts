@@ -8,6 +8,16 @@ import { getSettings } from './settings';
 
 const router = Router();
 
+// NOTE re: donor invoice bank details (invoice.bankIBAN / invoice.mobileNumber) —
+// there is currently no server-side route in this file that builds a donor-facing invoice
+// or receipt document containing those payment fields (the frontend's "Invoice Letter"
+// modal renders them from its own local state, not from GET /api/settings). If a real
+// invoice/receipt generation path is added here in the future, it MUST call
+// `paymentDetailsConfigured()` (from ./settings) on the resolved settings first, and omit
+// the payment-details section (with a "Payment details not configured — contact admin"
+// notice) whenever it returns false, rather than emitting the shipped placeholder IBAN /
+// phone number to a real donor.
+
 // Includes verification_office to match the frontend's ProgramsDashboard admin check
 // (KafaaleQaadApp.jsx) and how that role is treated as admin-tier staff everywhere
 // else in the app (case workflow, duplicate review) — a mismatch here silently 403s

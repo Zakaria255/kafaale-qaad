@@ -5740,29 +5740,17 @@ const UPDATES_ADMIN_KEY = "kf_updates";
 const MEDIA_TAGS_KEY    = "kf_media_tags";  // shared with MediaFeed.jsx
 const DEFAULT_MEDIA_TAGS = ["Update", "Success Story", "News", "Event", "Appeal", "Report", "Community"];
 
-const DEFAULT_TEAM_ADMIN = [
-  { id:"t1", name:"Abdimalik Hassan", role:"Project Lead & CEO",       bio:"Humanitarian sector leader with 10+ years in crisis response across the Horn of Africa.", photo:"https://randomuser.me/api/portraits/men/32.jpg",  linkedin:"", show:true },
-  { id:"t2", name:"Asha Mohammed",    role:"Product Manager",          bio:"Driving platform strategy and community partnerships across 4 countries.", photo:"https://randomuser.me/api/portraits/women/44.jpg", linkedin:"", show:true },
-  { id:"t3", name:"Fatima Ali",       role:"Design Lead",              bio:"Award-winning UX designer focused on making aid technology accessible in low-connectivity environments.", photo:"https://randomuser.me/api/portraits/women/26.jpg", linkedin:"", show:true },
-  { id:"t4", name:"Omar Ibrahim",     role:"Lead Backend Engineer",    bio:"Full-stack engineer specialising in secure, high-availability humanitarian platforms.", photo:"https://randomuser.me/api/portraits/men/68.jpg",  linkedin:"", show:true },
-  { id:"t5", name:"Hodan Warsame",    role:"Field Operations Manager", bio:"Former UNHCR field officer with direct experience in IDP camp management and emergency response.", photo:"https://randomuser.me/api/portraits/women/62.jpg", linkedin:"", show:true },
-  { id:"t6", name:"Mahad Yusuf",      role:"Security & DevOps",        bio:"Cybersecurity specialist ensuring donor data and beneficiary privacy across all systems.", photo:"https://randomuser.me/api/portraits/men/45.jpg",  linkedin:"", show:true },
-];
 const DEFAULT_UPDATES_ADMIN = [
   { id:"upd-1", type:"Flood",    published:true,  title:"Severe Flooding Displaces 3,000+ Families in Beledweyne", date:"2026-06-15", location:"Beledweyne, Hiran Region",  severity:"critical", body:"Unprecedented flooding along the Shabelle River has displaced over 3,000 families in Beledweyne. Access roads are cut off. Emergency food, shelter, and clean water are urgently needed.", img:"https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=700&q=75", needs:["Emergency Shelter Kits","Clean Water","Food Packages"] },
   { id:"upd-2", type:"Drought",  published:true,  title:"Drought Alert: Bay Region Facing Critical Food Shortage",  date:"2026-06-10", location:"Baidoa, Bay Region",         severity:"high",     body:"Three consecutive failed rainy seasons have pushed Bay Region into a severe food crisis. Over 15,000 people face acute malnutrition.",  img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=75", needs:["Food Packages","Livestock Feed","Water Trucking"] },
   { id:"upd-3", type:"Emergency",published:true,  title:"IDP Camp Medical Emergency — Mogadishu North",            date:"2026-06-05", location:"Mogadishu, Benadir",         severity:"high",     body:"A disease outbreak in Mogadishu North IDP camp is affecting hundreds of families. Medical supplies are critically low.", img:"https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=700&q=75", needs:["Medicine","ORS Kits","Mobile Clinic"] },
   { id:"upd-4", type:"General",  published:true,  title:"Kafaala Qaad Expands to Lower Jubba Region",              date:"2026-05-28", location:"Kismayo, Lower Jubba",       severity:"info",     body:"We are proud to announce our expansion into the Lower Jubba region. Local field agents have been trained and onboarded.", img:"https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=700&q=75", needs:[] },
 ];
+// No fake staff fallback — an unconfigured team just starts empty in the
+// admin editor, same as the public About page.
 const loadTeamAdmin = () => {
-  try {
-    const s = JSON.parse(localStorage.getItem(TEAM_KEY_ADMIN)||"null");
-    if (!s) return DEFAULT_TEAM_ADMIN;
-    return s.map(m => {
-      const def = DEFAULT_TEAM_ADMIN.find(d => d.id === m.id);
-      return (!m.photo && def?.photo) ? { ...m, photo: def.photo } : m;
-    });
-  } catch { return DEFAULT_TEAM_ADMIN; }
+  try { return JSON.parse(localStorage.getItem(TEAM_KEY_ADMIN)||"null") || []; }
+  catch { return []; }
 };
 const loadUpdatesAdmin = () => { try { return JSON.parse(localStorage.getItem(UPDATES_ADMIN_KEY)||"null")||DEFAULT_UPDATES_ADMIN; } catch { return DEFAULT_UPDATES_ADMIN; } };
 const loadMediaTags    = () => { try { const t = JSON.parse(localStorage.getItem(MEDIA_TAGS_KEY)||"null"); return Array.isArray(t) && t.length ? t : DEFAULT_MEDIA_TAGS; } catch { return DEFAULT_MEDIA_TAGS; } };
@@ -7942,7 +7930,6 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   const [donAmountEdits, setDonAmountEdits] = useState({});
   const { t } = useLang();
   const isMob = useIsMobile();
-  const isDemoMode = currentUser?.id?.startsWith('demo-');
   const totalDonated = donations.reduce((a, d) => a + (d.amount || 0), 0);
   const confirmedTotal = donations.filter(d => d.status === "confirmed").reduce((a, d) => a + (d.amount || 0), 0);
   const pendingTotal   = donations.filter(d => d.status === "pending").reduce((a, d) => a + (d.amount || 0), 0);
@@ -8004,22 +7991,6 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   return (
     <div>
       {/* ── DEMO MODE BANNER ── */}
-      {isDemoMode && (
-        <div style={{ background:"linear-gradient(90deg,#92400E,#B45309)", color:"#fff", borderRadius:12, padding:"12px 18px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontSize:20 }}></span>
-            <div>
-              <div style={{ fontWeight:800, fontSize:14 }}>Demo Mode Active — Showing sample data</div>
-              <div style={{ fontSize:12, opacity:0.85 }}>You are not connected to the live database. Log out and sign in while the server is running to see real data.</div>
-            </div>
-          </div>
-          <Btn variant="outline" size="sm" style={{ background:"rgba(255,255,255,0.15)", borderColor:"rgba(255,255,255,0.4)", color:"#fff", whiteSpace:"nowrap" }}
-            onClick={() => { localStorage.removeItem('kf_token'); localStorage.removeItem('kf_user'); window.location.href = '/login'; }}>
-            Sign in for Live Data
-          </Btn>
-        </div>
-      )}
-
       {/* ── HOME GRID ── */}
       {!activeModule && (
         <div>

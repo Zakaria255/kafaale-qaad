@@ -37,6 +37,18 @@ export const DEFAULT_TEMPLATES: Record<string, string> = {
   'invoiceReminder.body':   'Dear {donorName},\n\nThis is a friendly reminder that your sponsorship payment of ${amount} for {childId} is due on {dueDate}.\n\nPlease log in to view and pay your invoice.\n\n— Kafaala Qaad Team',
 };
 
+// Payment-detail keys whose DEFAULT_TEMPLATES value is a placeholder, not a real value — it
+// must never be silently presented to a donor as a real bank/mobile-money detail on an
+// invoice or receipt. DEFAULT_TEMPLATES stays as-is (useful for prefilling the admin settings
+// editor); this guard is for anything that renders those values on a real financial document.
+const PLACEHOLDER_PAYMENT_KEYS = ['invoice.bankIBAN', 'invoice.mobileNumber'] as const;
+
+// True only once an admin has overridden BOTH payment-detail fields with real values —
+// i.e. neither is still equal to its placeholder default.
+export function paymentDetailsConfigured(merged: Record<string, string>): boolean {
+  return PLACEHOLDER_PAYMENT_KEYS.every(key => !!merged[key] && merged[key] !== DEFAULT_TEMPLATES[key]);
+}
+
 // Helper — get a single setting value, falling back to default
 export async function getSetting(key: string): Promise<string> {
   const row = await prisma.setting.findUnique({ where: { key } });
@@ -56,7 +68,10 @@ router.get('/', authenticate, requireRole(['admin', 'super_admin']), async (_req
     const rows = await prisma.setting.findMany();
     const stored = Object.fromEntries(rows.map(r => [r.key, r.value]));
     const merged = { ...DEFAULT_TEMPLATES, ...stored };
-    res.json({ settings: merged });
+    // Flag whether bank/mobile-money payment details have actually been configured by an
+    // admin, or are still the shipped placeholders — any consumer building a real donor
+    // invoice/receipt from these settings must check this before displaying payment details.
+    res.json({ settings: merged, paymentDetailsConfigured: paymentDetailsConfigured(merged) });
   } catch (e: any) {
     return safeError(res, 500, 'Settings request failed', e);
   }

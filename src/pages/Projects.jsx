@@ -56,40 +56,6 @@ const SORTS = [
   { value: "alpha",   label: "Sort by: Alphabetical" },
 ];
 
-// Fallback showcase data — used only when the API returns no live projects.
-const DEMO_PROJECTS = [
-  { id: "demo-p1", title: "Baidoa District Water Well", category: "water", status: "in_progress",
-    location: "Baidoa", region: "Bay Region", populationSize: 1280, fundingGoal: 8000, totalRaised: 6400, durationMonths: 6,
-    image: "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?w=800&q=75",
-    description: "Deep borehole well providing clean drinking water to 4 neighbouring villages. Reduces waterborne disease and travel time for women and children.",
-    updates: ["Foundation dug — 18 June 2026", "Pump equipment delivered — 5 June 2026"] },
-  { id: "demo-p2", title: "Garowe Primary School Renovation", category: "school", status: "in_progress",
-    location: "Garowe", region: "Nugaal Region", populationSize: 480, fundingGoal: 15000, totalRaised: 9300, durationMonths: 8,
-    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=75",
-    description: "Rebuilding 3 collapsed classrooms, installing desks and solar lighting for 480 students. IDP-host community school running 2 shifts.",
-    updates: ["Roof installed on block A — 12 June 2026", "Materials delivered — 28 May 2026"] },
-  { id: "demo-p3", title: "Kismayo Mobile Clinic", category: "health", status: "completed",
-    location: "Kismayo", region: "Lower Jubba", populationSize: 1200, fundingGoal: 12000, totalRaised: 12000, durationMonths: 12,
-    image: "https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=800&q=75",
-    description: "Monthly mobile clinic providing maternal health, vaccinations and basic medicine to 5 underserved communities. Fully funded and operational.",
-    updates: ["Month 6 completed — 1 June 2026", "Fully funded — April 2026"] },
-  { id: "demo-p4", title: "Beledweyne Community Centre", category: "shelter", status: "seeking_funding",
-    location: "Beledweyne", region: "Hiran", populationSize: 600, fundingGoal: 6500, totalRaised: 1950, durationMonths: 5,
-    image: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&q=75",
-    description: "Multi-purpose community hall for women's literacy classes, youth skills training, and community meetings. Currently in fundraising phase.",
-    updates: ["Land identified and cleared — 10 June 2026"] },
-  { id: "demo-p5", title: "Afgooye Irrigation Scheme", category: "agriculture", status: "seeking_funding",
-    location: "Afgooye", region: "Lower Shabelle", populationSize: 85, fundingGoal: 20000, totalRaised: 4000, durationMonths: 10,
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=75",
-    description: "Micro-irrigation canals and seed distribution for 85 farming families recovering from drought. Expected to triple crop yield by harvest season.",
-    updates: ["Survey complete — 14 June 2026"] },
-  { id: "demo-p6", title: "Mogadishu IDP Camp Solar", category: "energy", status: "completed",
-    location: "Mogadishu", region: "Benadir", populationSize: 210, fundingGoal: 9500, totalRaised: 9500, durationMonths: 3,
-    image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=800&q=75",
-    description: "Solar panel installation providing lighting to 210 IDP camp families, reducing safety incidents at night. Fully funded and commissioned.",
-    updates: ["Commissioned — 20 May 2026", "Installation complete — 15 May 2026"] },
-];
-
 const IMG_FALLBACK = "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=800&q=75";
 const VIEW_KEY = "kf_projects_view";
 const PAGE_SIZE = 9;
@@ -310,6 +276,7 @@ export default function Projects() {
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -322,12 +289,16 @@ export default function Projects() {
   const [page, setPage] = useState(1);
   const [openProject, setOpenProject] = useState(null);
 
-  useEffect(() => {
+  const loadProjects = () => {
+    setLoading(true);
+    setLoadError(false);
     projectsApi.list({ limit: "50" })
-      .then((r) => setItems(r.projects?.length ? r.projects : DEMO_PROJECTS))
-      .catch(() => setItems(DEMO_PROJECTS))
+      .then((r) => setItems(r.projects || []))
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadProjects(); }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 250);
@@ -521,7 +492,24 @@ export default function Projects() {
             </div>
           )}
 
-          {!loading && filtered.length === 0 && (
+          {!loading && loadError && (
+            <div style={{ padding: "60px 24px", textAlign: "center", maxWidth: 500, margin: "0 auto" }}>
+              <div style={{ fontSize: 52, color: C.muted, opacity: 0.4, marginBottom: 12 }} aria-hidden="true">⚠️</div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 8px" }}>Couldn't load projects</h3>
+              <p style={{ fontSize: 14, color: C.muted, marginBottom: 20 }}>We couldn't reach the server. Check your connection and try again.</p>
+              <button onClick={loadProjects} style={{ padding: "10px 22px", background: C.blue, color: "#fff", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Retry</button>
+            </div>
+          )}
+
+          {!loading && !loadError && items.length === 0 && (
+            <div style={{ padding: "60px 24px", textAlign: "center", maxWidth: 500, margin: "0 auto" }}>
+              <div style={{ fontSize: 52, color: C.muted, opacity: 0.4, marginBottom: 12 }} aria-hidden="true">💼</div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 8px" }}>No active projects</h3>
+              <p style={{ fontSize: 14, color: C.muted }}>Check back soon — new community projects will appear here once published.</p>
+            </div>
+          )}
+
+          {!loading && !loadError && items.length > 0 && filtered.length === 0 && (
             <div style={{ padding: "60px 24px", textAlign: "center", maxWidth: 500, margin: "0 auto" }}>
               <div style={{ fontSize: 52, color: C.muted, opacity: 0.4, marginBottom: 12 }} aria-hidden="true">💼</div>
               <h3 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 8px" }}>No projects found</h3>

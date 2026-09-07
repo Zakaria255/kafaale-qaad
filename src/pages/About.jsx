@@ -81,29 +81,16 @@ const VALUES = [
 const TEAM_KEY     = "kf_team_data";
 const TEAM_VIS_KEY = "kf_team_visible";
 
-const DEFAULT_TEAM = [
-  { id: "t1", name: "Abdimalik Hassan", role: "Project Lead & CEO",       bio: "Humanitarian sector leader with 10+ years in crisis response across the Horn of Africa.", photo: "https://randomuser.me/api/portraits/men/32.jpg",   linkedin: "", show: true },
-  { id: "t2", name: "Asha Mohammed",    role: "Product Manager",          bio: "Driving platform strategy and community partnerships across 4 countries.", photo: "https://randomuser.me/api/portraits/women/44.jpg", linkedin: "", show: true },
-  { id: "t3", name: "Fatima Ali",       role: "Design Lead",              bio: "Award-winning UX designer focused on making aid technology accessible in low-connectivity environments.", photo: "https://randomuser.me/api/portraits/women/26.jpg", linkedin: "", show: true },
-  { id: "t4", name: "Omar Ibrahim",     role: "Lead Backend Engineer",    bio: "Full-stack engineer specialising in secure, high-availability humanitarian platforms.", photo: "https://randomuser.me/api/portraits/men/68.jpg",   linkedin: "", show: true },
-  { id: "t5", name: "Hodan Warsame",    role: "Field Operations Manager", bio: "Former UNHCR field officer with direct experience in IDP camp management and emergency response.", photo: "https://randomuser.me/api/portraits/women/62.jpg", linkedin: "", show: true },
-  { id: "t6", name: "Mahad Yusuf",      role: "Security & DevOps",        bio: "Cybersecurity specialist ensuring donor data and beneficiary privacy across all systems.", photo: "https://randomuser.me/api/portraits/men/45.jpg",   linkedin: "", show: true },
-];
-
 const INITIALS_COLORS = [
   ["#DBEAFE", "#1D4ED8"], ["#D1FAE5", "#065F46"], ["#FCE7F3", "#9D174D"],
   ["#EDE9FE", "#5B21B6"], ["#FEF3C7", "#92400E"], ["#FEE2E2", "#991B1B"],
 ];
 
+// No fake staff fallback — an unconfigured team just means the section shows
+// a "coming soon" state below until real team data is entered in the admin.
 function getTeam() {
-  try {
-    const s = JSON.parse(localStorage.getItem(TEAM_KEY) || "null");
-    if (!s) return DEFAULT_TEAM;
-    return s.map((m) => {
-      const def = DEFAULT_TEAM.find((d) => d.id === m.id);
-      return (!m.photo && def?.photo) ? { ...m, photo: def.photo } : m;
-    });
-  } catch { return DEFAULT_TEAM; }
+  try { return JSON.parse(localStorage.getItem(TEAM_KEY) || "null") || []; }
+  catch { return []; }
 }
 function getTeamVisible() {
   try { const s = localStorage.getItem(TEAM_VIS_KEY); return s === null ? true : s === "true"; }
@@ -245,6 +232,11 @@ export default function About() {
               <p style={subStyle}>{P.team_sub}</p>
             </div>
 
+            {team.filter((t) => t.show !== false).length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, background: "#FAFBFF", borderRadius: 22, border: `1px solid ${C.border}` }}>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>Team profiles coming soon</div>
+              </div>
+            ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 22 }}>
               {team.filter((t) => t.show !== false).map((t, i) => {
                 const [bg, color] = INITIALS_COLORS[i % INITIALS_COLORS.length];
@@ -270,6 +262,7 @@ export default function About() {
                 );
               })}
             </div>
+            )}
           </div>
         </section>
       )}

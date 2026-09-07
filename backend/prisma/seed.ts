@@ -4,6 +4,18 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  // Safety guard — this script fabricates ~630 lines of fake users, cases, beneficiaries
+  // and partners. It is not run automatically on deploy (the Dockerfile only runs
+  // `prisma db push`), but nothing stops someone from running `npx prisma db seed`
+  // directly against a production DATABASE_URL by mistake. Refuse outright in that case.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Refusing to run prisma/seed.ts: NODE_ENV=production. This script is for local/dev ' +
+      'use only — it inserts fabricated demo users, cases, beneficiaries and partners and ' +
+      'must never be run against a production database.'
+    );
+  }
+
   console.log('🌱 Seeding Kafaale database…');
   const pw = await bcrypt.hash('Kafaale123!', 12);
 

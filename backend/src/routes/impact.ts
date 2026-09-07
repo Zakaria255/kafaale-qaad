@@ -11,6 +11,8 @@ router.get('/', async (_req: Request, res: Response) => {
       activeSponsorships, childrenSponsored,
       projectStats, beneficiaryStats,
       medicalCases, waterProjects,
+      totalInvestigations, verifiedInvestigations,
+      countriesRows,
     ] = await Promise.all([
       prisma.case.count({ where: { status: { in: ['waiting_for_sponsor','sponsored','delivering','completed'] } } }),
       prisma.case.count({ where: { status: 'completed' } }),
@@ -23,14 +25,24 @@ router.get('/', async (_req: Request, res: Response) => {
       prisma.beneficiary.count({ where: { status: { in: ['sponsored','completed','verified'] } } }),
       prisma.case.count({ where: { category: 'medical', status: 'completed' } }),
       prisma.communityProject.count({ where: { category: 'water', status: { in: ['in_progress','completed'] } } }),
+      // Real verification rate: share of completed field investigations that came back "verified"
+      prisma.fieldInvestigation.count({ where: { verificationStatus: { in: ['verified', 'rejected'] } } }),
+      prisma.fieldInvestigation.count({ where: { verificationStatus: 'verified' } }),
+      // Real country count: distinct non-null public countries across published cases
+      prisma.case.findMany({ where: { publicCountry: { not: null } }, distinct: ['publicCountry'], select: { publicCountry: true } }),
     ]);
+
+    const verificationRate = totalInvestigations > 0
+      ? Math.round((verifiedInvestigations / totalInvestigations) * 100)
+      : 0;
+    const countriesReached = countriesRows.length;
 
     res.json({
       // Cases
       totalCasesPublished:    totalCases,
       casesCompleted:         completedCases,
       casesActive:            activeCases,
-      verificationRate:       100,
+      verificationRate,
       familiesHelped:         completedCases,
 
       // Financial
@@ -51,7 +63,7 @@ router.get('/', async (_req: Request, res: Response) => {
 
       // Medical
       medicalCasesCompleted:  medicalCases,
-      countriesReached:       1,
+      countriesReached,
     });
   } catch { res.status(500).json({ error: 'Failed to retrieve impact stats' }); }
 });
