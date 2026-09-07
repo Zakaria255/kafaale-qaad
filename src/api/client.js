@@ -43,7 +43,18 @@ async function req(path, opts = {}) {
     throw new Error('Session expired. Please log in again.');
   }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
+  if (!res.ok) {
+    // Zod validation errors come back as { error: 'Validation failed', details: [{path, message}, ...] }.
+    // The bare `error` string alone tells the user nothing actionable — surface which
+    // field(s) actually failed and why, instead of a dead-end "Validation failed".
+    const base = data.error || data.message || `HTTP ${res.status}`;
+    const detail = Array.isArray(data.details)
+      ? data.details.map(d => (Array.isArray(d.path) && d.path.length ? `${d.path.join('.')}: ${d.message}` : d.message)).filter(Boolean).join('; ')
+      : '';
+    const err = new Error(detail ? `${base} — ${detail}` : base);
+    err.details = data.details;
+    throw err;
+  }
   return data;
 }
 
