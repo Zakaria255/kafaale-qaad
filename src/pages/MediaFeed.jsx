@@ -26,8 +26,7 @@ function PostCard({ post, currentUser, onLike, onComment, onDelete }) {
       return <iframe src={embedSrc} style={{ width: "100%", height: 320, border: "none" }} allowFullScreen title="video" />;
     }
     return (
-      <video controls style={{ width: "100%", maxHeight: 380, background: "#000", display: "block" }}>
-        <source src={src} />
+      <video src={src} controls style={{ width: "100%", maxHeight: 380, background: "#000", display: "block" }}>
         Your browser does not support video playback.
       </video>
     );

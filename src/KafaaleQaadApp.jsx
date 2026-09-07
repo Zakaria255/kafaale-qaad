@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useLang } from "./context/LanguageContext.jsx";
-import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi, duplicates as duplicatesApi, permissions as permissionsApi, mothers as mothersApi, getToken as getAuthToken } from "./api/client.js";
+import { auth as authApi, cases as casesApi, admin as adminApi, field as fieldApi, notifications as notifsApi, donations, impact, programs as programsApi, projects as projectsApi, settings as settingsApi, notes as notesApi, chat as chatApi, updates as updatesApi, media as mediaApi, duplicates as duplicatesApi, permissions as permissionsApi, mothers as mothersApi, partners as partnersApi, getToken as getAuthToken } from "./api/client.js";
 import Logo from "./components/Logo.jsx";
 import CategoryManager from "./components/CategoryManager.jsx";
 import ImageCropper from "./components/ImageCropper.jsx";
@@ -5740,19 +5740,13 @@ const UPDATES_ADMIN_KEY = "kf_updates";
 const MEDIA_TAGS_KEY    = "kf_media_tags";  // shared with MediaFeed.jsx
 const DEFAULT_MEDIA_TAGS = ["Update", "Success Story", "News", "Event", "Appeal", "Report", "Community"];
 
-const DEFAULT_UPDATES_ADMIN = [
-  { id:"upd-1", type:"Flood",    published:true,  title:"Severe Flooding Displaces 3,000+ Families in Beledweyne", date:"2026-06-15", location:"Beledweyne, Hiran Region",  severity:"critical", body:"Unprecedented flooding along the Shabelle River has displaced over 3,000 families in Beledweyne. Access roads are cut off. Emergency food, shelter, and clean water are urgently needed.", img:"https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=700&q=75", needs:["Emergency Shelter Kits","Clean Water","Food Packages"] },
-  { id:"upd-2", type:"Drought",  published:true,  title:"Drought Alert: Bay Region Facing Critical Food Shortage",  date:"2026-06-10", location:"Baidoa, Bay Region",         severity:"high",     body:"Three consecutive failed rainy seasons have pushed Bay Region into a severe food crisis. Over 15,000 people face acute malnutrition.",  img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=75", needs:["Food Packages","Livestock Feed","Water Trucking"] },
-  { id:"upd-3", type:"Emergency",published:true,  title:"IDP Camp Medical Emergency — Mogadishu North",            date:"2026-06-05", location:"Mogadishu, Benadir",         severity:"high",     body:"A disease outbreak in Mogadishu North IDP camp is affecting hundreds of families. Medical supplies are critically low.", img:"https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=700&q=75", needs:["Medicine","ORS Kits","Mobile Clinic"] },
-  { id:"upd-4", type:"General",  published:true,  title:"Kafaala Qaad Expands to Lower Jubba Region",              date:"2026-05-28", location:"Kismayo, Lower Jubba",       severity:"info",     body:"We are proud to announce our expansion into the Lower Jubba region. Local field agents have been trained and onboarded.", img:"https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=700&q=75", needs:[] },
-];
-// No fake staff fallback — an unconfigured team just starts empty in the
-// admin editor, same as the public About page.
+// No fake staff/updates fallback — an unconfigured list just starts empty in
+// the admin editor, same as the public pages.
 const loadTeamAdmin = () => {
   try { return JSON.parse(localStorage.getItem(TEAM_KEY_ADMIN)||"null") || []; }
   catch { return []; }
 };
-const loadUpdatesAdmin = () => { try { return JSON.parse(localStorage.getItem(UPDATES_ADMIN_KEY)||"null")||DEFAULT_UPDATES_ADMIN; } catch { return DEFAULT_UPDATES_ADMIN; } };
+const loadUpdatesAdmin = () => { try { return JSON.parse(localStorage.getItem(UPDATES_ADMIN_KEY)||"null") || []; } catch { return []; } };
 const loadMediaTags    = () => { try { const t = JSON.parse(localStorage.getItem(MEDIA_TAGS_KEY)||"null"); return Array.isArray(t) && t.length ? t : DEFAULT_MEDIA_TAGS; } catch { return DEFAULT_MEDIA_TAGS; } };
 const BLANK_MEMBER = { id:"", name:"", role:"", bio:"", photo:"", linkedin:"", show:true };
 const BLANK_UPDATE = { id:"", type:"General", published:false, title:"", date:"", location:"", severity:"medium", body:"", img:"", needs:[] };
@@ -7228,15 +7222,38 @@ const BulkImportPanel = ({ showToast, currentUser }) => {
 };
 
 // ─── PARTNER APPLICATIONS ADMIN PANEL ────────────────────────────────────────
+const parsePartnerFocus = (focus) => {
+  if (!focus) return [];
+  if (Array.isArray(focus)) return focus;
+  try { const v = JSON.parse(focus); return Array.isArray(v) ? v : []; } catch { return []; }
+};
 const PartnerApplicationsPanel = ({ showToast }) => {
-  const [apps, setApps] = useState(() => { try { return JSON.parse(localStorage.getItem("kf_partner_applications") || "[]"); } catch { return []; } });
+  const [apps, setApps] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selected, setSelected] = useState(null);
+
+  const load = () => {
+    setLoading(true);
+    setError(null);
+    partnersApi.adminList()
+      .then(res => setApps(res?.partners || []))
+      .catch(err => setError(err.message || "Failed to load partner applications"))
+      .finally(() => setLoading(false));
+  };
+  useEffect(load, []);
+
   const updateStatus = (id, status) => {
-    const updated = apps.map(a => a.id === id ? { ...a, status } : a);
-    setApps(updated);
-    localStorage.setItem("kf_partner_applications", JSON.stringify(updated));
-    setSelected(null);
-    showToast?.(`Application ${status}`, status === "approved" ? "success" : "error");
+    const action = status === "approved" ? partnersApi.adminApprove(id) : partnersApi.adminReject(id);
+    action
+      .then(updatedPartner => {
+        setApps(prev => prev.map(a => a.id === id ? updatedPartner : a));
+        setSelected(null);
+        showToast?.(`Application ${status}`, status === "approved" ? "success" : "error");
+      })
+      .catch(err => {
+        showToast?.(err.message || `Failed to ${status === "approved" ? "approve" : "reject"} application`, "error");
+      });
   };
   const ST = { pending:{ bg:"#FEF3C7", color:"#92400E", label:"Pending" }, approved:{ bg:"#D1FAE5", color:"#065F46", label:"Approved" }, rejected:{ bg:"#FEE2E2", color:"#991B1B", label:"Rejected" } };
   return (
@@ -7245,14 +7262,17 @@ const PartnerApplicationsPanel = ({ showToast }) => {
         <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>Partner Applications</h3>
         <span style={{ fontSize:13, color:COLORS.muted }}>{apps.length} applications · {apps.filter(a=>a.status==="pending").length} pending review</span>
       </div>
-      {apps.length === 0 && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.muted, background:"#fff", borderRadius:16 }}>No partner applications yet</div>}
+      {loading && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.muted, background:"#fff", borderRadius:16 }}>Loading partner applications…</div>}
+      {!loading && error && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.danger, background:"#fff", borderRadius:16 }}>{error}</div>}
+      {!loading && !error && apps.length === 0 && <div style={{ textAlign:"center", padding:"48px 24px", color:COLORS.muted, background:"#fff", borderRadius:16 }}>No partner applications yet</div>}
+      {!loading && !error && (
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {apps.map(a => (
           <div key={a.id} style={{ background:"#fff", borderRadius:14, padding:"16px 20px", boxShadow:"0 2px 8px #0001", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, border:`1px solid ${COLORS.border}` }}>
             <div>
-              <div style={{ fontSize:15, fontWeight:800, color:COLORS.text }}>{a.orgName || "Unknown Organization"}</div>
-              <div style={{ fontSize:12, color:COLORS.muted, marginTop:2 }}>{a.orgType} · {a.country} · {a.email}</div>
-              <div style={{ fontSize:11, color:COLORS.muted }}>Submitted {a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : "—"}</div>
+              <div style={{ fontSize:15, fontWeight:800, color:COLORS.text }}>{a.name || "Unknown Organization"}</div>
+              <div style={{ fontSize:12, color:COLORS.muted, marginTop:2 }}>{a.type} · {a.country} · {a.contactEmail}</div>
+              <div style={{ fontSize:11, color:COLORS.muted }}>Submitted {a.createdAt ? new Date(a.createdAt).toLocaleDateString() : "—"}</div>
             </div>
             <div style={{ display:"flex", gap:8, alignItems:"center" }}>
               <span style={{ ...((ST[a.status]||ST.pending)), borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700 }}>{(ST[a.status]||ST.pending).label}</span>
@@ -7265,14 +7285,15 @@ const PartnerApplicationsPanel = ({ showToast }) => {
           </div>
         ))}
       </div>
+      )}
       {selected && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
           <div style={{ background:"#fff", borderRadius:20, padding:28, maxWidth:560, width:"100%", maxHeight:"85vh", overflowY:"auto" }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
-              <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>{selected.orgName}</h3>
+              <h3 style={{ margin:0, fontSize:18, fontWeight:800 }}>{selected.name}</h3>
               <button onClick={() => setSelected(null)} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:COLORS.muted }}>✕</button>
             </div>
-            {[["Organization",`${selected.orgName} · ${selected.orgType}`],["Country",selected.country],["Website",selected.website||"—"],["Reg. Number",selected.regNumber||"—"],["Founded",selected.founded||"—"],["Contact",`${selected.contactName} · ${selected.contactTitle}`],["Email",selected.email],["Phone",selected.phone||"—"],["Focus Areas",(selected.focusAreas||[]).join(", ")],["Description",selected.description||"—"]].map(([k,v])=>(
+            {[["Organization",`${selected.name} · ${selected.type}`],["Country",selected.country],["Website",selected.website||"—"],["Reg. Number",selected.regNumber||"—"],["Founded",selected.yearFounded||"—"],["Contact",`${selected.contactName} · ${selected.contactTitle}`],["Email",selected.contactEmail],["Phone",selected.contactPhone||"—"],["Focus Areas",parsePartnerFocus(selected.focus).join(", ")||"—"],["Description",selected.description||"—"]].map(([k,v])=>(
               <div key={k} style={{ display:"grid", gridTemplateColumns:"140px 1fr", gap:8, padding:"10px 0", borderBottom:`1px solid ${COLORS.border}` }}>
                 <div style={{ fontSize:12, fontWeight:700, color:COLORS.muted }}>{k}</div>
                 <div style={{ fontSize:13, color:COLORS.text }}>{v}</div>
@@ -7938,7 +7959,13 @@ const AdminDashboard = ({ cases, users, donations, sponsors, agents, onViewCase,
   const proofPending   = cases.filter(c => c.status === "Proof Submitted");
   const recentDonations = donations.slice(0, 5);
   const filteredDonations = donFilter === "all" ? donations : donations.filter(d => d.status === donFilter);
-  const partnerApps = (() => { try { return JSON.parse(localStorage.getItem("kf_partner_applications")||"[]"); } catch { return []; } })();
+  // Real partner applications (from the database), not the old dead localStorage
+  // key — that count/badge was silently stuck at 0 once the registration form
+  // was wired to the real API instead of localStorage.
+  const [partnerApps, setPartnerApps] = useState([]);
+  useEffect(() => {
+    partnersApi.adminList().then(({ partners }) => setPartnerApps(partners || [])).catch(() => {});
+  }, []);
   const volApps     = (() => { try { return JSON.parse(localStorage.getItem("kf_volunteer_applications")||"[]"); } catch { return []; } })();
 
   const newReports      = cases.filter(c => c.status === "Pending Verification");

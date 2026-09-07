@@ -28,15 +28,28 @@ export default function Updates() {
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState("All");
   const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
+  // "failed"  = real fetch failed and there is no cached data to fall back to
+  // "stale"   = real fetch failed but a cached copy is being shown instead
+  // null      = real data loaded successfully (or fetch still in flight)
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Local copy shows instantly; the server (shared across all visitors) then
-    // overrides it once it answers. Falls back to the local copy if the API
-    // is unreachable, so the page still works offline/demo-mode.
-    setItems(getUpdates().filter(u => u.published));
+    // Local copy shows instantly (fast first paint); the real API response
+    // — shared across all visitors — always wins once it lands. If the
+    // fetch fails, we never invent data: we either show the honest cached
+    // copy with a "may be outdated" notice, or a real error state.
+    const cached = getUpdates().filter(u => u.published);
+    if (cached.length) setItems(cached);
     updatesApi.list()
-      .then(({ updates }) => { if (Array.isArray(updates)) setItems(updates.filter(u => u.published)); })
-      .catch(() => {});
+      .then(({ updates }) => {
+        if (Array.isArray(updates)) {
+          setItems(updates.filter(u => u.published));
+          setError(null);
+        }
+      })
+      .catch(() => { setError(cached.length ? "stale" : "failed"); })
+      .finally(() => setLoading(false));
   }, []);
 
   const types = ["All", ...Array.from(new Set(items.map(u => u.type)))];
@@ -87,7 +100,27 @@ export default function Updates() {
       {/* ── Grid ── */}
       <section style={{ padding:"48px 24px 80px", background:C.bg, minHeight:"60vh" }}>
         <div style={{ maxWidth:1200, margin:"0 auto" }}>
-          {visible.length === 0 && (
+          {loading && items.length === 0 && (
+            <div style={{ textAlign:"center", padding:"80px 0", color:C.muted }}>
+              <div style={{ fontSize:18, fontWeight:700 }}>Loading updates…</div>
+            </div>
+          )}
+
+          {!loading && error === "failed" && (
+            <div style={{ textAlign:"center", padding:"80px 0", color:C.muted }}>
+              <div style={{ fontSize:48, marginBottom:16 }}>⚠️</div>
+              <div style={{ fontSize:18, fontWeight:700, color:C.text }}>Couldn't load updates right now.</div>
+              <div style={{ fontSize:14, marginTop:8 }}>Please check your connection and try again shortly.</div>
+            </div>
+          )}
+
+          {!loading && error === "stale" && (
+            <div style={{ background:"#FEF3C7", border:"1px solid #FDE68A", color:"#92400E", borderRadius:12, padding:"12px 18px", fontSize:13, fontWeight:600, marginBottom:24, textAlign:"center" }}>
+              Showing a locally cached copy — we couldn't reach the server for the latest updates, so this may be out of date.
+            </div>
+          )}
+
+          {!loading && error !== "failed" && visible.length === 0 && (
             <div style={{ textAlign:"center", padding:"80px 0", color:C.muted }}>
               <div style={{ fontSize:48, marginBottom:16 }}></div>
               <div style={{ fontSize:18, fontWeight:700 }}>No updates found for this filter.</div>
