@@ -2140,19 +2140,34 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
 
   const findCoverMedia = (list) => (list || []).find(m => m.type === "image" && (m.filename || "").startsWith("__cover__"));
 
-  // Load whatever cover is actually live on the server. Rows opened from the case
-  // table only carry a media count, not the files, so fetch the full case once.
+  // Reporter/field-uploaded photos are private by default. The admin must
+  // explicitly pick which ones (if any) become visible on the public case
+  // page — publishing must never blanket-expose every uploaded image.
+  const [reporterMedia,     setReporterMedia]     = useState([]); // [{id,url,isPublic}], excludes the cover
+  const [selectedMediaIds,  setSelectedMediaIds]  = useState(() => new Set());
+  const [mediaLoading,      setMediaLoading]      = useState(true);
+  const toggleMediaSelected = (id) => setSelectedMediaIds(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+
+  // Load the full case once — the row this modal opened from only carries a
+  // media count, not the actual files, so both the cover picker and the
+  // reporter-photo selector need this real fetch.
   useEffect(() => {
     let cancelled = false;
-    const already = findCoverMedia(raw.mediaFiles);
-    if (already) { setCoverPreviewUrl(already.url); setHadRemoteCover(true); return; }
     (async () => {
       try {
         const full = await adminApi.getCase(caseItem.id);
         if (cancelled) return;
         const cover = findCoverMedia(full.mediaFiles);
         if (cover) { setCoverPreviewUrl(cover.url); setHadRemoteCover(true); }
-      } catch { /* best-effort — leave the picker empty if this fails */ }
+        const others = (full.mediaFiles || []).filter(m => m.type === "image" && !(m.filename || "").startsWith("__cover__"));
+        setReporterMedia(others);
+        setSelectedMediaIds(new Set(others.filter(m => m.isPublic).map(m => m.id)));
+      } catch { /* best-effort — leave the pickers empty if this fails */ }
+      finally { if (!cancelled) setMediaLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [caseItem.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -2195,10 +2210,11 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
     if (!form.publicTitle || !form.publicStory || !form.targetGoal) return;
     setLoading(true);
     try {
+      const publicMediaIds = Array.from(selectedMediaIds);
       if (isEdit) {
-        await adminApi.updatePublicInfo(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal) });
+        await adminApi.updatePublicInfo(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal), publicMediaIds });
       } else {
-        await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal) });
+        await adminApi.publish(caseItem.id, { ...form, targetGoal: parseFloat(form.targetGoal), publicMediaIds });
       }
       if (coverFile) {
         await adminApi.uploadCover(caseItem.id, coverFile);
@@ -2275,6 +2291,39 @@ const PublishCaseModal = ({ caseItem, onClose, onDone, showToast }) => {
           onCancel={() => setCropFile(null)}
         />
       )}
+
+      {/* ── Reporter/field-uploaded photos — admin picks which go public ── */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          Uploaded Evidence Photos — select which are safe to show publicly
+        </div>
+        {mediaLoading ? (
+          <div style={{ fontSize: 13, color: COLORS.muted, padding: "12px 0" }}>Loading uploaded photos…</div>
+        ) : reporterMedia.length === 0 ? (
+          <div style={{ fontSize: 13, color: COLORS.muted, padding: "12px 0" }}>No photos were uploaded with this report.</div>
+        ) : (
+          <>
+            <div style={{ fontSize: 12, color: COLORS.muted, marginBottom: 10 }}>
+              Nothing is public by default. Only the photos you check here will appear on the public case page — everything else stays private.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10 }}>
+              {reporterMedia.map(m => {
+                const checked = selectedMediaIds.has(m.id);
+                return (
+                  <label key={m.id} style={{ position: "relative", cursor: "pointer", borderRadius: 10, overflow: "hidden", border: `2px solid ${checked ? COLORS.secondary : COLORS.border}`, display: "block" }}>
+                    <img src={m.url} alt="" style={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} />
+                    <input type="checkbox" checked={checked} onChange={() => toggleMediaSelected(m.id)}
+                      style={{ position: "absolute", top: 6, left: 6, width: 18, height: 18, cursor: "pointer" }} />
+                    {checked && (
+                      <span style={{ position: "absolute", bottom: 4, right: 4, background: COLORS.secondary, color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 800 }}>Public</span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <Btn variant="ghost" onClick={onClose} style={{ flex: 1 }}>Cancel</Btn>

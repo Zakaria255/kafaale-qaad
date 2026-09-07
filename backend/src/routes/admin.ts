@@ -185,13 +185,19 @@ router.patch('/cases/:id/assign-delivery', async (req: AuthRequest, res: Respons
 // PATCH /api/admin/cases/:id/publish — Publish case after AI sanitization
 router.patch('/cases/:id/publish', requirePermission('case.publish'), async (req: AuthRequest, res: Response) => {
   try {
-    const { publicTitle, publicStory, publicCity, targetGoal } = req.body;
+    const { publicTitle, publicStory, publicCity, targetGoal, publicMediaIds } = req.body;
     const kase = await prisma.case.update({
       where: { id: req.params.id },
       data: { status: 'waiting_for_sponsor', publicTitle, publicStory, publicCity, targetGoal, adminPublishedAt: new Date() },
     });
-    // Expose uploaded image media on the public detail page (isPublic defaults to false).
-    await prisma.caseMedia.updateMany({ where: { caseId: kase.id, type: 'image' }, data: { isPublic: true } });
+    // Reporter/field-uploaded media is private by default (isPublic defaults to false)
+    // and stays that way unless the admin explicitly picks specific photos in the
+    // publish modal — publishing a case must never blanket-expose every uploaded
+    // image, since some may be irrelevant or unsuitable for public display.
+    await prisma.caseMedia.updateMany({ where: { caseId: kase.id, type: 'image' }, data: { isPublic: false } });
+    if (Array.isArray(publicMediaIds) && publicMediaIds.length) {
+      await prisma.caseMedia.updateMany({ where: { id: { in: publicMediaIds }, caseId: kase.id }, data: { isPublic: true } });
+    }
     if (kase.reporterId) {
       await prisma.notification.create({
         data: { userId: kase.reporterId, caseId: kase.id, type: 'case_published', title: '✅ Your Case is Now Live', message: 'Your case has been verified and published to the donor portal.' },
@@ -208,7 +214,7 @@ router.patch('/cases/:id/publish', requirePermission('case.publish'), async (req
 // e.g. sponsored/delivering/completed).
 router.patch('/cases/:id/public-info', async (req: AuthRequest, res: Response) => {
   try {
-    const { publicTitle, publicStory, publicCity, targetGoal } = req.body;
+    const { publicTitle, publicStory, publicCity, targetGoal, publicMediaIds } = req.body;
     const existing = await prisma.case.findUnique({ where: { id: req.params.id }, select: { id: true } });
     if (!existing) return res.status(404).json({ error: 'Case not found' });
 
@@ -219,6 +225,14 @@ router.patch('/cases/:id/public-info', async (req: AuthRequest, res: Response) =
     if (targetGoal  !== undefined) data.targetGoal  = parseFloat(targetGoal);
 
     const kase = await prisma.case.update({ where: { id: existing.id }, data });
+    if (Array.isArray(publicMediaIds)) {
+      // Re-curate which uploaded photos are public — same explicit-selection model
+      // as the initial publish, so admin can add/remove photos after the fact.
+      await prisma.caseMedia.updateMany({ where: { caseId: kase.id, type: 'image' }, data: { isPublic: false } });
+      if (publicMediaIds.length) {
+        await prisma.caseMedia.updateMany({ where: { id: { in: publicMediaIds }, caseId: kase.id }, data: { isPublic: true } });
+      }
+    }
     await prisma.adminAuditLog.create({ data: { adminId: req.user!.id, caseId: kase.id, action: 'edited_public_info', notes: 'Edited public case details' } });
     sysLog.info(`Admin ${req.user!.email} edited public info of case ${kase.id}`);
     res.json({ message: 'Case updated', caseId: kase.id });
